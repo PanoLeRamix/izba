@@ -10,8 +10,8 @@ create table meal_plans (
   house_id uuid references houses(id) on delete cascade not null,
   
   day_date date not null,
-  -- 'eating', 'not_eating', 'unknown'
-  status text not null default 'unknown',
+  -- 'available', 'unavailable', 'none'
+  status text not null default 'none',
   
   -- Prevent duplicate entries for the same user/day
   unique(user_id, day_date)
