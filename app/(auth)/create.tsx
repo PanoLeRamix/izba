@@ -8,6 +8,8 @@ import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../store/authStore';
+import { LanguageToggle } from '../../components/LanguageToggle';
+import { Colors } from '../../constants/Colors';
 
 export default function CreateHouse() {
   const [houseName, setHouseName] = useState('');
@@ -73,7 +75,10 @@ export default function CreateHouse() {
 
   return (
     <View className="flex-1 bg-hearth p-6 pt-20">
-      <Text className="text-3xl font-bold mb-8 text-forest-dark">{t('auth.createHouse')}</Text>
+      <View className="flex-row justify-between items-center mb-8">
+        <Text className="text-3xl font-bold text-forest-dark">{t('auth.createHouse')}</Text>
+        <LanguageToggle />
+      </View>
       
       <Input
         label={t('auth.houseName')}
@@ -91,6 +96,14 @@ export default function CreateHouse() {
         />
       </View>
 
+      <View className="mt-4">
+        <Button 
+          title={t('common.back')} 
+          variant="outline"
+          onPress={() => router.back()} 
+        />
+      </View>
+
       <Modal
         visible={showModal}
         transparent={true}
@@ -102,7 +115,8 @@ export default function CreateHouse() {
             <Text className="text-hearth-earth/70 mb-6 text-center">{t('auth.shareCodeHint')}</Text>
             
             <TouchableOpacity 
-              className="bg-sage-light/30 p-6 rounded-2xl mb-8 w-full items-center border border-sage/30"
+              style={{ backgroundColor: Colors.sageLight + '4D' }} // SageLight with 30% opacity equivalent
+              className="p-6 rounded-2xl mb-8 w-full items-center border border-sage/30"
               onPress={copyToClipboard}
               activeOpacity={0.7}
             >
@@ -112,7 +126,7 @@ export default function CreateHouse() {
               <View className="flex-row items-center mt-2">
                 {copied ? (
                   <>
-                    <Check size={14} color="#2D5A27" style={{ marginRight: 4 }} />
+                    <Check size={14} color={Colors.forest} style={{ marginRight: 4 }} />
                     <Text className="text-forest font-bold text-xs uppercase tracking-widest">{t('main.copied')}</Text>
                   </>
                 ) : (

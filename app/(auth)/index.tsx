@@ -6,6 +6,7 @@ import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../store/authStore';
+import { LanguageToggle } from '../../components/LanguageToggle';
 
 export default function JoinHouse() {
   const [code, setCode] = useState('');
@@ -29,7 +30,6 @@ export default function JoinHouse() {
 
       if (error || !data) {
         setErrorMsg(t('auth.invalidCode'));
-        // Fallback for native
         Alert.alert(t('common.error'), t('auth.invalidCode'));
         return;
       }
@@ -48,7 +48,10 @@ export default function JoinHouse() {
 
   return (
     <View className="flex-1 bg-hearth p-6 pt-20">
-      <Text className="text-3xl font-bold mb-8 text-forest-dark">{t('auth.title')}</Text>
+      <View className="flex-row justify-between items-center mb-8">
+        <Text className="text-3xl font-bold text-forest-dark">{t('auth.title')}</Text>
+        <LanguageToggle />
+      </View>
       
       <Input
         label={t('auth.enterCode')}

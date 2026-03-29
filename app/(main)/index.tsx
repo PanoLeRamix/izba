@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '../../services/supabase';
 import { Copy, Home, User, LogOut, Check } from 'lucide-react-native';
 import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
+import { LanguageToggle } from '../../components/LanguageToggle';
+import { Colors } from '../../constants/Colors';
 
 export default function MainIndex() {
   const { logout, houseId, userId } = useAuthStore();
@@ -51,7 +53,7 @@ export default function MainIndex() {
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-hearth">
-        <ActivityIndicator size="large" color="#2D5A27" />
+        <ActivityIndicator size="large" color={Colors.forest} />
       </View>
     );
   }
@@ -65,14 +67,14 @@ export default function MainIndex() {
 
       {/* House Tile */}
       <View 
-        style={{ backgroundColor: '#F4F2EC' }}
-        className="p-6 rounded-3xl mb-6 border border-sage/30 shadow-sm"
+        style={{ backgroundColor: Colors.tileBackground }}
+        className="p-6 rounded-3xl mb-6 border border-sage/30 shadow-sm overflow-hidden"
       >
-        <View className="flex-row items-center mb-6">
+        <View className="flex-row items-center mb-6 bg-transparent">
           <View className="bg-forest/10 p-3 rounded-2xl mr-4">
-            <Home size={24} color="#2D5A27" />
+            <Home size={24} color={Colors.forest} />
           </View>
-          <View className="flex-1">
+          <View className="flex-1 bg-transparent">
             <Text className="text-[10px] text-hearth-earth/40 uppercase font-bold tracking-[2px] mb-1">
               {t('main.house')}
             </Text>
@@ -87,7 +89,7 @@ export default function MainIndex() {
           className="bg-forest/5 p-4 rounded-2xl flex-row items-center justify-between border border-forest/10"
           activeOpacity={0.6}
         >
-          <View>
+          <View className="flex-1 bg-transparent">
             <Text className="text-[10px] text-hearth-earth/40 uppercase font-bold tracking-[1px] mb-0.5">
               {t('main.inviteCode')}
             </Text>
@@ -95,9 +97,9 @@ export default function MainIndex() {
           </View>
           <View className="bg-white/50 p-2 rounded-xl">
             {copied ? (
-              <Check size={18} color="#2D5A27" />
+              <Check size={18} color={Colors.forest} />
             ) : (
-              <Copy size={18} color="#2D5A27" />
+              <Copy size={18} color={Colors.forest} />
             )}
           </View>
         </TouchableOpacity>
@@ -105,13 +107,13 @@ export default function MainIndex() {
 
       {/* User Tile */}
       <View 
-        style={{ backgroundColor: '#F4F2EC' }}
-        className="p-6 rounded-3xl mb-12 border border-sage/30 shadow-sm flex-row items-center"
+        style={{ backgroundColor: Colors.tileBackground }}
+        className="p-6 rounded-3xl mb-6 border border-sage/30 shadow-sm flex-row items-center overflow-hidden"
       >
         <View className="bg-forest/10 p-3 rounded-2xl mr-4">
-          <User size={24} color="#2D5A27" />
+          <User size={24} color={Colors.forest} />
         </View>
-        <View className="flex-1">
+        <View className="flex-1 bg-transparent">
           <Text className="text-[10px] text-hearth-earth/40 uppercase font-bold tracking-[2px] mb-1">
             {t('main.identity')}
           </Text>
@@ -120,13 +122,16 @@ export default function MainIndex() {
           </Text>
         </View>
       </View>
+
+      {/* Language Selection Tile */}
+      <LanguageToggle variant="tile" />
       
       <View className="mt-auto">
         <Button 
           title={t('main.logout')} 
           onPress={logout} 
           variant="outline"
-          icon={<LogOut size={20} color="#2D5A27" />}
+          icon={<LogOut size={20} color={Colors.forest} />}
         />
       </View>
     </View>

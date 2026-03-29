@@ -30,6 +30,8 @@
   "common": {
     "loading": "Chargement...",
     "error": "Une erreur est survenue",
-    "back": "Retour"
+    "back": "Retour",
+    "language": "Langue",
+    "appLanguage": "Langue de l'application"
   }
 }

@@ -7,6 +7,8 @@ import { useAuthStore } from '../../store/authStore';
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { UserPlus } from 'lucide-react-native';
+import { LanguageToggle } from '../../components/LanguageToggle';
+import { Colors } from '../../constants/Colors';
 
 export default function SelectUser() {
   const { houseId: paramHouseId } = useLocalSearchParams<{ houseId: string }>();
@@ -66,14 +68,17 @@ export default function SelectUser() {
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-hearth">
-        <ActivityIndicator size="large" color="#2D5A27" />
+        <ActivityIndicator size="large" color={Colors.forest} />
       </View>
     );
   }
 
   return (
     <View className="flex-1 bg-hearth p-6 pt-20">
-      <Text className="text-3xl font-bold mb-8 text-forest-dark">{t('auth.selectIdentity')}</Text>
+      <View className="flex-row justify-between items-center mb-8">
+        <Text className="text-3xl font-bold text-forest-dark">{t('auth.selectIdentity')}</Text>
+        <LanguageToggle />
+      </View>
       
       {!showAddForm ? (
         <FlatList
@@ -92,7 +97,7 @@ export default function SelectUser() {
               className="w-full border-2 border-dashed border-sage p-6 rounded-2xl mb-4 flex-row items-center justify-center"
               onPress={() => setShowAddForm(true)}
             >
-              <UserPlus size={24} color="#2D5A27" style={{ marginRight: 8 }} />
+              <UserPlus size={24} color={Colors.forest} style={{ marginRight: 8 }} />
               <Text className="text-xl font-medium text-forest">{t('auth.addPerson')}</Text>
             </TouchableOpacity>
           }

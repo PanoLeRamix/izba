@@ -30,6 +30,8 @@
   "common": {
     "loading": "Loading...",
     "error": "An error occurred",
-    "back": "Back"
+    "back": "Back",
+    "language": "Language",
+    "appLanguage": "App Language"
   }
 }

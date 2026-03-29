@@ -5,14 +5,15 @@ This document contains mandatory guidelines and context for all AI agents workin
 ## 🛠️ Technical Standards
 - **TypeScript Only:** No JavaScript files allowed. Use strict typing and avoid `any`.
 - **Expo Router:** Follow file-based navigation conventions in the `app/` directory.
-- **NativeWind:** Use Tailwind classes for styling. Avoid inline `StyleSheet` unless absolutely necessary for complex animations.
-- **Hooks-First:** Logic should be encapsulated in custom hooks (e.g., `useMeals`, `useHouseAuth`).
+- **NativeWind & Colors:** Use Tailwind classes for layout. For fixed hex/rgba colors, always use `constants/Colors.ts`. Avoid hardcoding hex strings in components.
+- **Hooks & Components:** Encapsulate logic in custom hooks. Extract repetitive UI patterns into reusable components in `components/`.
 - **i18n Consistency:** Never hardcode strings in UI components. Use `t('key')` from `react-i18next`. Translation files are located in `assets/locales/`.
 
 ## 📁 Project Structure
 - `app/`: Expo Router screens and layouts.
-- `components/`: Reusable UI components (Atomic design preferred).
-- `hooks/`: Custom React hooks for logic/data fetching.
+- `components/`: Reusable UI components.
+- `constants/`: Global constants like `Colors.ts`.
+- `hooks/`: Custom React hooks.
 - `services/`: API clients (Supabase), storage, and external integrations.
 - `store/`: Zustand state definitions.
 - `types/`: Global TypeScript definitions.
@@ -34,8 +35,8 @@ This document contains mandatory guidelines and context for all AI agents workin
 - **RLS:** Always enable and define Row Level Security (RLS) policies for new tables to ensure privacy.
 - **SQL-First:** Treat the migration files as the source of truth for the database model.
 
-## ✅ Verification Workflow
-- Every feature or bug fix must include corresponding tests in `__tests__` or alongside the file.
-- Run `npx tsc` to ensure no type errors are introduced.
-- **Iterative Approach:** Only implement the specific step requested by the user. Do not over-engineer or add "future" features.
-- **Proactive Refactoring:** While working on files, if you see things that should be refactored or made in a better way, even if this isn't the scope of the task, propose to do it if you think it'd be a good addition to the project.
+## ✅ Verification & Evolution
+- **Iterative Approach:** Only implement the specific step requested by the user. Do not over-engineer.
+- **Proactive Refactoring:** Propose refactors even if out of scope if they benefit long-term maintenance.
+- **Document Paradigm Changes:** When introducing a major architectural shift (e.g., centralized colors, new component patterns), you MUST update this `AGENTS.md` file to reflect the new "source of truth".
+- **Validation:** Run `npx tsc` to ensure no type errors are introduced.
