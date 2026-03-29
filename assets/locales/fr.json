@@ -32,7 +32,8 @@
     "error": "Une erreur est survenue",
     "back": "Retour",
     "language": "Langue",
-    "appLanguage": "Langue de l'application"
+    "appLanguage": "Langue de l'application",
+    "today": "Aujourd'hui"
   },
   "tabs": {
     "home": "Accueil",

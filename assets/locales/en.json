@@ -32,7 +32,8 @@
     "error": "An error occurred",
     "back": "Back",
     "language": "Language",
-    "appLanguage": "App Language"
+    "appLanguage": "App Language",
+    "today": "Today"
   },
   "tabs": {
     "home": "Home",
