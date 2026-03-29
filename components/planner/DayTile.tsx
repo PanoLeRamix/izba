@@ -14,7 +14,8 @@ interface DayTileProps {
   locale: any;
   isToday: boolean;
   tileHeight: number;
-  eaters: User[];
+  eaters: (User & { guestCount?: number })[];
+  eatersCount: number;
   cookName?: string;
 }
 
@@ -29,6 +30,7 @@ export const DayTile = memo(({
   isToday: today, 
   tileHeight, 
   eaters,
+  eatersCount,
   cookName
 }: DayTileProps) => {
   let iconColor = '#92400e'; 
@@ -45,7 +47,12 @@ export const DayTile = memo(({
     borderColor = 'border-red-200';
   }
 
-  const eatersDisplay = eaters.map((u: User) => u.name).join(', ');
+  const eatersDisplay = eaters.map((u) => {
+    if (u.guestCount && u.guestCount > 0) {
+      return `${u.name} (+${u.guestCount})`;
+    }
+    return u.name;
+  }).join(', ');
 
   return (
     <TouchableOpacity
@@ -80,11 +87,11 @@ export const DayTile = memo(({
             </Text>
           </View>
           <View className="flex-row items-center h-6">
-            <View className="relative mr-3">
-              <Text className="text-lg">🍽️</Text>
-              {eaters.length > 0 && (
-                <View className="absolute -bottom-1 -right-2 bg-forest rounded-full w-4 h-4 items-center justify-center border border-white">
-                  <Text className="text-[10px] text-white font-bold leading-none">{eaters.length}</Text>
+            <View className="relative mr-2 items-center justify-center w-6 h-6">
+              <Text className="text-lg absolute">🍽️</Text>
+              {eatersCount > 0 && (
+                <View className="items-center justify-center mt-0.5">
+                  <Text className="text-[8px] text-black font-black leading-none">{eatersCount}</Text>
                 </View>
               )}
             </View>

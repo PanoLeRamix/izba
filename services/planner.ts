@@ -9,6 +9,7 @@ export interface MealPlan {
   day_date: string;
   status: PlannerStatus;
   is_cooking: boolean;
+  guest_count: number;
 }
 
 export const plannerService = {

@@ -12,7 +12,7 @@ import {
   StyleSheet
 } from 'react-native';
 import { format } from 'date-fns';
-import { XCircle, Check, ChefHat } from 'lucide-react-native';
+import { XCircle, Minus, Plus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { User } from '../../services/user';
 import { useAuthStore } from '../../store/authStore';
@@ -22,10 +22,12 @@ interface DetailModalProps {
   onClose: () => void;
   date: Date | null;
   dateKey: string;
-  eaters: User[];
+  eaters: (User & { guestCount?: number })[];
   cooks: User[];
   isUserCooking: boolean;
+  guestCount: number;
   onToggleCooking: (dateKey: string) => void;
+  onSetGuestCount: (dateKey: string, count: number) => void;
   locale: any;
 }
 
@@ -39,7 +41,9 @@ export const DetailModal = ({
   eaters, 
   cooks,
   isUserCooking,
+  guestCount,
   onToggleCooking,
+  onSetGuestCount,
   locale 
 }: DetailModalProps) => {
   const { t } = useTranslation();
@@ -108,19 +112,31 @@ export const DetailModal = ({
     outputRange: [0, 1],
   });
 
-  const renderMemberChip = (user: User) => {
+  const renderMemberChip = (user: User & { guestCount?: number }) => {
     const isMe = user.id === userId;
     return (
-      <View 
-        key={user.id} 
-        className={`px-4 py-2 rounded-full border ${isMe ? 'bg-forest/20 border-forest/40' : 'bg-forest/5 border-forest/10'}`}
-      >
-        <Text className="font-bold text-forest text-sm">
-          {user.name}{isMe ? ` (${t('common.today').toLowerCase()})` : ''}
-        </Text>
+      <View key={user.id} className="relative mb-1">
+        <View 
+          className={`px-4 py-2 rounded-full border ${isMe ? 'bg-forest/20 border-forest/40' : 'bg-forest/5 border-forest/10'}`}
+        >
+          <Text className="font-bold text-forest text-sm">
+            {user.name}
+          </Text>
+        </View>
+        {user.guestCount && user.guestCount > 0 ? (
+          <View 
+            className="absolute -top-2 -right-2 bg-forest px-1.5 py-0.5 rounded-lg border border-white shadow-sm"
+          >
+            <Text className="text-[10px] text-white font-black">
+              +{user.guestCount}
+            </Text>
+          </View>
+        ) : null}
       </View>
     );
   };
+
+  const totalEatersCount = eaters.reduce((sum, u) => sum + 1 + (u.guestCount || 0), 0);
 
   return (
     <Modal
@@ -151,7 +167,7 @@ export const DetailModal = ({
                 { translateY: translateY },
                 { translateY: panY }
               ],
-              paddingTop: IS_WEB ? 10 : 32,
+              paddingTop: IS_WEB ? 10 : undefined,
               paddingBottom: Platform.OS === 'ios' ? 40 : 20,
               backgroundColor: '#F9F7F2', 
               borderTopLeftRadius: IS_WEB ? 0 : 48,
@@ -197,32 +213,58 @@ export const DetailModal = ({
                 </TouchableOpacity>
               </View>
               
-              {cooks.length > 0 ? (
-                <View className="flex-row flex-wrap gap-2">
-                  {cooks.map(renderMemberChip)}
-                </View>
-              ) : (
-                <Text className="text-forest-dark/40 italic font-medium">{t('planner.noOneCooking')}</Text>
-              )}
+              <View className="flex-row flex-wrap gap-2">
+                {cooks.length > 0 ? cooks.map(renderMemberChip) : (
+                  <Text className="text-forest-dark/40 italic font-medium">{t('planner.noOneCooking')}</Text>
+                )}
+              </View>
             </View>
 
             {/* Eating Section */}
-            <View className="bg-white rounded-[32px] p-6 border border-sage-light/30 shadow-sm">
+            <View className="bg-white rounded-[32px] p-6 mb-4 border border-sage-light/30 shadow-sm">
               <View className="flex-row items-center mb-4">
                 <Text className="text-2xl mr-3">🍽️</Text>
                 <Text className="text-lg font-black text-forest-dark uppercase tracking-tight">{t('planner.eating')}</Text>
                 <View className="ml-2 bg-forest/10 px-2.5 py-0.5 rounded-full">
-                  <Text className="text-forest text-xs font-black">{eaters.length}</Text>
+                  <Text className="text-forest text-xs font-black">{totalEatersCount}</Text>
                 </View>
               </View>
               
-              {eaters.length > 0 ? (
-                <View className="flex-row flex-wrap gap-2">
-                  {eaters.map(renderMemberChip)}
+              <View className="flex-row flex-wrap gap-2">
+                {eaters.length > 0 ? eaters.map(renderMemberChip) : (
+                  <Text className="text-forest-dark/40 italic font-medium">{t('planner.noOneEating')}</Text>
+                )}
+              </View>
+            </View>
+
+            {/* Invite Friends Section */}
+            <View className="bg-white rounded-[32px] p-6 border border-sage-light/30 shadow-sm">
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center">
+                  <Text className="text-2xl mr-3">👋</Text>
+                  <Text className="text-lg font-black text-forest-dark uppercase tracking-tight">{t('planner.inviteFriends')}</Text>
                 </View>
-              ) : (
-                <Text className="text-forest-dark/40 italic font-medium">{t('planner.noOneEating')}</Text>
-              )}
+                
+                <View className="flex-row items-center bg-sage-light/10 rounded-2xl border border-sage/20 p-1">
+                  <TouchableOpacity 
+                    onPress={() => onSetGuestCount(dateKey, Math.max(0, guestCount - 1))}
+                    className="w-10 h-10 items-center justify-center rounded-xl bg-white border border-sage/10 shadow-sm"
+                  >
+                    <Minus size={20} color="#2D5A27" strokeWidth={3} />
+                  </TouchableOpacity>
+                  
+                  <View className="w-12 items-center justify-center">
+                    <Text className="text-lg font-black text-forest-dark">{guestCount}</Text>
+                  </View>
+                  
+                  <TouchableOpacity 
+                    onPress={() => onSetGuestCount(dateKey, guestCount + 1)}
+                    className="w-10 h-10 items-center justify-center rounded-xl bg-forest border border-forest shadow-sm"
+                  >
+                    <Plus size={20} color="white" strokeWidth={3} />
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
           </Animated.View>
         </View>

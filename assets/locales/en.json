@@ -35,7 +35,8 @@
     "appLanguage": "App Language",
     "today": "Today",
     "retry": "Retry",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "me": "Me"
   },
   "planner": {
     "loadError": "Could not load the planner. Please check your connection.",
@@ -46,10 +47,13 @@
     "noOneEating": "No one is signed up for tonight.",
     "noOneCooking": "No one is cooking yet.",
     "notImplemented": "Not implemented",
-    "iAmCooking": "I'm cooking tonight"
+    "iAmCooking": "I'm cooking tonight",
+    "inviteFriends": "Invite friends",
+    "friendsOf": "{{count}} friend of {{name}}",
+    "friendsOf_plural": "{{count}} friends of {{name}}"
   },
   "tabs": {
-    "home": "Home",
+    "home": "Settings",
     "planner": "Planner"
   }
 }

@@ -35,7 +35,8 @@
     "appLanguage": "Langue de l'application",
     "today": "Aujourd'hui",
     "retry": "Réessayer",
-    "refresh": "Actualiser"
+    "refresh": "Actualiser",
+    "me": "Moi"
   },
   "planner": {
     "loadError": "Impossible de charger le planning. Veuillez vérifier votre connexion.",
@@ -46,10 +47,13 @@
     "noOneEating": "Personne n'est inscrit pour ce soir.",
     "noOneCooking": "Personne ne cuisine pour l'instant.",
     "notImplemented": "Non implémenté",
-    "iAmCooking": "Je cuisine ce soir"
+    "iAmCooking": "Je cuisine ce soir",
+    "inviteFriends": "Inviter des ami·es",
+    "friendsOf": "{{count}} ami·e de {{name}}",
+    "friendsOf_plural": "{{count}} ami·es de {{name}}"
   },
   "tabs": {
-    "home": "Accueil",
+    "home": "Paramètres",
     "planner": "Planning"
   }
 }

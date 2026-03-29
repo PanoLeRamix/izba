@@ -2,7 +2,7 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Home, CalendarDays } from 'lucide-react-native';
+import { Settings, CalendarDays } from 'lucide-react-native';
 import { Colors } from '../../constants/Colors';
 
 export default function MainLayout() {
@@ -32,7 +32,7 @@ export default function MainLayout() {
         name="index"
         options={{
           title: t('tabs.home'),
-          tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
         }}
       />
       <Tabs.Screen
