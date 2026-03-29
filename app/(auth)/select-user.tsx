@@ -117,8 +117,9 @@ export default function SelectUser() {
             label={t('auth.memberName')}
             value={newName}
             onChangeText={setNewName}
-            placeholder="Jean-Michel"
+            placeholder={t('auth.memberNamePlaceholder')}
           />
+
           <View className="mt-4">
             <Button 
               title={t('auth.confirm')} 

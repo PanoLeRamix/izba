@@ -105,7 +105,14 @@ export function usePlanner() {
 
       queryClient.setQueryData(['house-plans', houseId], (old: MealPlan[] | undefined) => {
         const filtered = (old || []).filter(p => !(p.user_id === newPlan.user_id && p.day_date === newPlan.day_date));
-        return [...filtered, { ...newPlan, id: 'temp-id' } as MealPlan];
+        // Ensure newPlan has the right snake_case properties for the cache
+        const optimisticPlan = {
+          ...newPlan,
+          id: 'temp-id',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        return [...filtered, optimisticPlan as MealPlan];
       });
 
       return { previousPlans };

@@ -16,6 +16,7 @@ export const Colors = {
   tileBorder: 'rgba(163, 177, 138, 0.3)',
   
   // Status Colors
+  chefOrange: '#E67E22',
   status: {
     available: '#1B3617',
     availableBg: '#E9F0E9',

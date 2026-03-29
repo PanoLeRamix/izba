@@ -137,10 +137,11 @@ export const DetailModal = ({
     const isMe = user.id === userId;
     const themeColorClass = isMe ? 'bg-forest' : 'bg-sage';
     const themeBorderClass = isMe ? 'border-forest' : 'border-sage';
-    
+
     return (
-      <View key={user.id} className="items-start mb-6 mr-4">
+      <View key={user.id} className={`items-start ${user.note ? 'mb-5' : ''}`}>
         <View className="relative">
+
           <View 
             className={`px-4 py-2 rounded-full border ${isMe ? 'bg-forest/20 border-forest/40' : 'bg-forest/5 border-forest/10'}`}
           >
@@ -151,7 +152,7 @@ export const DetailModal = ({
           
           {user.guestCount && user.guestCount > 0 ? (
             <View 
-              className={`absolute -top-2 -right-2 px-1.5 py-0.5 rounded-lg border border-white shadow-sm ${themeColorClass} ${themeBorderClass}`}
+              className={`absolute -top-2 -right-3 px-1.5 py-0.5 rounded-lg border border-white shadow-sm z-20 ${themeColorClass} ${themeBorderClass}`}
             >
               <Text className="text-[10px] text-white font-black">
                 +{user.guestCount}
@@ -161,8 +162,8 @@ export const DetailModal = ({
           
           {user.note ? (
             <View 
-              className={`absolute -bottom-4 -right-2 px-2 py-1 rounded-xl border border-white shadow-sm ${themeColorClass} ${themeBorderClass}`}
-              style={{ maxWidth: 110 }}
+              className={`absolute top-[90%] right-0 px-2 py-1 rounded-xl border border-white shadow-sm z-10 ${themeColorClass} ${themeBorderClass}`}
+              style={{ minWidth: 40, maxWidth: 110 }}
             >
               <Text className="text-white text-[9px] font-bold italic leading-tight" numberOfLines={2}>
                 {user.note}
@@ -225,11 +226,10 @@ export const DetailModal = ({
               )}
 
               <View className="flex-row items-center justify-between mb-8">
-                <View>
-                  <Text className="text-3xl font-black text-forest-dark uppercase">{t('planner.details')}</Text>
+                <View className="flex-1 mr-2">
                   {date && (
-                    <Text className="text-forest-light font-bold uppercase opacity-60">
-                      {format(date, 'EEEE d MMMM', { locale })}
+                    <Text className="text-3xl font-black text-forest-dark uppercase leading-tight">
+                      {format(date, 'EEE d MMMM', { locale })}
                     </Text>
                   )}
                 </View>
@@ -278,7 +278,7 @@ export const DetailModal = ({
                     </TouchableOpacity>
                   </View>
                   
-                  <View className="flex-row flex-wrap gap-2">
+                  <View className="flex-row flex-wrap gap-x-3 gap-y-2">
                     {cooks.length > 0 ? cooks.map(renderMemberChip) : (
                       <Text className="text-forest-dark/40 italic font-medium">{t('planner.noOneCooking')}</Text>
                     )}
@@ -311,7 +311,7 @@ export const DetailModal = ({
                     </TouchableOpacity>
                   </View>
                   
-                  <View className="flex-row flex-wrap gap-2">
+                  <View className="flex-row flex-wrap gap-x-3 gap-y-2">
                     {eaters.length > 0 ? eaters.map(renderMemberChip) : (
                       <Text className="text-forest-dark/40 italic font-medium">{t('planner.noOneEating')}</Text>
                     )}

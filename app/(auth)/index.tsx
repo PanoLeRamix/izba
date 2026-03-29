@@ -69,9 +69,10 @@ export default function JoinHouse() {
           setCode(text);
           if (errorMsg) setErrorMsg(null);
         }}
-        placeholder="ABC-123"
+        placeholder={t('auth.codePlaceholder')}
         autoCapitalize="characters"
       />
+
 
       {errorMsg && (
         <View className="bg-red-50 p-4 rounded-xl mb-4 border border-red-100">

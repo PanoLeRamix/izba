@@ -29,14 +29,14 @@ export default function MainLayout() {
       }}
     >
       <Tabs.Screen
-        name="planner"
+        name="index"
         options={{
           title: t('tabs.planner'),
           tabBarIcon: ({ color, size }) => <CalendarDays size={size} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="index"
+        name="settings"
         options={{
           title: t('tabs.home'),
           tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,

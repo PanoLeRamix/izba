@@ -7,9 +7,12 @@
     "selectIdentity": "Who are you?",
     "confirm": "Confirm",
     "invalidCode": "Invalid code or house not found",
+    "codePlaceholder": "e.g. ABCD1234",
     "houseName": "House-share name",
+    "houseNamePlaceholder": "Your house-share name",
     "members": "Members",
     "memberName": "Member name",
+    "memberNamePlaceholder": "Your name",
     "addMember": "Add a member",
     "save": "Save",
     "fillAllFields": "Please fill all fields",
@@ -48,19 +51,19 @@
     "noOneEating": "No one is signed up for tonight.",
     "noOneCooking": "No one is cooking yet.",
     "notImplemented": "Not implemented",
-    "iAmCooking": "I'm cooking tonight",
+    "iAmCooking": "I'm cooking",
     "inviteFriends": "Invite friends",
     "friendsOf": "{{count}} friend of {{name}}",
     "friendsOf_plural": "{{count}} friends of {{name}}",
     "myNote": "Comments",
-    "addNote": "Add a comment",
-    "editNote": "Edit my comment",
+    "addNote": "Comment",
+    "editNote": "Comment",
     "noComments": "No comments yet.",
     "notePlaceholder": "I'll be home late / Pizza party!",
     "status": {
-      "available": "Present",
-      "unavailable": "Absent",
-      "none": "Undecided"
+      "available": "I am present",
+      "unavailable": "I am absent",
+      "none": "I am undecided"
     }
   },
   "tabs": {

@@ -123,7 +123,7 @@ export const DayTile = memo(({
       
       <View className={`w-14 h-14 items-center justify-center rounded-full bg-white border ${today ? 'border-forest/30' : 'border-black/5'}`}>
         {isUserCooking ? (
-          <ChefHat size={32} color={Colors.forest} strokeWidth={3} />
+          <ChefHat size={32} color={Colors.chefOrange} strokeWidth={3} />
         ) : (
           status === 'available' ? <Check size={32} color={iconColor} strokeWidth={4} /> : 
           status === 'unavailable' ? <X size={32} color={iconColor} strokeWidth={4} /> : 

@@ -1,148 +1,129 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAuthStore } from '../../store/authStore';
-import { Button } from '../../components/Button';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
+import { View, Text, FlatList, TouchableOpacity, useWindowDimensions, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { supabase } from '../../services/supabase';
-import { Copy, Home, User, LogOut, Check } from 'lucide-react-native';
-import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
-import { LanguageToggle } from '../../components/LanguageToggle';
-import { Colors } from '../../constants/Colors';
+import { format, addDays, isSameMonth } from 'date-fns';
+import { fr, enUS } from 'date-fns/locale';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { usePlanner } from '../../hooks/usePlanner';
+import { WeekPage } from '../../components/planner/WeekPage';
+import { DetailModal } from '../../components/planner/DetailModal';
 import { LAYOUT } from '../../constants/Layout';
 
-export default function MainIndex() {
-  const { logout, houseId, userId } = useAuthStore();
-  const { t } = useTranslation();
+const INITIAL_WEEK_INDEX = 5;
+
+export default function Planner() {
+  const { t, i18n } = useTranslation();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const locale = i18n.language === 'fr' ? fr : enUS;
+  const flatListRef = useRef<FlatList>(null);
   
-  const [houseName, setHouseName] = useState('');
-  const [houseCode, setHouseCode] = useState('');
-  const [userName, setUserName] = useState('');
-  const [loading, setLoading] = useState(true);
-  const { copied, copy } = useCopyToClipboard();
+  const [currentIndex, setCurrentIndex] = useState(INITIAL_WEEK_INDEX);
+  const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!houseId || !userId) return;
-      
-      try {
-        const [houseRes, userRes] = await Promise.all([
-          supabase.from('houses').select('name, code').eq('id', houseId).single(),
-          supabase.from('users').select('name').eq('id', userId).single()
-        ]);
+  const { weeks, userPlans, processedData, isLoading, actions } = usePlanner();
 
-        if (houseRes.data) {
-          setHouseName(houseRes.data.name);
-          setHouseCode(houseRes.data.code);
-        }
-        if (userRes.data) {
-          setUserName(userRes.data.name);
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const openDetails = useCallback((dateKey: string) => {
+    setSelectedDayKey(dateKey);
+  }, []);
 
-    fetchData();
-  }, [houseId, userId]);
+  const topPadding = LAYOUT.getTopPadding(insets.top);
+  const bottomBuffer = LAYOUT.getBottomBuffer(insets.bottom);
+  const availableHeight = windowHeight - topPadding - LAYOUT.HEADER_HEIGHT - LAYOUT.TAB_BAR_HEIGHT - bottomBuffer;
+  const tileHeight = LAYOUT.getTileHeight(availableHeight);
 
-  const copyToClipboard = async () => {
-    await copy(houseCode);
-  };
+  const currentWeekLabel = useMemo(() => {
+    const s = weeks[currentIndex].startDate;
+    const e = addDays(s, 6);
+    return isSameMonth(s, e) ? format(s, 'MMMM yyyy', { locale }) : `${format(s, 'MMM.', { locale })} / ${format(e, 'MMM.', { locale })} ${format(e, 'yyyy', { locale })}`;
+  }, [currentIndex, locale, weeks]);
 
-  if (loading) {
+  const scrollToWeek = useCallback((index: number) => {
+    flatListRef.current?.scrollToIndex({ index, animated: true });
+  }, []);
+
+  if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-hearth">
-        <ActivityIndicator size="large" color={Colors.forest} />
+      <View className="flex-1 bg-hearth items-center justify-center">
+        <ActivityIndicator size="large" color="#2D5A27" />
       </View>
     );
   }
 
+  const selectedDayData = selectedDayKey ? processedData[selectedDayKey] : null;
+  const selectedDayPlan = selectedDayKey ? (userPlans[selectedDayKey] || { status: 'none', isCooking: false, guestCount: 0, note: '' }) : { status: 'none', isCooking: false, guestCount: 0, note: '' };
+
   return (
-    <View 
-      className="flex-1 bg-hearth px-6"
-      style={{ 
-        paddingTop: insets.top,
-        paddingBottom: Math.max(insets.bottom, LAYOUT.BASE_SCREEN_PADDING)
-      }}
-    >
-      <View className="items-center mb-12" style={{ marginTop: LAYOUT.BASE_SCREEN_PADDING }}>
-        <Text className="text-4xl mb-2">🌲</Text>
-        <Text className="text-3xl font-bold text-forest-dark text-center">{t('main.welcome')}</Text>
-      </View>
-
-      {/* House Tile */}
-      <View 
-        style={{ backgroundColor: Colors.tileBackground }}
-        className="p-6 rounded-3xl mb-6 border border-sage/30 shadow-sm overflow-hidden"
-      >
-        <View className="flex-row items-center mb-6 bg-transparent">
-          <View className="bg-forest/10 p-3 rounded-2xl mr-4">
-            <Home size={24} color={Colors.forest} />
-          </View>
-          <View className="flex-1 bg-transparent">
-            <Text className="text-[10px] text-hearth-earth/40 uppercase font-bold tracking-[2px] mb-1">
-              {t('main.house')}
-            </Text>
-            <Text className="text-2xl font-bold text-forest-dark">
-              {houseName}
-            </Text>
-          </View>
+    <View className="flex-1 bg-hearth" style={{ paddingTop: topPadding }}>
+      {/* Header */}
+      <View className="px-6 mb-4 flex-row items-center justify-between" style={{ height: LAYOUT.HEADER_HEIGHT - 10 }}>
+        <View className="flex-1 mr-4">
+          <Text className="text-3xl font-black text-forest-dark uppercase">{t('tabs.planner')}</Text>
+          <Text className="text-xs font-bold text-forest-light uppercase opacity-60">{currentWeekLabel}</Text>
         </View>
-
-        <TouchableOpacity 
-          onPress={copyToClipboard}
-          className="bg-forest/5 p-4 rounded-2xl flex-row items-center justify-between border border-forest/10"
-          activeOpacity={0.6}
-        >
-          <View className="flex-1 bg-transparent">
-            <Text className="text-[10px] text-hearth-earth/40 uppercase font-bold tracking-[1px] mb-0.5">
-              {t('main.inviteCode')}
+        <View className="flex-row items-center bg-white shadow-sm p-1 rounded-2xl border border-sage-light/30">
+          <TouchableOpacity onPress={() => scrollToWeek(currentIndex - 1)} className="p-2">
+            <ChevronLeft size={24} color="#2D5A27" />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={() => scrollToWeek(INITIAL_WEEK_INDEX)} 
+            className={`px-4 py-2 rounded-xl border ${currentIndex === INITIAL_WEEK_INDEX ? 'bg-forest border-forest' : 'bg-hearth border-sage-light/20'}`}
+          >
+            <Text className={`text-xs font-black uppercase ${currentIndex === INITIAL_WEEK_INDEX ? 'text-white' : 'text-forest'}`}>
+              {t('common.today')}
             </Text>
-            <Text className="text-lg font-mono font-bold text-forest">{houseCode}</Text>
-          </View>
-          <View className="bg-white/50 p-2 rounded-xl">
-            {copied ? (
-              <Check size={18} color={Colors.forest} />
-            ) : (
-              <Copy size={18} color={Colors.forest} />
-            )}
-          </View>
-        </TouchableOpacity>
-      </View>
-
-      {/* User Tile */}
-      <View 
-        style={{ backgroundColor: Colors.tileBackground }}
-        className="p-6 rounded-3xl mb-6 border border-sage/30 shadow-sm flex-row items-center overflow-hidden"
-      >
-        <View className="bg-forest/10 p-3 rounded-2xl mr-4">
-          <User size={24} color={Colors.forest} />
-        </View>
-        <View className="flex-1 bg-transparent">
-          <Text className="text-[10px] text-hearth-earth/40 uppercase font-bold tracking-[2px] mb-1">
-            {t('main.identity')}
-          </Text>
-          <Text className="text-2xl font-bold text-forest-dark">
-            {userName}
-          </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => scrollToWeek(currentIndex + 1)} className="p-2">
+            <ChevronRight size={24} color="#2D5A27" />
+          </TouchableOpacity>
         </View>
       </View>
-
-      {/* Language Selection Tile */}
-      <LanguageToggle variant="tile" />
       
-      <View className="mt-auto">
-        <Button 
-          title={t('main.logout')} 
-          onPress={logout} 
-          variant="outline"
-          icon={<LogOut size={20} color={Colors.forest} />}
-        />
-      </View>
+      <FlatList
+        ref={flatListRef}
+        data={weeks}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
+          <WeekPage 
+            item={item} 
+            windowWidth={windowWidth} 
+            userPlans={userPlans} 
+            onToggleStatus={actions.toggleStatus} 
+            onLongPress={openDetails} 
+            locale={locale} 
+            tileHeight={tileHeight} 
+            processedData={processedData}
+          />
+        )}
+        horizontal pagingEnabled showsHorizontalScrollIndicator={false}
+        initialScrollIndex={INITIAL_WEEK_INDEX}
+        onMomentumScrollEnd={e => setCurrentIndex(Math.round(e.nativeEvent.contentOffset.x / windowWidth))}
+        getItemLayout={(_, index) => ({ length: windowWidth, offset: windowWidth * index, index })}
+        removeClippedSubviews={true}
+        initialNumToRender={3}
+        windowSize={5}
+        maxToRenderPerBatch={2}
+      />
+
+      <DetailModal
+        visible={!!selectedDayKey}
+        onClose={() => setSelectedDayKey(null)}
+        date={selectedDayKey ? new Date(selectedDayKey) : null}
+        dateKey={selectedDayKey || ''}
+        eaters={selectedDayData?.eaters || []}
+        totalEatersCount={selectedDayData?.totalCount || 0}
+        cooks={selectedDayData?.cooks || []}
+        isUserCooking={selectedDayPlan.isCooking}
+        guestCount={selectedDayPlan.guestCount}
+        note={selectedDayPlan.note}
+        status={selectedDayPlan.status}
+        onToggleStatus={actions.toggleStatus}
+        onToggleCooking={actions.toggleCooking}
+        onSetGuestCount={actions.setGuestCount}
+        onUpdateNote={actions.updateNote}
+        locale={locale}
+      />
     </View>
   );
 }

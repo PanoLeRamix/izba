@@ -93,8 +93,9 @@ export default function CreateHouse() {
         label={t('auth.houseName')}
         value={houseName}
         onChangeText={setHouseName}
-        placeholder="La Coloc"
+        placeholder={t('auth.houseNamePlaceholder')}
       />
+
 
       <View className="mt-6">
         <Button 
