@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, Text, ActivityIndicator, View } from 'react-native';
 
 interface ButtonProps {
   onPress: () => void;
@@ -7,6 +7,7 @@ interface ButtonProps {
   variant?: 'primary' | 'outline';
   loading?: boolean;
   disabled?: boolean;
+  icon?: React.ReactNode;
 }
 
 export const Button = ({ 
@@ -14,7 +15,8 @@ export const Button = ({
   title, 
   variant = 'primary', 
   loading = false, 
-  disabled = false 
+  disabled = false,
+  icon
 }: ButtonProps) => {
   const isPrimary = variant === 'primary';
   
@@ -29,9 +31,12 @@ export const Button = ({
       {loading ? (
         <ActivityIndicator color={isPrimary ? '#F9F7F2' : '#2D5A27'} />
       ) : (
-        <Text className={`font-semibold text-lg ${isPrimary ? 'text-hearth' : 'text-forest'}`}>
-          {title}
-        </Text>
+        <>
+          {icon && <View className="mr-2">{icon}</View>}
+          <Text className={`font-semibold text-lg ${isPrimary ? 'text-hearth' : 'text-forest'}`}>
+            {title}
+          </Text>
+        </>
       )}
     </TouchableOpacity>
   );

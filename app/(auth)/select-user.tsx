@@ -6,6 +6,7 @@ import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
+import { UserPlus } from 'lucide-react-native';
 
 export default function SelectUser() {
   const { houseId: paramHouseId } = useLocalSearchParams<{ houseId: string }>();
@@ -91,7 +92,7 @@ export default function SelectUser() {
               className="w-full border-2 border-dashed border-sage p-6 rounded-2xl mb-4 flex-row items-center justify-center"
               onPress={() => setShowAddForm(true)}
             >
-              <Text className="text-forest font-bold text-2xl mr-2">+</Text>
+              <UserPlus size={24} color="#2D5A27" style={{ marginRight: 8 }} />
               <Text className="text-xl font-medium text-forest">{t('auth.addPerson')}</Text>
             </TouchableOpacity>
           }

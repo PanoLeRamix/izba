@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '../../store/authStore';
 import { Button } from '../../components/Button';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../services/supabase';
 import * as Clipboard from 'expo-clipboard';
-import { Copy, Home, User } from 'lucide-react-native';
+import { Copy, Home, User, LogOut } from 'lucide-react-native';
 
 export default function MainIndex() {
   const { logout, houseId, userId } = useAuthStore();
@@ -51,7 +51,7 @@ export default function MainIndex() {
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-hearth">
-        <Text className="text-forest italic">{t('common.loading')}</Text>
+        <ActivityIndicator size="large" color="#2D5A27" />
       </View>
     );
   }
@@ -65,8 +65,8 @@ export default function MainIndex() {
 
       <View className="bg-white/60 p-6 rounded-3xl mb-6 border border-sage/20 shadow-sm">
         <View className="flex-row items-center mb-4">
-          <View className="bg-forest/10 p-2 rounded-lg mr-3">
-            <Text>🏠</Text>
+          <View className="bg-forest/10 p-3 rounded-2xl mr-3">
+            <Home size={24} color="#2D5A27" />
           </View>
           <View>
             <Text className="text-xs text-hearth-earth/50 uppercase font-bold tracking-wider">{t('main.house')}</Text>
@@ -82,14 +82,14 @@ export default function MainIndex() {
             <Text className="text-xs text-hearth-earth/50 uppercase font-bold tracking-wider">{t('main.inviteCode')}</Text>
             <Text className="text-lg font-mono font-bold text-forest">{houseCode}</Text>
           </View>
-          <Text>📋</Text>
+          <Copy size={20} color="#2D5A27" />
         </TouchableOpacity>
       </View>
 
       <View className="bg-white/60 p-6 rounded-3xl mb-12 border border-sage/20 shadow-sm">
         <View className="flex-row items-center">
-          <View className="bg-forest/10 p-2 rounded-lg mr-3">
-            <Text>👤</Text>
+          <View className="bg-forest/10 p-3 rounded-2xl mr-3">
+            <User size={24} color="#2D5A27" />
           </View>
           <View>
             <Text className="text-xs text-hearth-earth/50 uppercase font-bold tracking-wider">{t('main.identity')}</Text>
@@ -103,6 +103,7 @@ export default function MainIndex() {
           title={t('main.logout')} 
           onPress={logout} 
           variant="outline"
+          icon={<LogOut size={20} color="#2D5A27" />}
         />
       </View>
     </View>
