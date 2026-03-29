@@ -25,7 +25,7 @@
     "identity": "My Identity",
     "logout": "Logout",
     "copied": "Copied!",
-    "codeCopied": "The code has been copied to clipboard."
+    "copyCode": "Tap to copy"
   },
   "common": {
     "loading": "Loading...",

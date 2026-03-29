@@ -5,7 +5,7 @@ import { Button } from '../../components/Button';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../services/supabase';
 import * as Clipboard from 'expo-clipboard';
-import { Copy, Home, User, LogOut } from 'lucide-react-native';
+import { Copy, Home, User, LogOut, Check } from 'lucide-react-native';
 
 export default function MainIndex() {
   const { logout, houseId, userId } = useAuthStore();
@@ -15,6 +15,7 @@ export default function MainIndex() {
   const [houseCode, setHouseCode] = useState('');
   const [userName, setUserName] = useState('');
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,7 +46,8 @@ export default function MainIndex() {
 
   const copyToClipboard = async () => {
     await Clipboard.setStringAsync(houseCode);
-    Alert.alert(t('main.copied'), t('main.codeCopied'));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   if (loading) {
@@ -82,7 +84,11 @@ export default function MainIndex() {
             <Text className="text-xs text-hearth-earth/50 uppercase font-bold tracking-wider">{t('main.inviteCode')}</Text>
             <Text className="text-lg font-mono font-bold text-forest">{houseCode}</Text>
           </View>
-          <Copy size={20} color="#2D5A27" />
+          {copied ? (
+            <Check size={20} color="#2D5A27" />
+          ) : (
+            <Copy size={20} color="#2D5A27" />
+          )}
         </TouchableOpacity>
       </View>
 

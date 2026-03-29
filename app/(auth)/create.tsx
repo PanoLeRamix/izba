@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, Alert, Modal } from 'react-native';
+import { View, Text, Alert, Modal, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import * as Clipboard from 'expo-clipboard';
+import { Check } from 'lucide-react-native';
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { supabase } from '../../services/supabase';
@@ -13,6 +15,7 @@ export default function CreateHouse() {
   const [showModal, setShowModal] = useState(false);
   const [generatedCode, setGeneratedCode] = useState('');
   const [newHouseId, setNewHouseId] = useState('');
+  const [copied, setCopied] = useState(false);
   
   const router = useRouter();
   const { t } = useTranslation();
@@ -55,6 +58,12 @@ export default function CreateHouse() {
     }
   };
 
+  const copyToClipboard = async () => {
+    await Clipboard.setStringAsync(generatedCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   const handleCloseModal = async () => {
     setShowModal(false);
     await setHouseId(newHouseId);
@@ -94,11 +103,25 @@ export default function CreateHouse() {
             <Text className="text-2xl font-bold mb-2 text-forest-dark">{t('auth.houseCreated')}</Text>
             <Text className="text-hearth-earth/70 mb-6 text-center">{t('auth.shareCodeHint')}</Text>
             
-            <View className="bg-sage-light/30 p-6 rounded-2xl mb-8 w-full items-center border border-sage/30">
+            <TouchableOpacity 
+              className="bg-sage-light/30 p-6 rounded-2xl mb-8 w-full items-center border border-sage/30"
+              onPress={copyToClipboard}
+              activeOpacity={0.7}
+            >
               <Text className="text-4xl font-mono font-bold tracking-widest text-forest">
                 {generatedCode}
               </Text>
-            </View>
+              <View className="flex-row items-center mt-2">
+                {copied ? (
+                  <>
+                    <Check size={14} color="#2D5A27" style={{ marginRight: 4 }} />
+                    <Text className="text-forest font-bold text-xs uppercase tracking-widest">{t('main.copied')}</Text>
+                  </>
+                ) : (
+                  <Text className="text-forest/50 text-xs uppercase font-bold tracking-widest">{t('main.copyCode')}</Text>
+                )}
+              </View>
+            </TouchableOpacity>
 
             <Button 
               title={t('auth.continue')} 
