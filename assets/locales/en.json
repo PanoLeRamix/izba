@@ -22,7 +22,7 @@
     "welcome": "Welcome to the app!",
     "house": "House-share",
     "inviteCode": "Invite Code",
-    "identity": "My Identity",
+    "identity": "Logged as",
     "logout": "Logout",
     "copied": "Copied!",
     "copyCode": "Tap to copy"
@@ -33,7 +33,13 @@
     "back": "Back",
     "language": "Language",
     "appLanguage": "App Language",
-    "today": "Today"
+    "today": "Today",
+    "retry": "Retry",
+    "refresh": "Refresh"
+  },
+  "planner": {
+    "loadError": "Could not load the planner. Please check your connection.",
+    "syncError": "Changes couldn't be saved. Please refresh the page to sync."
   },
   "tabs": {
     "home": "Home",

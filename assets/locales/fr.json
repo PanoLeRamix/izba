@@ -22,7 +22,7 @@
     "welcome": "Bienvenue dans l'application !",
     "house": "Colocation",
     "inviteCode": "Code d'invitation",
-    "identity": "Mon Identité",
+    "identity": "Connecté en tant que",
     "logout": "Se déconnecter",
     "copied": "Copié !",
     "copyCode": "Appuyez pour copier"
@@ -33,7 +33,13 @@
     "back": "Retour",
     "language": "Langue",
     "appLanguage": "Langue de l'application",
-    "today": "Aujourd'hui"
+    "today": "Aujourd'hui",
+    "retry": "Réessayer",
+    "refresh": "Actualiser"
+  },
+  "planner": {
+    "loadError": "Impossible de charger le planning. Veuillez vérifier votre connexion.",
+    "syncError": "Les modifications n'ont pas pu être enregistrées. Veuillez actualiser la page pour synchroniser."
   },
   "tabs": {
     "home": "Accueil",

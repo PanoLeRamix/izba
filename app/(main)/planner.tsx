@@ -3,9 +3,9 @@ import { View, Text, FlatList, TouchableOpacity, useWindowDimensions, Platform, 
 import { useTranslation } from 'react-i18next';
 import { format, startOfWeek, addDays, addWeeks, isToday, isSameMonth } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
-import { Check, X, ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { Check, X, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/authStore';
 import { plannerService, PlannerStatus } from '../../services/planner';
 
@@ -85,6 +85,7 @@ export default function Planner() {
   const locale = i18n.language === 'fr' ? fr : enUS;
   const { userId, houseId } = useAuthStore();
   const flatListRef = useRef<FlatList>(null);
+  const queryClient = useQueryClient();
   
   const [plans, setPlans] = useState<Record<string, DayStatus>>({});
   const [currentIndex, setCurrentIndex] = useState(INITIAL_WEEK_INDEX);
@@ -106,7 +107,7 @@ export default function Planner() {
     });
   }, []);
 
-  const { isLoading } = useQuery({
+  const { isLoading, isError, refetch } = useQuery({
     queryKey: ['planner-init', houseId, userId],
     queryFn: async () => {
       const data = await plannerService.getMealPlans(houseId!, weeks[0].days[0].dateKey, weeks[19].days[6].dateKey);
@@ -117,13 +118,21 @@ export default function Planner() {
     },
     enabled: !!houseId && !!userId,
     staleTime: Infinity,
+    retry: 1,
   });
 
   const mutation = useMutation({
     mutationFn: plannerService.upsertMealPlan,
     onError: () => {
       if (!errorShown.current) {
-        Alert.alert(t('common.error'), "Some changes couldn't be saved. Please check your connection.", [{ text: "OK", onPress: () => errorShown.current = false }]);
+        Alert.alert(
+          t('common.error'), 
+          t('planner.syncError'), 
+          [{ text: t('common.refresh'), onPress: () => {
+            errorShown.current = false;
+            refetch();
+          }}]
+        );
         errorShown.current = true;
       }
     }
@@ -158,6 +167,22 @@ export default function Planner() {
   }, [currentIndex, locale, weeks]);
 
   if (isLoading) return <View className="flex-1 bg-hearth items-center justify-center"><ActivityIndicator size="large" color="#2D5A27" /></View>;
+
+  if (isError) {
+    return (
+      <View className="flex-1 bg-hearth items-center justify-center p-6">
+        <AlertCircle size={48} color="#991b1b" />
+        <Text className="text-xl font-bold text-forest-dark mt-4 text-center">{t('common.error')}</Text>
+        <Text className="text-forest-light text-center mt-2 mb-8">{t('planner.loadError')}</Text>
+        <TouchableOpacity 
+          onPress={() => refetch()}
+          className="bg-forest px-8 py-4 rounded-2xl shadow-sm"
+        >
+          <Text className="text-white font-black uppercase tracking-widest">{t('common.retry')}</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-hearth" style={{ paddingTop: topPadding }}>
