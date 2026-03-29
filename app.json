@@ -27,7 +27,9 @@
       "allowBackup": false,
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": true,
-      "permissions": ["INTERNET"]
+      "permissions": [
+        "INTERNET"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -42,6 +44,12 @@
       "expo-router",
       "expo-localization",
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a20a22d8-bbe4-493d-ac7d-4196817dcf1e"
+      }
+    }
   }
 }
