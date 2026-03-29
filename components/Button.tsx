@@ -22,14 +22,14 @@ export const Button = ({
     <TouchableOpacity 
       onPress={onPress}
       disabled={disabled || loading}
-      className={`w-full py-4 rounded-xl items-center flex-row justify-center ${
-        isPrimary ? 'bg-blue-500' : 'border-2 border-blue-500'
+      className={`w-full py-4 rounded-2xl items-center flex-row justify-center ${
+        isPrimary ? 'bg-forest' : 'border-2 border-forest'
       } ${disabled ? 'opacity-50' : ''}`}
     >
       {loading ? (
-        <ActivityIndicator color={isPrimary ? 'white' : '#3b82f6'} />
+        <ActivityIndicator color={isPrimary ? '#F9F7F2' : '#2D5A27'} />
       ) : (
-        <Text className={`font-semibold text-lg ${isPrimary ? 'text-white' : 'text-blue-500'}`}>
+        <Text className={`font-semibold text-lg ${isPrimary ? 'text-hearth' : 'text-forest'}`}>
           {title}
         </Text>
       )}

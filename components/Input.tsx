@@ -18,13 +18,14 @@ export const Input = ({
 }: InputProps) => {
   return (
     <View className="w-full mb-4">
-      {label && <Text className="text-gray-700 mb-2 font-medium">{label}</Text>}
+      {label && <Text className="text-hearth-earth mb-2 font-medium">{label}</Text>}
       <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
+        placeholderTextColor="#A3B18A"
         autoCapitalize={autoCapitalize}
-        className="w-full bg-gray-100 p-4 rounded-xl text-lg text-gray-800 border border-gray-200"
+        className="w-full bg-sage-light/30 p-4 rounded-2xl text-lg text-hearth-earth border border-sage/30"
       />
     </View>
   );

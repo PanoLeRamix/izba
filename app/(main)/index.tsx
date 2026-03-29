@@ -1,22 +1,110 @@
-import React from 'react';
-import { View, Text } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { useAuthStore } from '../../store/authStore';
 import { Button } from '../../components/Button';
 import { useTranslation } from 'react-i18next';
+import { supabase } from '../../services/supabase';
+import * as Clipboard from 'expo-clipboard';
+import { Copy, Home, User } from 'lucide-react-native';
 
 export default function MainIndex() {
-  const { logout } = useAuthStore();
+  const { logout, houseId, userId } = useAuthStore();
   const { t } = useTranslation();
+  
+  const [houseName, setHouseName] = useState('');
+  const [houseCode, setHouseCode] = useState('');
+  const [userName, setUserName] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!houseId || !userId) return;
+      
+      try {
+        const [houseRes, userRes] = await Promise.all([
+          supabase.from('houses').select('name, code').eq('id', houseId).single(),
+          supabase.from('users').select('name').eq('id', userId).single()
+        ]);
+
+        if (houseRes.data) {
+          setHouseName(houseRes.data.name);
+          setHouseCode(houseRes.data.code);
+        }
+        if (userRes.data) {
+          setUserName(userRes.data.name);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [houseId, userId]);
+
+  const copyToClipboard = async () => {
+    await Clipboard.setStringAsync(houseCode);
+    Alert.alert(t('main.copied'), t('main.codeCopied'));
+  };
+
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-hearth">
+        <Text className="text-forest italic">{t('common.loading')}</Text>
+      </View>
+    );
+  }
 
   return (
-    <View className="flex-1 items-center justify-center bg-white p-6">
-      <Text className="text-2xl font-bold mb-8">{t('main.welcome')}</Text>
+    <View className="flex-1 bg-hearth p-6 pt-20">
+      <View className="items-center mb-12">
+        <Text className="text-4xl mb-2">🌲</Text>
+        <Text className="text-3xl font-bold text-forest-dark text-center">{t('main.welcome')}</Text>
+      </View>
+
+      <View className="bg-white/60 p-6 rounded-3xl mb-6 border border-sage/20 shadow-sm">
+        <View className="flex-row items-center mb-4">
+          <View className="bg-forest/10 p-2 rounded-lg mr-3">
+            <Text>🏠</Text>
+          </View>
+          <View>
+            <Text className="text-xs text-hearth-earth/50 uppercase font-bold tracking-wider">{t('main.house')}</Text>
+            <Text className="text-xl font-bold text-forest-dark">{houseName}</Text>
+          </View>
+        </View>
+
+        <TouchableOpacity 
+          onPress={copyToClipboard}
+          className="bg-sage-light/30 p-4 rounded-2xl flex-row items-center justify-between border border-sage/30"
+        >
+          <View>
+            <Text className="text-xs text-hearth-earth/50 uppercase font-bold tracking-wider">{t('main.inviteCode')}</Text>
+            <Text className="text-lg font-mono font-bold text-forest">{houseCode}</Text>
+          </View>
+          <Text>📋</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View className="bg-white/60 p-6 rounded-3xl mb-12 border border-sage/20 shadow-sm">
+        <View className="flex-row items-center">
+          <View className="bg-forest/10 p-2 rounded-lg mr-3">
+            <Text>👤</Text>
+          </View>
+          <View>
+            <Text className="text-xs text-hearth-earth/50 uppercase font-bold tracking-wider">{t('main.identity')}</Text>
+            <Text className="text-xl font-bold text-forest-dark">{userName}</Text>
+          </View>
+        </View>
+      </View>
       
-      <Button 
-        title="Se déconnecter" 
-        onPress={logout} 
-        variant="outline"
-      />
+      <View className="mt-auto">
+        <Button 
+          title={t('main.logout')} 
+          onPress={logout} 
+          variant="outline"
+        />
+      </View>
     </View>
   );
 }

@@ -21,7 +21,7 @@ export default function CreateHouse() {
   const generateCode = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 8; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return result;
@@ -65,8 +65,8 @@ export default function CreateHouse() {
   };
 
   return (
-    <View className="flex-1 bg-white p-6 pt-20">
-      <Text className="text-3xl font-bold mb-8 text-gray-800">{t('auth.createHouse')}</Text>
+    <View className="flex-1 bg-hearth p-6 pt-20">
+      <Text className="text-3xl font-bold mb-8 text-forest-dark">{t('auth.createHouse')}</Text>
       
       <Input
         label={t('auth.houseName')}
@@ -89,13 +89,13 @@ export default function CreateHouse() {
         transparent={true}
         animationType="fade"
       >
-        <View className="flex-1 justify-center items-center bg-black/50 p-6">
-          <View className="bg-white w-full p-8 rounded-3xl items-center">
-            <Text className="text-2xl font-bold mb-2 text-gray-800">{t('auth.houseCreated')}</Text>
-            <Text className="text-gray-600 mb-6 text-center">{t('auth.shareCodeHint')}</Text>
+        <View className="flex-1 justify-center items-center bg-forest-dark/40 p-6">
+          <View className="bg-hearth w-full p-8 rounded-3xl items-center border border-sage/20 shadow-xl">
+            <Text className="text-2xl font-bold mb-2 text-forest-dark">{t('auth.houseCreated')}</Text>
+            <Text className="text-hearth-earth/70 mb-6 text-center">{t('auth.shareCodeHint')}</Text>
             
-            <View className="bg-gray-100 p-6 rounded-2xl mb-8 w-full items-center">
-              <Text className="text-4xl font-mono font-bold tracking-widest text-blue-600">
+            <View className="bg-sage-light/30 p-6 rounded-2xl mb-8 w-full items-center border border-sage/30">
+              <Text className="text-4xl font-mono font-bold tracking-widest text-forest">
                 {generatedCode}
               </Text>
             </View>

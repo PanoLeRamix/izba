@@ -19,7 +19,13 @@
     "addPerson": "Add a person"
   },
   "main": {
-    "welcome": "Welcome to the app!"
+    "welcome": "Welcome to the app!",
+    "house": "House-share",
+    "inviteCode": "Invite Code",
+    "identity": "My Identity",
+    "logout": "Logout",
+    "copied": "Copied!",
+    "codeCopied": "The code has been copied to clipboard."
   },
   "common": {
     "loading": "Loading...",

@@ -19,7 +19,13 @@
     "addPerson": "Ajouter une personne"
   },
   "main": {
-    "welcome": "Bienvenue dans l'application !"
+    "welcome": "Bienvenue dans l'application !",
+    "house": "Colocation",
+    "inviteCode": "Code d'invitation",
+    "identity": "Mon Identité",
+    "logout": "Se déconnecter",
+    "copied": "Copié !",
+    "codeCopied": "Le code a été copié dans le presse-papier."
   },
   "common": {
     "loading": "Chargement...",

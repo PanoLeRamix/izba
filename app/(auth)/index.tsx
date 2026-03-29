@@ -10,6 +10,7 @@ import { useAuthStore } from '../../store/authStore';
 export default function JoinHouse() {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const router = useRouter();
   const { t } = useTranslation();
   const { setHouseId } = useAuthStore();
@@ -17,6 +18,7 @@ export default function JoinHouse() {
   const handleJoin = async () => {
     if (!code) return;
     setLoading(true);
+    setErrorMsg(null);
     
     try {
       const { data, error } = await supabase
@@ -26,34 +28,44 @@ export default function JoinHouse() {
         .single();
 
       if (error || !data) {
+        setErrorMsg(t('auth.invalidCode'));
+        // Fallback for native
         Alert.alert(t('common.error'), t('auth.invalidCode'));
         return;
       }
 
       await setHouseId(data.id);
-      // Redirection to select-user happens via RootLayout if houseId is set but userId is not
       router.push({
         pathname: '/(auth)/select-user',
         params: { houseId: data.id }
       });
     } catch (e) {
-      Alert.alert(t('common.error'), t('common.error'));
+      setErrorMsg(t('common.error'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View className="flex-1 bg-white p-6 pt-20">
-      <Text className="text-3xl font-bold mb-8 text-gray-800">{t('auth.title')}</Text>
+    <View className="flex-1 bg-hearth p-6 pt-20">
+      <Text className="text-3xl font-bold mb-8 text-forest-dark">{t('auth.title')}</Text>
       
       <Input
         label={t('auth.enterCode')}
         value={code}
-        onChangeText={setCode}
+        onChangeText={(text) => {
+          setCode(text);
+          if (errorMsg) setErrorMsg(null);
+        }}
         placeholder="ABC-123"
         autoCapitalize="characters"
       />
+
+      {errorMsg && (
+        <View className="bg-red-50 p-4 rounded-xl mb-4 border border-red-100">
+          <Text className="text-red-600 font-medium">{errorMsg}</Text>
+        </View>
+      )}
 
       <View className="mt-4">
         <Button 
@@ -64,7 +76,7 @@ export default function JoinHouse() {
         />
       </View>
 
-      <View className="mt-8 pt-8 border-t border-gray-100">
+      <View className="mt-8 pt-8 border-t border-sage/20">
         <Button 
           title={t('auth.createHouse')} 
           onPress={() => router.push('/(auth)/create')} 
