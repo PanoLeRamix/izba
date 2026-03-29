@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
-import { XCircle, Minus, Plus, MessageSquarePlus, MessageSquareText, Check } from 'lucide-react-native';
+import { XCircle, Minus, Plus, MessageSquarePlus, MessageSquareText, Check, X, ChefHat } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { User } from '../../services/user';
 import { useAuthStore } from '../../store/authStore';
@@ -29,11 +29,13 @@ interface DetailModalProps {
   date: Date | null;
   dateKey: string;
   eaters: (User & { guestCount?: number, note?: string })[];
-  totalEatersCount: number; // New prop to avoid the "weird formula" in the component
+  totalEatersCount: number;
   cooks: User[];
   isUserCooking: boolean;
   guestCount: number;
   note: string;
+  status: string;
+  onToggleStatus: (dateKey: string) => void;
   onToggleCooking: (dateKey: string) => void;
   onSetGuestCount: (dateKey: string, count: number) => void;
   onUpdateNote: (dateKey: string, content: string) => void;
@@ -41,6 +43,7 @@ interface DetailModalProps {
 }
 
 const IS_WEB = Platform.OS === 'web';
+const MAX_NOTE_LENGTH = 20;
 
 export const DetailModal = ({ 
   visible, 
@@ -53,6 +56,8 @@ export const DetailModal = ({
   isUserCooking,
   guestCount,
   note,
+  status,
+  onToggleStatus,
   onToggleCooking,
   onSetGuestCount,
   onUpdateNote,
@@ -130,8 +135,11 @@ export const DetailModal = ({
 
   const renderMemberChip = (user: User & { guestCount?: number, note?: string }) => {
     const isMe = user.id === userId;
+    const themeColorClass = isMe ? 'bg-forest' : 'bg-sage';
+    const themeBorderClass = isMe ? 'border-forest' : 'border-sage';
+    
     return (
-      <View key={user.id} className="items-start mb-3 mr-2">
+      <View key={user.id} className="items-start mb-6 mr-4">
         <View className="relative">
           <View 
             className={`px-4 py-2 rounded-full border ${isMe ? 'bg-forest/20 border-forest/40' : 'bg-forest/5 border-forest/10'}`}
@@ -140,28 +148,31 @@ export const DetailModal = ({
               {user.name}
             </Text>
           </View>
+          
           {user.guestCount && user.guestCount > 0 ? (
             <View 
-              className="absolute -top-2 -right-2 bg-forest px-1.5 py-0.5 rounded-lg border border-white shadow-sm"
+              className={`absolute -top-2 -right-2 px-1.5 py-0.5 rounded-lg border border-white shadow-sm ${themeColorClass} ${themeBorderClass}`}
             >
               <Text className="text-[10px] text-white font-black">
                 +{user.guestCount}
               </Text>
             </View>
           ) : null}
+          
+          {user.note ? (
+            <View 
+              className={`absolute -bottom-4 -right-2 px-2 py-1 rounded-xl border border-white shadow-sm ${themeColorClass} ${themeBorderClass}`}
+              style={{ maxWidth: 110 }}
+            >
+              <Text className="text-white text-[9px] font-bold italic leading-tight" numberOfLines={2}>
+                {user.note}
+              </Text>
+            </View>
+          ) : null}
         </View>
-        {user.note ? (
-          <View className="mt-1 ml-2">
-            <Text className="text-forest-dark/40 italic text-[11px] leading-tight">
-              "{user.note}"
-            </Text>
-          </View>
-        ) : null}
       </View>
     );
   };
-
-  const eatersWithNotes = eaters.filter(u => !!u.note);
 
   const handleSaveNote = () => {
     onUpdateNote(dateKey, tempNote.replace(/\n/g, ' '));
@@ -222,8 +233,22 @@ export const DetailModal = ({
                     </Text>
                   )}
                 </View>
-                <TouchableOpacity onPress={onClose}>
-                  <XCircle size={40} color={Colors.forest} opacity={0.3} />
+                
+                <TouchableOpacity 
+                  onPress={() => onToggleStatus(dateKey)}
+                  activeOpacity={0.7}
+                  style={{
+                    backgroundColor: status === 'available' ? Colors.status.availableBg : status === 'unavailable' ? Colors.status.unavailableBg : Colors.status.noneBg,
+                    borderColor: status === 'available' ? Colors.status.availableBorder : status === 'unavailable' ? Colors.status.unavailableBorder : Colors.status.noneBorder,
+                  }}
+                  className="px-5 py-3 items-center justify-center rounded-2xl border shadow-sm"
+                >
+                  <Text 
+                    className="font-black uppercase tracking-widest text-[10px]" 
+                    style={{ color: status === 'available' ? Colors.status.available : status === 'unavailable' ? Colors.status.unavailable : Colors.status.none }}
+                  >
+                    {t(`planner.status.${status}`)}
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -245,7 +270,10 @@ export const DetailModal = ({
                       className={`flex-row items-center px-4 py-2 rounded-xl border ${isUserCooking ? 'bg-forest/10 border-forest/30' : 'bg-sage-light/10 border-sage/20'}`}
                     >
                       <Text className="text-xs font-black text-forest uppercase tracking-widest mr-2">
-                        {isUserCooking ? '🍳' : '+'} {t('planner.iAmCooking')}
+                        {isUserCooking ? '🍳' : '+'}
+                      </Text>
+                      <Text className="text-xs font-black text-forest uppercase tracking-widest">
+                        {t('planner.iAmCooking')}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -259,12 +287,28 @@ export const DetailModal = ({
 
                 {/* Eating Section */}
                 <View className="bg-white rounded-[32px] p-6 mb-4 border border-sage-light/30 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
-                  <View className="flex-row items-center mb-4">
-                    <Text className="text-2xl mr-3">🍽️</Text>
-                    <Text className="text-lg font-black text-forest-dark uppercase tracking-tight">{t('planner.eating')}</Text>
-                    <View className="ml-2 bg-forest/10 px-2.5 py-0.5 rounded-full">
-                      <Text className="text-forest text-xs font-black">{totalEatersCount}</Text>
+                  <View className="flex-row items-center justify-between mb-4">
+                    <View className="flex-row items-center">
+                      <Text className="text-2xl mr-3">🍽️</Text>
+                      <Text className="text-lg font-black text-forest-dark uppercase tracking-tight">{t('planner.eating')}</Text>
+                      <View className="ml-2 bg-forest/10 px-2.5 py-0.5 rounded-full">
+                        <Text className="text-forest text-xs font-black">{totalEatersCount}</Text>
+                      </View>
                     </View>
+
+                    <TouchableOpacity 
+                      onPress={() => setIsEditingNote(true)}
+                      className={`flex-row items-center px-4 py-2 rounded-xl border ${note ? 'bg-forest/10 border-forest/30' : 'bg-sage-light/10 border-sage/20'}`}
+                    >
+                      {note ? (
+                        <MessageSquareText size={16} color={Colors.forest} style={{ marginRight: 8 }} />
+                      ) : (
+                        <MessageSquarePlus size={16} color={Colors.forest} style={{ marginRight: 8 }} />
+                      )}
+                      <Text className="text-xs font-black text-forest uppercase tracking-widest">
+                        {note ? t('planner.editNote') : t('planner.addNote')}
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                   
                   <View className="flex-row flex-wrap gap-2">
@@ -303,41 +347,6 @@ export const DetailModal = ({
                     </View>
                   </View>
                 </View>
-
-                {/* Comments Section */}
-                <View className="bg-white rounded-[32px] p-6 border border-sage-light/30 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
-                  <View className="flex-row items-center justify-between mb-4">
-                    <View className="flex-row items-center">
-                      <Text className="text-2xl mr-3">💬</Text>
-                      <Text className="text-lg font-black text-forest-dark uppercase tracking-tight">{t('planner.myNote')}</Text>
-                    </View>
-                    
-                    <TouchableOpacity 
-                      onPress={() => setIsEditingNote(true)}
-                      className={`flex-row items-center px-4 py-2 rounded-xl border ${note ? 'bg-forest/10 border-forest/30' : 'bg-sage-light/10 border-sage/20'}`}
-                    >
-                      {note ? <MessageSquareText size={16} color={Colors.forest} className="mr-2" /> : <MessageSquarePlus size={16} color={Colors.forest} className="mr-2" />}
-                      <Text className="text-xs font-black text-forest uppercase tracking-widest">
-                        {note ? t('planner.editNote') : t('planner.addNote')}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                  
-                  <View>
-                    {eatersWithNotes.map((u) => (
-                      <View key={`note-${u.id}`} className="mb-3 last:mb-0">
-                        <Text className="text-[10px] font-black text-forest-dark uppercase opacity-40 mb-1">{u.name}</Text>
-                        <View className={`p-3 rounded-2xl ${u.id === userId ? 'bg-forest/5 border border-forest/10' : 'bg-sage-light/5 border border-sage/10'}`}>
-                          <Text className="text-forest-dark text-sm font-medium italic">"{u.note}"</Text>
-                        </View>
-                      </View>
-                    ))}
-                    
-                    {eatersWithNotes.length === 0 && (
-                      <Text className="text-forest-dark/40 italic font-medium">{t('planner.noComments')}</Text>
-                    )}
-                  </View>
-                </View>
               </ScrollView>
             </Animated.View>
           </View>
@@ -364,18 +373,25 @@ export const DetailModal = ({
                 </TouchableOpacity>
               </View>
 
-              <View className="bg-white rounded-3xl p-4 border border-forest/30 shadow-inner mb-6">
+              <View className="bg-white rounded-3xl p-4 border border-forest/30 shadow-inner mb-2">
                 <TextInput
                   autoFocus={true}
                   value={tempNote}
-                  onChangeText={(text) => setTempNote(text.replace(/\n/g, ''))}
+                  onChangeText={(text) => setTempNote(text.replace(/\n/g, '').slice(0, MAX_NOTE_LENGTH))}
                   placeholder={t('planner.notePlaceholder')}
                   placeholderTextColor="rgba(27, 54, 23, 0.3)"
                   className="text-forest-dark font-medium text-lg min-h-[60px]"
                   multiline={false}
                   returnKeyType="done"
                   onSubmitEditing={handleSaveNote}
+                  maxLength={MAX_NOTE_LENGTH}
                 />
+              </View>
+              
+              <View className="flex-row justify-end mb-6 px-4">
+                <Text className={`text-xs font-bold ${tempNote.length >= MAX_NOTE_LENGTH ? 'text-red-500' : 'text-forest-dark/40'}`}>
+                  {tempNote.length} / {MAX_NOTE_LENGTH}
+                </Text>
               </View>
 
               <TouchableOpacity 
@@ -384,7 +400,7 @@ export const DetailModal = ({
               >
                 <Check size={24} color="white" strokeWidth={4} className="mr-2" />
                 <Text className="text-white font-black uppercase tracking-widest text-lg">
-                  {t('save')}
+                  {t('auth.save')}
                 </Text>
               </TouchableOpacity>
             </View>

@@ -1,15 +1,17 @@
 import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, Platform } from 'react-native';
 import { format } from 'date-fns';
-import { Check, X } from 'lucide-react-native';
+import { Check, X, ChefHat } from 'lucide-react-native';
 import { User } from '../../services/user';
 import { Colors } from '../../constants/Colors';
+import { LAYOUT } from '../../constants/Layout';
 
 interface DayTileProps {
   date: Date;
   dateKey: string;
   status: string;
   isUserCooking: boolean;
+  userGuestCount?: number;
   onPress: (dateKey: string) => void;
   onLongPress: (dateKey: string) => void;
   locale: any;
@@ -25,6 +27,7 @@ export const DayTile = memo(({
   dateKey, 
   status, 
   isUserCooking,
+  userGuestCount = 0,
   onPress, 
   onLongPress, 
   locale, 
@@ -70,6 +73,7 @@ export const DayTile = memo(({
     <TouchableOpacity
       onPress={() => onPress(dateKey)}
       onLongPress={() => onLongPress(dateKey)}
+      delayLongPress={LAYOUT.LONG_PRESS_DELAY}
       activeOpacity={0.7}
       style={{ 
         height: tileHeight,
@@ -101,7 +105,7 @@ export const DayTile = memo(({
               {cookName || ''}
             </Text>
           </View>
-          <View className="flex-row items-center h-6">
+          <View className="flex-row items-start mt-1">
             <View className="relative mr-2 items-center justify-center w-6 h-6">
               <Text className="text-lg absolute">🍽️</Text>
               {eatersCount > 0 && (
@@ -110,7 +114,7 @@ export const DayTile = memo(({
                 </View>
               )}
             </View>
-            <Text className="text-sm font-bold text-forest-dark flex-1" numberOfLines={1} ellipsizeMode="tail">
+            <Text className="text-sm font-bold text-forest-dark flex-1 leading-tight" numberOfLines={2} ellipsizeMode="tail">
               {eatersDisplay}
             </Text>
           </View>
@@ -119,19 +123,22 @@ export const DayTile = memo(({
       
       <View className={`w-14 h-14 items-center justify-center rounded-full bg-white border ${today ? 'border-forest/30' : 'border-black/5'}`}>
         {isUserCooking ? (
-          <View className="items-center justify-center w-full h-full">
-            <Text style={{ 
-              fontSize: 28, 
-              includeFontPadding: false,
-              textAlignVertical: 'center',
-              lineHeight: Platform.OS === 'ios' ? 34 : undefined,
-            }}>🧑‍🍳</Text>
-          </View>
+          <ChefHat size={32} color={Colors.forest} strokeWidth={3} />
         ) : (
           status === 'available' ? <Check size={32} color={iconColor} strokeWidth={4} /> : 
           status === 'unavailable' ? <X size={32} color={iconColor} strokeWidth={4} /> : 
           <View className="items-center justify-center w-full h-full">
             <Text style={{ color: iconColor, fontSize: 28, fontWeight: '900', textAlign: 'center', includeFontPadding: false }}>?</Text>
+          </View>
+        )}
+        
+        {userGuestCount > 0 && (
+          <View 
+            className="absolute -top-1 -right-1 bg-forest px-1.5 py-0.5 rounded-lg border border-white shadow-sm"
+          >
+            <Text className="text-[10px] text-white font-black">
+              +{userGuestCount}
+            </Text>
           </View>
         )}
       </View>

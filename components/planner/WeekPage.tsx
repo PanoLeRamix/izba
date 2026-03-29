@@ -30,7 +30,7 @@ interface WeekPageProps {
   locale: any;
   tileHeight: number;
   processedData: Record<string, ProcessedDay>;
-  userPlans: Record<string, { status: PlannerStatus; isCooking: boolean }>;
+  userPlans: Record<string, { status: PlannerStatus; isCooking: boolean; guestCount: number }>;
 }
 
 export const WeekPage = React.memo(({ 
@@ -45,7 +45,7 @@ export const WeekPage = React.memo(({
 }: WeekPageProps) => (
   <View style={{ width: windowWidth }} className="px-6">
     {item.days.map((day) => {
-      const dayPlan = userPlans[day.dateKey] || { status: 'none', isCooking: false };
+      const dayPlan = userPlans[day.dateKey] || { status: 'none', isCooking: false, guestCount: 0 };
       const { eaters, totalCount, cooks } = processedData[day.dateKey] || { eaters: [], totalCount: 0, cooks: [] };
 
       return (
@@ -54,6 +54,7 @@ export const WeekPage = React.memo(({
           {...day} 
           status={dayPlan.status} 
           isUserCooking={dayPlan.isCooking}
+          userGuestCount={dayPlan.guestCount}
           onPress={onToggleStatus} 
           onLongPress={onLongPress}
           locale={locale} 

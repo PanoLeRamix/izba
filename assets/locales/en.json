@@ -56,8 +56,13 @@
     "addNote": "Add a comment",
     "editNote": "Edit my comment",
     "noComments": "No comments yet.",
-    "notePlaceholder": "I'll be home late / Pizza party!"
-    },
+    "notePlaceholder": "I'll be home late / Pizza party!",
+    "status": {
+      "available": "Present",
+      "unavailable": "Absent",
+      "none": "Undecided"
+    }
+  },
   "tabs": {
     "home": "Settings",
     "planner": "Planner"

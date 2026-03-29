@@ -29,17 +29,17 @@ export default function MainLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
-        options={{
-          title: t('tabs.home'),
-          tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
         name="planner"
         options={{
           title: t('tabs.planner'),
           tabBarIcon: ({ color, size }) => <CalendarDays size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: t('tabs.home'),
+          tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
         }}
       />
     </Tabs>

@@ -56,7 +56,12 @@
     "addNote": "Ajouter un commentaire",
     "editNote": "Modifier mon commentaire",
     "noComments": "Aucun commentaire pour l'instant.",
-    "notePlaceholder": "Je rentre tard / Pizza party !"
+    "notePlaceholder": "Je rentre tard / Pizza party !",
+    "status": {
+      "available": "Présent·e",
+      "unavailable": "Absent·e",
+      "none": "Indécis·e"
+    }
   },
   "tabs": {
     "home": "Paramètres",

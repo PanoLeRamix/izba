@@ -74,13 +74,24 @@ export function usePlanner() {
 
       if (p.status === 'available') {
         const guests = p.guest_count || 0;
-        map[p.day_date].eaters.push({ ...user, guestCount: guests, note: p.note });
+        map[p.day_date].eaters.push({ ...user, guestCount: guests, note: p.note || undefined });
         map[p.day_date].totalCount += 1 + guests;
       }
       
       if (p.is_cooking) {
         map[p.day_date].cooks.push(user);
       }
+    });
+
+    // Sort every day: Me first, then alphabetically
+    Object.keys(map).forEach(dateKey => {
+      const sortFn = (a: User, b: User) => {
+        if (a.id === userId) return -1;
+        if (b.id === userId) return 1;
+        return a.name.localeCompare(b.name);
+      };
+      map[dateKey].eaters.sort(sortFn);
+      map[dateKey].cooks.sort(sortFn);
     });
 
     return map;

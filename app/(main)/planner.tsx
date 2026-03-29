@@ -117,6 +117,8 @@ export default function Planner() {
         isUserCooking={selectedDayPlan.isCooking}
         guestCount={selectedDayPlan.guestCount}
         note={selectedDayPlan.note}
+        status={selectedDayPlan.status}
+        onToggleStatus={actions.toggleStatus}
         onToggleCooking={actions.toggleCooking}
         onSetGuestCount={actions.setGuestCount}
         onUpdateNote={actions.updateNote}
