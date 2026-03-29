@@ -1,0 +1,29 @@
+{
+  "auth": {
+    "title": "Bienvenue",
+    "createHouse": "Créer une colocation",
+    "joinHouse": "Rejoindre une colocation",
+    "enterCode": "Entrez le code de la maison",
+    "selectIdentity": "Qui êtes-vous ?",
+    "confirm": "Confirmer",
+    "invalidCode": "Code invalide ou maison introuvable",
+    "houseName": "Nom de la colocation",
+    "members": "Membres",
+    "memberName": "Nom du membre",
+    "addMember": "Ajouter un membre",
+    "fillAllFields": "Veuillez remplir tous les champs",
+    "houseCreated": "Colocation créée !",
+    "yourCode": "Votre code",
+    "shareCodeHint": "Partagez ce code avec vos colocataires pour qu'ils rejoignent la maison.",
+    "continue": "Continuer",
+    "addPerson": "Ajouter une personne"
+  },
+  "main": {
+    "welcome": "Bienvenue dans l'application !"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue",
+    "back": "Retour"
+  }
+}

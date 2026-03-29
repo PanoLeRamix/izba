@@ -1,0 +1,29 @@
+{
+  "auth": {
+    "title": "Welcome",
+    "createHouse": "Create a house-share",
+    "joinHouse": "Join a house-share",
+    "enterCode": "Enter house code",
+    "selectIdentity": "Who are you?",
+    "confirm": "Confirm",
+    "invalidCode": "Invalid code or house not found",
+    "houseName": "House-share name",
+    "members": "Members",
+    "memberName": "Member name",
+    "addMember": "Add a member",
+    "fillAllFields": "Please fill all fields",
+    "houseCreated": "House-share created!",
+    "yourCode": "Your code",
+    "shareCodeHint": "Share this code with your housemates so they can join the house.",
+    "continue": "Continue",
+    "addPerson": "Add a person"
+  },
+  "main": {
+    "welcome": "Welcome to the app!"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "back": "Back"
+  }
+}
