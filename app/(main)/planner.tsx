@@ -14,25 +14,35 @@ import { DetailModal } from '../../components/planner/DetailModal';
 
 type DayStatus = PlannerStatus;
 
+interface UserDayPlan {
+  status: DayStatus;
+  isCooking: boolean;
+}
+
 const STATUS_CYCLE: DayStatus[] = ['none', 'available', 'unavailable'];
 const INITIAL_WEEK_INDEX = 5;
 const DEBOUNCE_DELAY = 1000;
 
-const WeekPage = React.memo(({ item, windowWidth, plans, onToggleStatus, onLongPress, locale, tileHeight, eatersByDay }: any) => (
+const WeekPage = React.memo(({ item, windowWidth, plans, onToggleStatus, onLongPress, locale, tileHeight, eatersByDay, cooksByDay }: any) => (
   <View style={{ width: windowWidth }} className="px-6">
-    {item.days.map((day: any) => (
-      <DayTile 
-        key={day.dateKey} 
-        {...day} 
-        status={plans[day.dateKey] || 'none'} 
-        onPress={onToggleStatus} 
-        onLongPress={onLongPress}
-        locale={locale} 
-        isToday={isToday(day.date)} 
-        tileHeight={tileHeight} 
-        eaters={eatersByDay[day.dateKey] || []}
-      />
-    ))}
+    {item.days.map((day: any) => {
+      const dayPlan = plans[day.dateKey] || { status: 'none', isCooking: false };
+      return (
+        <DayTile 
+          key={day.dateKey} 
+          {...day} 
+          status={dayPlan.status} 
+          isUserCooking={dayPlan.isCooking}
+          onPress={onToggleStatus} 
+          onLongPress={onLongPress}
+          locale={locale} 
+          isToday={isToday(day.date)} 
+          tileHeight={tileHeight} 
+          eaters={eatersByDay[day.dateKey] || []}
+          cookName={(cooksByDay[day.dateKey] || []).map((u: User) => u.name).join(', ')}
+        />
+      );
+    })}
   </View>
 ));
 
@@ -45,7 +55,7 @@ export default function Planner() {
   const flatListRef = useRef<FlatList>(null);
   const queryClient = useQueryClient();
   
-  const [plans, setPlans] = useState<Record<string, DayStatus>>({});
+  const [plans, setPlans] = useState<Record<string, UserDayPlan>>({});
   const [currentIndex, setCurrentIndex] = useState(INITIAL_WEEK_INDEX);
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
   const debounceTimers = useRef<Record<string, any>>({});
@@ -76,8 +86,10 @@ export default function Planner() {
     queryKey: ['planner-init', houseId, userId],
     queryFn: async () => {
       const data = await plannerService.getMealPlans(houseId!, weeks[0].days[0].dateKey, weeks[19].days[6].dateKey);
-      const map: Record<string, DayStatus> = {};
-      data.filter(p => p.user_id === userId).forEach(p => map[p.day_date] = p.status);
+      const map: Record<string, UserDayPlan> = {};
+      data.filter(p => p.user_id === userId).forEach(p => {
+        map[p.day_date] = { status: p.status, isCooking: p.is_cooking };
+      });
       setPlans(map);
       return data;
     },
@@ -88,15 +100,60 @@ export default function Planner() {
 
   const eatersByDay = useMemo(() => {
     const map: Record<string, User[]> = {};
+    
+    // First, process all house plans
     allMealPlans.forEach(p => {
+      // Skip current user's plan as it will be handled by local state
+      if (p.user_id === userId) return;
+      
       if (p.status === 'available') {
         if (!map[p.day_date]) map[p.day_date] = [];
         const user = users.find(u => u.id === p.user_id);
         if (user) map[p.day_date].push(user);
       }
     });
+
+    // Then, inject current user's local state for immediate feedback
+    Object.entries(plans).forEach(([dateKey, plan]) => {
+      if (plan.status === 'available') {
+        if (!map[dateKey]) map[dateKey] = [];
+        const user = users.find(u => u.id === userId);
+        if (user && !map[dateKey].some(u => u.id === userId)) {
+          map[dateKey].push(user);
+        }
+      }
+    });
+
     return map;
-  }, [allMealPlans, users]);
+  }, [allMealPlans, users, plans, userId]);
+
+  const cooksByDay = useMemo(() => {
+    const map: Record<string, User[]> = {};
+    
+    // Process house plans
+    allMealPlans.forEach(p => {
+      if (p.user_id === userId) return;
+      
+      if (p.is_cooking) {
+        if (!map[p.day_date]) map[p.day_date] = [];
+        const user = users.find(u => u.id === p.user_id);
+        if (user) map[p.day_date].push(user);
+      }
+    });
+
+    // Inject local state
+    Object.entries(plans).forEach(([dateKey, plan]) => {
+      if (plan.isCooking) {
+        if (!map[dateKey]) map[dateKey] = [];
+        const user = users.find(u => u.id === userId);
+        if (user && !map[dateKey].some(u => u.id === userId)) {
+          map[dateKey].push(user);
+        }
+      }
+    });
+
+    return map;
+  }, [allMealPlans, users, plans, userId]);
 
   const mutation = useMutation({
     mutationFn: plannerService.upsertMealPlan,
@@ -129,12 +186,45 @@ export default function Planner() {
 
   const toggleStatus = useCallback((dateKey: string) => {
     setPlans(prev => {
-      const nextStatus = STATUS_CYCLE[(STATUS_CYCLE.indexOf(prev[dateKey] || 'none') + 1) % 3];
-      const nextPlans = { ...prev, [dateKey]: nextStatus };
+      const currentPlan = prev[dateKey] || { status: 'none', isCooking: false };
+      const nextStatus = STATUS_CYCLE[(STATUS_CYCLE.indexOf(currentPlan.status) + 1) % 3];
+      const nextIsCooking = false;
+      const nextPlan = { status: nextStatus, isCooking: nextIsCooking };
+      const nextPlans = { ...prev, [dateKey]: nextPlan };
 
       if (debounceTimers.current[dateKey]) clearTimeout(debounceTimers.current[dateKey]);
       debounceTimers.current[dateKey] = setTimeout(() => {
-        mutation.mutate({ user_id: userId!, house_id: houseId!, day_date: dateKey, status: nextStatus });
+        mutation.mutate({ 
+          user_id: userId!, 
+          house_id: houseId!, 
+          day_date: dateKey, 
+          status: nextStatus,
+          is_cooking: nextIsCooking
+        });
+        delete debounceTimers.current[dateKey];
+      }, DEBOUNCE_DELAY);
+
+      return nextPlans;
+    });
+  }, [userId, houseId, mutation]);
+
+  const toggleCooking = useCallback((dateKey: string) => {
+    setPlans(prev => {
+      const currentPlan = prev[dateKey] || { status: 'none', isCooking: false };
+      const nextIsCooking = !currentPlan.isCooking;
+      const nextStatus = nextIsCooking ? 'available' : currentPlan.status;
+      const nextPlan = { status: nextStatus, isCooking: nextIsCooking };
+      const nextPlans = { ...prev, [dateKey]: nextPlan };
+
+      if (debounceTimers.current[dateKey]) clearTimeout(debounceTimers.current[dateKey]);
+      debounceTimers.current[dateKey] = setTimeout(() => {
+        mutation.mutate({ 
+          user_id: userId!, 
+          house_id: houseId!, 
+          day_date: dateKey, 
+          status: nextStatus,
+          is_cooking: nextIsCooking
+        });
         delete debounceTimers.current[dateKey];
       }, DEBOUNCE_DELAY);
 
@@ -178,7 +268,9 @@ export default function Planner() {
   }
 
   const selectedDayEaters = selectedDayKey ? eatersByDay[selectedDayKey] || [] : [];
+  const selectedDayCooks = selectedDayKey ? cooksByDay[selectedDayKey] || [] : [];
   const selectedDayDate = selectedDayKey ? new Date(selectedDayKey) : null;
+  const isUserCookingSelectedDay = selectedDayKey ? (plans[selectedDayKey]?.isCooking || false) : false;
 
   return (
     <View className="flex-1 bg-hearth" style={{ paddingTop: topPadding }}>
@@ -207,6 +299,7 @@ export default function Planner() {
             locale={locale} 
             tileHeight={tileHeight} 
             eatersByDay={eatersByDay} 
+            cooksByDay={cooksByDay}
           />
         )}
         horizontal pagingEnabled showsHorizontalScrollIndicator={false}
@@ -223,7 +316,11 @@ export default function Planner() {
         visible={!!selectedDayKey}
         onClose={() => setSelectedDayKey(null)}
         date={selectedDayDate}
+        dateKey={selectedDayKey || ''}
         eaters={selectedDayEaters}
+        cooks={selectedDayCooks}
+        isUserCooking={isUserCookingSelectedDay}
+        onToggleCooking={toggleCooking}
         locale={locale}
       />
     </View>

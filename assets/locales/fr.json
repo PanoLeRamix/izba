@@ -44,7 +44,9 @@
     "eating": "Mangent",
     "details": "Détails de la soirée",
     "noOneEating": "Personne n'est inscrit pour ce soir.",
-    "notImplemented": "Non implémenté"
+    "noOneCooking": "Personne ne cuisine pour l'instant.",
+    "notImplemented": "Non implémenté",
+    "iAmCooking": "Je cuisine ce soir"
   },
   "tabs": {
     "home": "Accueil",

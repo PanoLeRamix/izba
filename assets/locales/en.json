@@ -44,7 +44,9 @@
     "eating": "Eating",
     "details": "Evening Details",
     "noOneEating": "No one is signed up for tonight.",
-    "notImplemented": "Not implemented"
+    "noOneCooking": "No one is cooking yet.",
+    "notImplemented": "Not implemented",
+    "iAmCooking": "I'm cooking tonight"
   },
   "tabs": {
     "home": "Home",

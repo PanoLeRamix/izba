@@ -12,22 +12,38 @@ import {
   StyleSheet
 } from 'react-native';
 import { format } from 'date-fns';
-import { XCircle } from 'lucide-react-native';
+import { XCircle, Check, ChefHat } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { User } from '../../services/user';
+import { useAuthStore } from '../../store/authStore';
 
 interface DetailModalProps {
   visible: boolean;
   onClose: () => void;
   date: Date | null;
+  dateKey: string;
   eaters: User[];
+  cooks: User[];
+  isUserCooking: boolean;
+  onToggleCooking: (dateKey: string) => void;
   locale: any;
 }
 
 const IS_WEB = Platform.OS === 'web';
 
-export const DetailModal = ({ visible, onClose, date, eaters, locale }: DetailModalProps) => {
+export const DetailModal = ({ 
+  visible, 
+  onClose, 
+  date, 
+  dateKey,
+  eaters, 
+  cooks,
+  isUserCooking,
+  onToggleCooking,
+  locale 
+}: DetailModalProps) => {
   const { t } = useTranslation();
+  const { userId } = useAuthStore();
   const { height: screenHeight } = useWindowDimensions();
   const [shouldRender, setShouldRender] = React.useState(visible);
   
@@ -54,8 +70,6 @@ export const DetailModal = ({ visible, onClose, date, eaters, locale }: DetailMo
     }
   }, [visible]);
 
-  // Disable pan responder logic on web as it can interfere with standard touch events 
-  // and is less expected on desktop browsers.
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => !IS_WEB,
@@ -94,6 +108,20 @@ export const DetailModal = ({ visible, onClose, date, eaters, locale }: DetailMo
     outputRange: [0, 1],
   });
 
+  const renderMemberChip = (user: User) => {
+    const isMe = user.id === userId;
+    return (
+      <View 
+        key={user.id} 
+        className={`px-4 py-2 rounded-full border ${isMe ? 'bg-forest/20 border-forest/40' : 'bg-forest/5 border-forest/10'}`}
+      >
+        <Text className="font-bold text-forest text-sm">
+          {user.name}{isMe ? ` (${t('common.today').toLowerCase()})` : ''}
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <Modal
       visible={shouldRender || visible}
@@ -130,7 +158,7 @@ export const DetailModal = ({ visible, onClose, date, eaters, locale }: DetailMo
               borderTopRightRadius: IS_WEB ? 0 : 48,
               overflow: 'hidden',
             }}
-            className="px-8 pt-8 pb-12 shadow-xl w-full max-w-2xl self-center"
+            className="px-8 pt-12 pb-12 shadow-xl w-full max-w-2xl self-center"
           >
             {!IS_WEB && (
               <View className="w-12 h-1.5 bg-forest-dark/10 rounded-full self-center mb-6" />
@@ -150,32 +178,47 @@ export const DetailModal = ({ visible, onClose, date, eaters, locale }: DetailMo
               </TouchableOpacity>
             </View>
 
-            <View className="bg-white rounded-3xl p-6 mb-4 border border-sage-light/30 shadow-sm">
-              <View className="flex-row items-center mb-4">
-                <Text className="text-2xl mr-3">👨‍🍳</Text>
-                <Text className="text-lg font-black text-forest-dark uppercase tracking-tight">{t('planner.cooking')}</Text>
+            {/* Cooking Section */}
+            <View className="bg-white rounded-[32px] p-6 mb-4 border border-sage-light/30 shadow-sm">
+              <View className="flex-row items-center justify-between mb-4">
+                <View className="flex-row items-center">
+                  <Text className="text-2xl mr-3">🧑‍🍳</Text>
+                  <Text className="text-lg font-black text-forest-dark uppercase tracking-tight">{t('planner.cooking')}</Text>
+                </View>
+                
+                <TouchableOpacity 
+                  onPress={() => onToggleCooking(dateKey)}
+                  activeOpacity={0.7}
+                  className={`flex-row items-center px-4 py-2 rounded-xl border ${isUserCooking ? 'bg-forest/10 border-forest/30' : 'bg-sage-light/10 border-sage/20'}`}
+                >
+                  <Text className="text-xs font-black text-forest uppercase tracking-widest mr-2">
+                    {isUserCooking ? '🍳' : '+'} {t('planner.iAmCooking')}
+                  </Text>
+                </TouchableOpacity>
               </View>
-              <View className="bg-sage-light/10 p-4 rounded-2xl border border-dashed border-sage/40">
-                <Text className="text-forest-dark/40 italic font-medium">{t('planner.notImplemented')}</Text>
-              </View>
+              
+              {cooks.length > 0 ? (
+                <View className="flex-row flex-wrap gap-2">
+                  {cooks.map(renderMemberChip)}
+                </View>
+              ) : (
+                <Text className="text-forest-dark/40 italic font-medium">{t('planner.noOneCooking')}</Text>
+              )}
             </View>
 
-            <View className="bg-white rounded-3xl p-6 border border-sage-light/30 shadow-sm">
+            {/* Eating Section */}
+            <View className="bg-white rounded-[32px] p-6 border border-sage-light/30 shadow-sm">
               <View className="flex-row items-center mb-4">
                 <Text className="text-2xl mr-3">🍽️</Text>
                 <Text className="text-lg font-black text-forest-dark uppercase tracking-tight">{t('planner.eating')}</Text>
-                <View className="ml-2 bg-forest px-2.5 py-0.5 rounded-full">
-                  <Text className="text-white text-xs font-black">{eaters.length}</Text>
+                <View className="ml-2 bg-forest/10 px-2.5 py-0.5 rounded-full">
+                  <Text className="text-forest text-xs font-black">{eaters.length}</Text>
                 </View>
               </View>
               
               {eaters.length > 0 ? (
                 <View className="flex-row flex-wrap gap-2">
-                  {eaters.map(user => (
-                    <View key={user.id} className="bg-forest/10 px-4 py-2 rounded-full border border-forest/20">
-                      <Text className="text-forest font-bold">{user.name}</Text>
-                    </View>
-                  ))}
+                  {eaters.map(renderMemberChip)}
                 </View>
               ) : (
                 <Text className="text-forest-dark/40 italic font-medium">{t('planner.noOneEating')}</Text>
