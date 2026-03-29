@@ -39,7 +39,12 @@
   },
   "planner": {
     "loadError": "Could not load the planner. Please check your connection.",
-    "syncError": "Changes couldn't be saved. Please refresh the page to sync."
+    "syncError": "Changes couldn't be saved. Please refresh the page to sync.",
+    "cooking": "Cooking",
+    "eating": "Eating",
+    "details": "Evening Details",
+    "noOneEating": "No one is signed up for tonight.",
+    "notImplemented": "Not implemented"
   },
   "tabs": {
     "home": "Home",

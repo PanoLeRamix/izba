@@ -1,94 +1,24 @@
-import React, { useState, useMemo, useCallback, memo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { View, Text, FlatList, TouchableOpacity, useWindowDimensions, Platform, ActivityIndicator, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { format, startOfWeek, addDays, addWeeks, isToday, isSameMonth } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
-import { Check, X, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/authStore';
 import { plannerService, PlannerStatus, MealPlan } from '../../services/planner';
 import { userService, User } from '../../services/user';
+import { DayTile } from '../../components/planner/DayTile';
+import { DetailModal } from '../../components/planner/DetailModal';
 
 type DayStatus = PlannerStatus;
-
-interface DayData {
-  date: Date;
-  dateKey: string;
-}
-
-interface WeekData {
-  id: string;
-  days: DayData[];
-  startDate: Date;
-}
 
 const STATUS_CYCLE: DayStatus[] = ['none', 'available', 'unavailable'];
 const INITIAL_WEEK_INDEX = 5;
 const DEBOUNCE_DELAY = 1000;
 
-const DayTile = memo(({ date, dateKey, status, onPress, locale, isToday: today, tileHeight, eaters }: any) => {
-  let iconColor = '#92400e'; 
-  let bgColor = 'bg-amber-50';
-  let borderColor = 'border-amber-200';
-
-  if (status === 'available') {
-    iconColor = '#1B3617';
-    bgColor = 'bg-[#E9F0E9]';
-    borderColor = 'border-forest/20';
-  } else if (status === 'unavailable') {
-    iconColor = '#991b1b';
-    bgColor = 'bg-red-50';
-    borderColor = 'border-red-200';
-  }
-
-  // Join all eaters' names to show as many as possible
-  const eatersDisplay = eaters.map((u: User) => u.name).join(', ');
-
-  return (
-    <TouchableOpacity
-      onPress={() => onPress(dateKey)}
-      activeOpacity={0.7}
-      style={{ 
-        height: tileHeight,
-        shadowColor: today ? '#1B3617' : '#000',
-        shadowOffset: { width: 0, height: today ? 6 : 1 },
-        shadowOpacity: today ? 0.4 : 0.05,
-        shadowRadius: today ? 8 : 2,
-        elevation: today ? 8 : 1,
-      }}
-      className={`flex-row items-center justify-between p-4 mb-2 rounded-[32px] ${bgColor} ${today ? 'border-[3px] border-forest-dark' : `border-[0.5px] ${borderColor}`}`}
-    >
-      <View className="flex-row items-center flex-1">
-        <View className={`w-16 h-16 items-center justify-center rounded-2xl bg-white border ${today ? 'border-forest/40' : 'border-black/5'}`}>
-          <Text className="text-xs font-black text-forest uppercase tracking-widest mb-0.5">{format(date, 'EEE', { locale })}</Text>
-          <Text className="text-2xl font-black text-forest-dark leading-none">{format(date, 'd', { locale })}</Text>
-        </View>
-        
-        <View className="ml-4 flex-1">
-          <View className="flex-row items-center h-6">
-            <Text className="text-lg mr-2">👨‍🍳</Text>
-            <Text className="text-sm font-medium text-forest-dark/40 italic"></Text>
-          </View>
-          <View className="flex-row items-center h-6 overflow-hidden">
-            <Text className="text-lg mr-2">🍽️</Text>
-            <Text className="text-sm font-bold text-forest-dark flex-1" numberOfLines={1} ellipsizeMode="tail">
-              {eatersDisplay}
-            </Text>
-          </View>
-        </View>
-      </View>
-      
-      <View className={`w-14 h-14 items-center justify-center rounded-full bg-white border ${today ? 'border-forest/30' : 'border-black/5'}`}>
-        {status === 'available' ? <Check size={32} color={iconColor} strokeWidth={4} /> : 
-         status === 'unavailable' ? <X size={32} color={iconColor} strokeWidth={4} /> : 
-         <Text style={{ color: iconColor, fontSize: 32, fontWeight: '900' }}>?</Text>}
-      </View>
-    </TouchableOpacity>
-  );
-});
-
-const WeekPage = memo(({ item, windowWidth, plans, onToggleStatus, locale, tileHeight, eatersByDay }: any) => (
+const WeekPage = React.memo(({ item, windowWidth, plans, onToggleStatus, onLongPress, locale, tileHeight, eatersByDay }: any) => (
   <View style={{ width: windowWidth }} className="px-6">
     {item.days.map((day: any) => (
       <DayTile 
@@ -96,6 +26,7 @@ const WeekPage = memo(({ item, windowWidth, plans, onToggleStatus, locale, tileH
         {...day} 
         status={plans[day.dateKey] || 'none'} 
         onPress={onToggleStatus} 
+        onLongPress={onLongPress}
         locale={locale} 
         isToday={isToday(day.date)} 
         tileHeight={tileHeight} 
@@ -116,6 +47,7 @@ export default function Planner() {
   
   const [plans, setPlans] = useState<Record<string, DayStatus>>({});
   const [currentIndex, setCurrentIndex] = useState(INITIAL_WEEK_INDEX);
+  const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
   const debounceTimers = useRef<Record<string, any>>({});
   const errorShown = useRef(false);
 
@@ -169,7 +101,6 @@ export default function Planner() {
   const mutation = useMutation({
     mutationFn: plannerService.upsertMealPlan,
     onSuccess: (newPlan) => {
-      // Update local cache of allMealPlans to reflect the change immediately for others
       queryClient.setQueryData(['planner-init', houseId, userId], (old: MealPlan[] | undefined) => {
         if (!old) return [newPlan];
         const index = old.findIndex(p => p.user_id === newPlan.user_id && p.day_date === newPlan.day_date);
@@ -211,6 +142,10 @@ export default function Planner() {
     });
   }, [userId, houseId, mutation]);
 
+  const openDetails = useCallback((dateKey: string) => {
+    setSelectedDayKey(dateKey);
+  }, []);
+
   const topPadding = insets.top + (Platform.OS === 'android' ? 8 : 16);
   const headerHeight = 70;
   const tabBarHeight = 60 + (insets.bottom > 0 ? insets.bottom / 2 : 0);
@@ -242,6 +177,9 @@ export default function Planner() {
     );
   }
 
+  const selectedDayEaters = selectedDayKey ? eatersByDay[selectedDayKey] || [] : [];
+  const selectedDayDate = selectedDayKey ? new Date(selectedDayKey) : null;
+
   return (
     <View className="flex-1 bg-hearth" style={{ paddingTop: topPadding }}>
       <View className="px-6 mb-4 flex-row items-center justify-between h-[60px]">
@@ -259,7 +197,18 @@ export default function Planner() {
         ref={flatListRef}
         data={weeks}
         keyExtractor={item => item.id}
-        renderItem={({ item }) => <WeekPage item={item} windowWidth={windowWidth} plans={plans} onToggleStatus={toggleStatus} locale={locale} tileHeight={tileHeight} eatersByDay={eatersByDay} />}
+        renderItem={({ item }) => (
+          <WeekPage 
+            item={item} 
+            windowWidth={windowWidth} 
+            plans={plans} 
+            onToggleStatus={toggleStatus} 
+            onLongPress={openDetails} 
+            locale={locale} 
+            tileHeight={tileHeight} 
+            eatersByDay={eatersByDay} 
+          />
+        )}
         horizontal pagingEnabled showsHorizontalScrollIndicator={false}
         initialScrollIndex={INITIAL_WEEK_INDEX}
         onMomentumScrollEnd={e => setCurrentIndex(Math.round(e.nativeEvent.contentOffset.x / windowWidth))}
@@ -268,6 +217,14 @@ export default function Planner() {
         initialNumToRender={3}
         windowSize={5}
         maxToRenderPerBatch={2}
+      />
+
+      <DetailModal
+        visible={!!selectedDayKey}
+        onClose={() => setSelectedDayKey(null)}
+        date={selectedDayDate}
+        eaters={selectedDayEaters}
+        locale={locale}
       />
     </View>
   );

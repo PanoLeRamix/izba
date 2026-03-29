@@ -39,7 +39,12 @@
   },
   "planner": {
     "loadError": "Impossible de charger le planning. Veuillez vérifier votre connexion.",
-    "syncError": "Les modifications n'ont pas pu être enregistrées. Veuillez actualiser la page pour synchroniser."
+    "syncError": "Les modifications n'ont pas pu être enregistrées. Veuillez actualiser la page pour synchroniser.",
+    "cooking": "Cuisine",
+    "eating": "Mangent",
+    "details": "Détails de la soirée",
+    "noOneEating": "Personne n'est inscrit pour ce soir.",
+    "notImplemented": "Non implémenté"
   },
   "tabs": {
     "home": "Accueil",
