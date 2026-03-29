@@ -7,7 +7,8 @@ import { Check, X, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react-n
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/authStore';
-import { plannerService, PlannerStatus } from '../../services/planner';
+import { plannerService, PlannerStatus, MealPlan } from '../../services/planner';
+import { userService, User } from '../../services/user';
 
 type DayStatus = PlannerStatus;
 
@@ -26,7 +27,7 @@ const STATUS_CYCLE: DayStatus[] = ['none', 'available', 'unavailable'];
 const INITIAL_WEEK_INDEX = 5;
 const DEBOUNCE_DELAY = 1000;
 
-const DayTile = memo(({ date, dateKey, status, onPress, locale, isToday: today, tileHeight }: any) => {
+const DayTile = memo(({ date, dateKey, status, onPress, locale, isToday: today, tileHeight, eaters }: any) => {
   let iconColor = '#92400e'; 
   let bgColor = 'bg-amber-50';
   let borderColor = 'border-amber-200';
@@ -39,6 +40,13 @@ const DayTile = memo(({ date, dateKey, status, onPress, locale, isToday: today, 
     iconColor = '#991b1b';
     bgColor = 'bg-red-50';
     borderColor = 'border-red-200';
+  }
+
+  // Format eaters list: "User1, User2, ..."
+  const MAX_EATERS_DISPLAY = 3;
+  let eatersDisplay = eaters.slice(0, MAX_EATERS_DISPLAY).map((u: User) => u.name).join(', ');
+  if (eaters.length > MAX_EATERS_DISPLAY) {
+    eatersDisplay += ', ...';
   }
 
   return (
@@ -55,12 +63,26 @@ const DayTile = memo(({ date, dateKey, status, onPress, locale, isToday: today, 
       }}
       className={`flex-row items-center justify-between p-4 mb-2 rounded-[32px] ${bgColor} ${today ? 'border-[3px] border-forest-dark scale-[1.05]' : `border-[0.5px] ${borderColor}`}`}
     >
-      <View className="flex-row items-center">
+      <View className="flex-row items-center flex-1">
         <View className={`w-16 h-16 items-center justify-center rounded-2xl bg-white border ${today ? 'border-forest/40' : 'border-black/5'}`}>
           <Text className="text-xs font-black text-forest uppercase tracking-widest mb-0.5">{format(date, 'EEE', { locale })}</Text>
           <Text className="text-2xl font-black text-forest-dark leading-none">{format(date, 'd', { locale })}</Text>
         </View>
+        
+        <View className="ml-4 flex-1">
+          <View className="flex-row items-center h-6">
+            <Text className="text-lg mr-2">👨‍🍳</Text>
+            <Text className="text-sm font-medium text-forest-dark/40 italic"></Text>
+          </View>
+          <View className="flex-row items-center h-6">
+            <Text className="text-lg mr-2">🍽️</Text>
+            <Text className="text-sm font-bold text-forest-dark" numberOfLines={1} ellipsizeMode="tail">
+              {eatersDisplay}
+            </Text>
+          </View>
+        </View>
       </View>
+      
       <View className={`w-14 h-14 items-center justify-center rounded-full bg-white border ${today ? 'border-forest/30' : 'border-black/5'}`}>
         {status === 'available' ? <Check size={32} color={iconColor} strokeWidth={4} /> : 
          status === 'unavailable' ? <X size={32} color={iconColor} strokeWidth={4} /> : 
@@ -70,10 +92,19 @@ const DayTile = memo(({ date, dateKey, status, onPress, locale, isToday: today, 
   );
 });
 
-const WeekPage = memo(({ item, windowWidth, plans, onToggleStatus, locale, tileHeight }: any) => (
+const WeekPage = memo(({ item, windowWidth, plans, onToggleStatus, locale, tileHeight, eatersByDay }: any) => (
   <View style={{ width: windowWidth }} className="px-6">
     {item.days.map((day: any) => (
-      <DayTile key={day.dateKey} {...day} status={plans[day.dateKey] || 'none'} onPress={onToggleStatus} locale={locale} isToday={isToday(day.date)} tileHeight={tileHeight} />
+      <DayTile 
+        key={day.dateKey} 
+        {...day} 
+        status={plans[day.dateKey] || 'none'} 
+        onPress={onToggleStatus} 
+        locale={locale} 
+        isToday={isToday(day.date)} 
+        tileHeight={tileHeight} 
+        eaters={eatersByDay[day.dateKey] || []}
+      />
     ))}
   </View>
 ));
@@ -107,7 +138,13 @@ export default function Planner() {
     });
   }, []);
 
-  const { isLoading, isError, refetch } = useQuery({
+  const { data: users = [] } = useQuery({
+    queryKey: ['house-users', houseId],
+    queryFn: () => userService.getHouseUsers(houseId!),
+    enabled: !!houseId,
+  });
+
+  const { data: allMealPlans = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['planner-init', houseId, userId],
     queryFn: async () => {
       const data = await plannerService.getMealPlans(houseId!, weeks[0].days[0].dateKey, weeks[19].days[6].dateKey);
@@ -121,8 +158,33 @@ export default function Planner() {
     retry: 1,
   });
 
+  const eatersByDay = useMemo(() => {
+    const map: Record<string, User[]> = {};
+    allMealPlans.forEach(p => {
+      if (p.status === 'available') {
+        if (!map[p.day_date]) map[p.day_date] = [];
+        const user = users.find(u => u.id === p.user_id);
+        if (user) map[p.day_date].push(user);
+      }
+    });
+    return map;
+  }, [allMealPlans, users]);
+
   const mutation = useMutation({
     mutationFn: plannerService.upsertMealPlan,
+    onSuccess: (newPlan) => {
+      // Update local cache of allMealPlans to reflect the change immediately for others
+      queryClient.setQueryData(['planner-init', houseId, userId], (old: MealPlan[] | undefined) => {
+        if (!old) return [newPlan];
+        const index = old.findIndex(p => p.user_id === newPlan.user_id && p.day_date === newPlan.day_date);
+        if (index > -1) {
+          const updated = [...old];
+          updated[index] = newPlan;
+          return updated;
+        }
+        return [...old, newPlan];
+      });
+    },
     onError: () => {
       if (!errorShown.current) {
         Alert.alert(
@@ -201,7 +263,7 @@ export default function Planner() {
         ref={flatListRef}
         data={weeks}
         keyExtractor={item => item.id}
-        renderItem={({ item }) => <WeekPage item={item} windowWidth={windowWidth} plans={plans} onToggleStatus={toggleStatus} locale={locale} tileHeight={tileHeight} />}
+        renderItem={({ item }) => <WeekPage item={item} windowWidth={windowWidth} plans={plans} onToggleStatus={toggleStatus} locale={locale} tileHeight={tileHeight} eatersByDay={eatersByDay} />}
         horizontal pagingEnabled showsHorizontalScrollIndicator={false}
         initialScrollIndex={INITIAL_WEEK_INDEX}
         onMomentumScrollEnd={e => setCurrentIndex(Math.round(e.nativeEvent.contentOffset.x / windowWidth))}
