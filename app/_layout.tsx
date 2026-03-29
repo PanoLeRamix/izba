@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
@@ -19,13 +20,19 @@ function InitialLayout() {
     const isLoggedIn = !!(houseId && userId);
 
     if (isLoggedIn && inAuthGroup) {
-      // Redirect to main app if logged in
       router.replace('/(main)');
     } else if (!isLoggedIn && !inAuthGroup) {
-      // Redirect to auth if not logged in
       router.replace('/(auth)');
     }
   }, [houseId, userId, isInitialized, segments]);
+
+  if (!isInitialized) {
+    return (
+      <View className="flex-1 items-center justify-center bg-hearth">
+        <ActivityIndicator size="large" color="#2D5A27" />
+      </View>
+    );
+  }
 
   return (
     <Stack screenOptions={{ headerShown: false }} />
