@@ -33,5 +33,9 @@
     "back": "Back",
     "language": "Language",
     "appLanguage": "App Language"
+  },
+  "tabs": {
+    "home": "Home",
+    "planner": "Planner"
   }
 }

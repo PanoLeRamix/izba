@@ -32,6 +32,7 @@ This document contains mandatory guidelines and context for all AI agents workin
 
 ## 🗄️ Database Strategy
 - **Migrations:** All database schema changes MUST be recorded as SQL files in `supabase/migrations/`. 
+- **Application:** Use `npm run supabase:push` to apply new migrations to your database environment.
 - **RLS:** Always enable and define Row Level Security (RLS) policies for new tables to ensure privacy.
 - **SQL-First:** Treat the migration files as the source of truth for the database model.
 

@@ -7,11 +7,13 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "typecheck": "node --stack-size=10000 node_modules/.bin/tsc"
+    "typecheck": "node --stack-size=10000 node_modules/.bin/tsc",
+    "supabase:push": "supabase db push"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.100.1",
     "@tanstack/react-query": "^5.95.2",
+    "date-fns": "^4.1.0",
     "expo": "~54.0.33",
     "expo-clipboard": "~8.0.8",
     "expo-constants": "~18.0.13",
@@ -42,6 +44,7 @@
     "@babel/runtime": "^7.29.2",
     "@types/react": "~19.1.0",
     "babel-preset-expo": "~54.0.10",
+    "supabase": "^2.84.4",
     "typescript": "~5.9.2"
   },
   "private": true

@@ -33,5 +33,9 @@
     "back": "Retour",
     "language": "Langue",
     "appLanguage": "Langue de l'application"
+  },
+  "tabs": {
+    "home": "Accueil",
+    "planner": "Planning"
   }
 }
