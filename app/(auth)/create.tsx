@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, Alert, Modal, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import * as Clipboard from 'expo-clipboard';
 import { Check } from 'lucide-react-native';
+import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { supabase } from '../../services/supabase';
@@ -15,7 +15,7 @@ export default function CreateHouse() {
   const [showModal, setShowModal] = useState(false);
   const [generatedCode, setGeneratedCode] = useState('');
   const [newHouseId, setNewHouseId] = useState('');
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyToClipboard();
   
   const router = useRouter();
   const { t } = useTranslation();
@@ -59,9 +59,7 @@ export default function CreateHouse() {
   };
 
   const copyToClipboard = async () => {
-    await Clipboard.setStringAsync(generatedCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    await copy(generatedCode);
   };
 
   const handleCloseModal = async () => {

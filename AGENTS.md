@@ -38,3 +38,4 @@ This document contains mandatory guidelines and context for all AI agents workin
 - Every feature or bug fix must include corresponding tests in `__tests__` or alongside the file.
 - Run `npx tsc` to ensure no type errors are introduced.
 - **Iterative Approach:** Only implement the specific step requested by the user. Do not over-engineer or add "future" features.
+- **Proactive Refactoring:** While working on files, if you see things that should be refactored or made in a better way, even if this isn't the scope of the task, propose to do it if you think it'd be a good addition to the project.
