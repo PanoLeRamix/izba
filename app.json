@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "izba",
+    "name": "Izba",
     "slug": "izba",
     "scheme": "izba",
     "version": "1.0.0",
@@ -8,25 +8,35 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "backgroundColor": "#F9F7F2",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#F9F7F2"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.pano.izba"
     },
     "android": {
+      "package": "com.pano.izba",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#F9F7F2"
       },
       "allowBackup": false,
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": true,
+      "permissions": ["INTERNET"]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png",
+      "description": "Shared household meal planning made simple and private.",
+      "themeColor": "#2D5A27",
+      "backgroundColor": "#F9F7F2",
+      "display": "standalone",
+      "lang": "fr"
     },
     "plugins": [
       "expo-router",
