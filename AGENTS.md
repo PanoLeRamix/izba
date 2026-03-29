@@ -9,6 +9,10 @@ This document contains mandatory guidelines and context for all AI agents workin
 - **NativeWind & Colors:** Use Tailwind classes for layout. For fixed hex/rgba colors, always use `constants/Colors.ts`. Avoid hardcoding hex strings in components.
 - **Hooks & Components:** Encapsulate logic in custom hooks. Extract repetitive UI patterns into reusable components. For complex features (like the Planner), use feature-specific folders: `components/feature_name/`.
 - **i18n Consistency:** Never hardcode strings. Use `t('key')` from `react-i18next`. Translation files are in `assets/locales/`.
+- **Safe Area Management:** Always use `useSafeAreaInsets` from `react-native-safe-area-context` for top/bottom padding. Never hardcode magic numbers for notches or home indicators.
+- **Layout Constants:** Use `constants/Layout.ts` for semantic spacing, radii, and magic numbers. This ensures a consistent "Slavic-inspired" airy aesthetic.
+- **Platform-Agnostic Layout:** Discourage branching on `Platform.OS` for spacing/padding. Let Safe Area insets handle the platform differences.
+- **Optimistic Updates:** For features involving frequent user interactions (like meal planning), always use TanStack Query's optimistic updates to ensure a lag-free UI.
 
 ## 📁 Project Structure
 - `app/`: Expo Router screens and layouts.
@@ -24,6 +28,7 @@ This document contains mandatory guidelines and context for all AI agents workin
 ## 🔐 Privacy & Security (No-Account Auth)
 - **No Traditional Auth:** Do not implement email/password or OAuth unless explicitly requested.
 - **House-Level Isolation:** Ensure all data operations are scoped to the `house_id`.
+- **Security-First RLS:** Never use `using (true)` for RLS policies in production. Always validate that the user's `house_id` matches the record's `house_id`.
 - **Secure Storage:** Always use `expo-secure-store` for sensitive local identifiers like `house_id` or `user_id`.
 
 ## 🌍 Localization (i18n)

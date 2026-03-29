@@ -13,13 +13,15 @@ import {
   TextInput,
   KeyboardAvoidingView,
   ScrollView,
-  Keyboard
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
 import { XCircle, Minus, Plus, MessageSquarePlus, MessageSquareText, Check } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { User } from '../../services/user';
 import { useAuthStore } from '../../store/authStore';
+import { Colors } from '../../constants/Colors';
+import { LAYOUT } from '../../constants/Layout';
 
 interface DetailModalProps {
   visible: boolean;
@@ -27,6 +29,7 @@ interface DetailModalProps {
   date: Date | null;
   dateKey: string;
   eaters: (User & { guestCount?: number, note?: string })[];
+  totalEatersCount: number; // New prop to avoid the "weird formula" in the component
   cooks: User[];
   isUserCooking: boolean;
   guestCount: number;
@@ -45,6 +48,7 @@ export const DetailModal = ({
   date, 
   dateKey,
   eaters, 
+  totalEatersCount,
   cooks,
   isUserCooking,
   guestCount,
@@ -56,6 +60,7 @@ export const DetailModal = ({
 }: DetailModalProps) => {
   const { t } = useTranslation();
   const { userId } = useAuthStore();
+  const insets = useSafeAreaInsets();
   const { height: screenHeight } = useWindowDimensions();
   const [shouldRender, setShouldRender] = useState(visible);
   const [isEditingNote, setIsEditingNote] = useState(false);
@@ -71,13 +76,13 @@ export const DetailModal = ({
       panY.setValue(0);
       Animated.timing(animValue, {
         toValue: 1,
-        duration: 300,
+        duration: LAYOUT.MODAL_ANIM_DURATION,
         useNativeDriver: !IS_WEB,
       }).start();
     } else {
       Animated.timing(animValue, {
         toValue: 0,
-        duration: 250,
+        duration: LAYOUT.MODAL_ANIM_DURATION - 50,
         useNativeDriver: !IS_WEB,
       }).start(() => {
         setShouldRender(false);
@@ -96,7 +101,7 @@ export const DetailModal = ({
       },
       onPanResponderRelease: (_, gestureState) => {
         if (!IS_WEB && !isEditingNote) {
-          if (gestureState.dy > 100 || gestureState.vy > 0.5) {
+          if (gestureState.dy > LAYOUT.MODAL_SWIPE_THRESHOLD || gestureState.vy > LAYOUT.MODAL_VELOCITY_THRESHOLD) {
             onClose();
           } else {
             Animated.spring(panY, {
@@ -156,7 +161,6 @@ export const DetailModal = ({
     );
   };
 
-  const totalEatersCount = eaters.reduce((sum, u) => sum + 1 + (u.guestCount || 0), 0);
   const eatersWithNotes = eaters.filter(u => !!u.note);
 
   const handleSaveNote = () => {
@@ -194,15 +198,16 @@ export const DetailModal = ({
                   { translateY: translateY },
                   { translateY: panY }
                 ],
-                paddingTop: IS_WEB ? 10 : undefined,
-                paddingBottom: Platform.OS === 'ios' ? 40 : 20,
-                backgroundColor: '#F9F7F2', 
-                borderTopLeftRadius: IS_WEB ? 0 : 48,
-                borderTopRightRadius: IS_WEB ? 0 : 48,
+                paddingTop: IS_WEB ? LAYOUT.BASE_MODAL_PADDING_TOP / 2 : LAYOUT.BASE_MODAL_PADDING_TOP,
+                paddingBottom: Math.max(insets.bottom, LAYOUT.BASE_MODAL_PADDING_BOTTOM),
+                paddingHorizontal: LAYOUT.BASE_MODAL_PADDING_HORIZONTAL,
+                backgroundColor: Colors.hearth, 
+                borderTopLeftRadius: IS_WEB ? 0 : LAYOUT.MODAL_BORDER_RADIUS,
+                borderTopRightRadius: IS_WEB ? 0 : LAYOUT.MODAL_BORDER_RADIUS,
                 overflow: 'hidden',
                 maxHeight: '90%'
               }}
-              className="px-8 pt-12 shadow-xl w-full max-w-2xl self-center"
+              className="shadow-xl w-full max-w-2xl self-center"
             >
               {!IS_WEB && (
                 <View className="w-12 h-1.5 bg-forest-dark/10 rounded-full self-center mb-6" />
@@ -218,7 +223,7 @@ export const DetailModal = ({
                   )}
                 </View>
                 <TouchableOpacity onPress={onClose}>
-                  <XCircle size={40} color="#2D5A27" opacity={0.3} />
+                  <XCircle size={40} color={Colors.forest} opacity={0.3} />
                 </TouchableOpacity>
               </View>
 
@@ -227,7 +232,7 @@ export const DetailModal = ({
                 contentContainerStyle={{ paddingBottom: 20 }}
               >
                 {/* Cooking Section */}
-                <View className="bg-white rounded-[32px] p-6 mb-4 border border-sage-light/30 shadow-sm">
+                <View className="bg-white rounded-[32px] p-6 mb-4 border border-sage-light/30 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
                   <View className="flex-row items-center justify-between mb-4">
                     <View className="flex-row items-center">
                       <Text className="text-2xl mr-3">🧑‍🍳</Text>
@@ -253,7 +258,7 @@ export const DetailModal = ({
                 </View>
 
                 {/* Eating Section */}
-                <View className="bg-white rounded-[32px] p-6 mb-4 border border-sage-light/30 shadow-sm">
+                <View className="bg-white rounded-[32px] p-6 mb-4 border border-sage-light/30 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
                   <View className="flex-row items-center mb-4">
                     <Text className="text-2xl mr-3">🍽️</Text>
                     <Text className="text-lg font-black text-forest-dark uppercase tracking-tight">{t('planner.eating')}</Text>
@@ -270,7 +275,7 @@ export const DetailModal = ({
                 </View>
 
                 {/* Invite Friends Section */}
-                <View className="bg-white rounded-[32px] p-6 mb-4 border border-sage-light/30 shadow-sm">
+                <View className="bg-white rounded-[32px] p-6 mb-4 border border-sage-light/30 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
                   <View className="flex-row items-center justify-between">
                     <View className="flex-row items-center">
                       <Text className="text-2xl mr-3">👋</Text>
@@ -282,7 +287,7 @@ export const DetailModal = ({
                         onPress={() => onSetGuestCount(dateKey, Math.max(0, guestCount - 1))}
                         className="w-10 h-10 items-center justify-center rounded-xl bg-white border border-sage/10 shadow-sm"
                       >
-                        <Minus size={20} color="#2D5A27" strokeWidth={3} />
+                        <Minus size={20} color={Colors.forest} strokeWidth={3} />
                       </TouchableOpacity>
                       
                       <View className="w-12 items-center justify-center">
@@ -300,7 +305,7 @@ export const DetailModal = ({
                 </View>
 
                 {/* Comments Section */}
-                <View className="bg-white rounded-[32px] p-6 border border-sage-light/30 shadow-sm">
+                <View className="bg-white rounded-[32px] p-6 border border-sage-light/30 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
                   <View className="flex-row items-center justify-between mb-4">
                     <View className="flex-row items-center">
                       <Text className="text-2xl mr-3">💬</Text>
@@ -311,7 +316,7 @@ export const DetailModal = ({
                       onPress={() => setIsEditingNote(true)}
                       className={`flex-row items-center px-4 py-2 rounded-xl border ${note ? 'bg-forest/10 border-forest/30' : 'bg-sage-light/10 border-sage/20'}`}
                     >
-                      {note ? <MessageSquareText size={16} color="#2D5A27" className="mr-2" /> : <MessageSquarePlus size={16} color="#2D5A27" className="mr-2" />}
+                      {note ? <MessageSquareText size={16} color={Colors.forest} className="mr-2" /> : <MessageSquarePlus size={16} color={Colors.forest} className="mr-2" />}
                       <Text className="text-xs font-black text-forest uppercase tracking-widest">
                         {note ? t('planner.editNote') : t('planner.addNote')}
                       </Text>
@@ -351,11 +356,11 @@ export const DetailModal = ({
           className="flex-1"
         >
           <View className="flex-1 items-center justify-center bg-black/60 px-6">
-            <View className="bg-hearth w-full rounded-[40px] p-8 shadow-2xl">
+            <View className="bg-hearth w-full rounded-[40px] p-8 shadow-2xl" style={{ backgroundColor: Colors.hearth }}>
               <View className="flex-row items-center justify-between mb-6">
                 <Text className="text-2xl font-black text-forest-dark uppercase">{t('planner.editNote')}</Text>
                 <TouchableOpacity onPress={() => setIsEditingNote(false)}>
-                  <XCircle size={32} color="#2D5A27" opacity={0.3} />
+                  <XCircle size={32} color={Colors.forest} opacity={0.3} />
                 </TouchableOpacity>
               </View>
 

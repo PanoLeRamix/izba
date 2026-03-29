@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Platform } from 'react-native';
 import { format } from 'date-fns';
 import { Check, X } from 'lucide-react-native';
 import { User } from '../../services/user';
+import { Colors } from '../../constants/Colors';
 
 interface DayTileProps {
   date: Date;
@@ -33,19 +34,30 @@ export const DayTile = memo(({
   eatersCount,
   cookName
 }: DayTileProps) => {
-  let iconColor = '#92400e'; 
-  let bgColor = 'bg-amber-50';
-  let borderColor = 'border-amber-200';
+  const getStatusStyle = () => {
+    switch (status) {
+      case 'available':
+        return { 
+          iconColor: Colors.status.available, 
+          bgColor: Colors.status.availableBg, 
+          borderColor: Colors.status.availableBorder 
+        };
+      case 'unavailable':
+        return { 
+          iconColor: Colors.status.unavailable, 
+          bgColor: Colors.status.unavailableBg, 
+          borderColor: Colors.status.unavailableBorder 
+        };
+      default:
+        return { 
+          iconColor: Colors.status.none, 
+          bgColor: Colors.status.noneBg, 
+          borderColor: Colors.status.noneBorder 
+        };
+    }
+  };
 
-  if (status === 'available') {
-    iconColor = '#1B3617';
-    bgColor = 'bg-[#E9F0E9]';
-    borderColor = 'border-forest/20';
-  } else if (status === 'unavailable') {
-    iconColor = '#991b1b';
-    bgColor = 'bg-red-50';
-    borderColor = 'border-red-200';
-  }
+  const { iconColor, bgColor, borderColor } = getStatusStyle();
 
   const eatersDisplay = eaters.map((u) => {
     if (u.guestCount && u.guestCount > 0) {
@@ -61,13 +73,16 @@ export const DayTile = memo(({
       activeOpacity={0.7}
       style={{ 
         height: tileHeight,
-        shadowColor: today ? '#1B3617' : '#000',
+        shadowColor: today ? Colors.forestDark : '#000',
         shadowOffset: { width: 0, height: today ? 6 : 1 },
         shadowOpacity: today ? 0.4 : 0.05,
         shadowRadius: today ? 8 : 2,
         elevation: today ? 8 : 1,
+        backgroundColor: bgColor,
+        borderColor: today ? Colors.forestDark : borderColor,
+        borderWidth: today ? 3 : 0.5,
       }}
-      className={`flex-row items-center justify-between p-4 mb-2 rounded-[32px] ${bgColor} ${today ? 'border-[3px] border-forest-dark' : `border-[0.5px] ${borderColor}`}`}
+      className="flex-row items-center justify-between p-4 mb-2 rounded-[32px]"
     >
       <View className="flex-row items-center flex-1">
         <TouchableOpacity 

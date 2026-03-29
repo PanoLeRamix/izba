@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, Alert } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Input } from '../../components/Input';
@@ -7,12 +8,14 @@ import { Button } from '../../components/Button';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { LanguageToggle } from '../../components/LanguageToggle';
+import { LAYOUT } from '../../constants/Layout';
 
 export default function JoinHouse() {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const { setHouseId } = useAuthStore();
 
@@ -47,8 +50,14 @@ export default function JoinHouse() {
   };
 
   return (
-    <View className="flex-1 bg-hearth p-6 pt-20">
-      <View className="flex-row justify-between items-center mb-8">
+    <View 
+      className="flex-1 bg-hearth px-6"
+      style={{ 
+        paddingTop: insets.top,
+        paddingBottom: Math.max(insets.bottom, LAYOUT.BASE_SCREEN_PADDING)
+      }}
+    >
+      <View className="flex-row justify-between items-center mb-8" style={{ marginTop: LAYOUT.BASE_SCREEN_PADDING }}>
         <Text className="text-3xl font-bold text-forest-dark">{t('auth.title')}</Text>
         <LanguageToggle />
       </View>

@@ -11,12 +11,26 @@ export const Colors = {
   hearthWarm: '#FAF3E0',
   hearthEarth: '#582F0E',
   
-  // Surfaces (Solid versions of transparent colors for Android compatibility)
-  tileBackground: '#F4F2EC', // The lighter greyish we settled on
-  tileBorder: 'rgba(163, 177, 138, 0.3)', // sage/30
+  // Surfaces
+  tileBackground: '#F4F2EC',
+  tileBorder: 'rgba(163, 177, 138, 0.3)',
   
+  // Status Colors
+  status: {
+    available: '#1B3617',
+    availableBg: '#E9F0E9',
+    availableBorder: 'rgba(27, 54, 23, 0.2)',
+    unavailable: '#991b1b',
+    unavailableBg: '#FEF2F2', // red-50
+    unavailableBorder: '#FECACA', // red-200
+    none: '#92400e', // amber-800
+    noneBg: '#FFFBEB', // amber-50
+    noneBorder: '#FDE68A', // amber-200
+  },
+
   // Interactions
   whiteAlpha50: 'rgba(255, 255, 255, 0.5)',
   forestAlpha10: 'rgba(45, 90, 39, 0.1)',
   forestAlpha5: 'rgba(45, 90, 39, 0.05)',
+  blackAlpha5: 'rgba(0, 0, 0, 0.05)',
 };

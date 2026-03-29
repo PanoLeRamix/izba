@@ -31,9 +31,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   initialize: async () => {
     try {
-      // Small delay to ensure native modules are ready on Android
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
       const houseId = await storage.getItem('house_id');
       const userId = await storage.getItem('user_id');
       

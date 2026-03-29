@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../store/authStore';
 import { Button } from '../../components/Button';
 import { useTranslation } from 'react-i18next';
@@ -8,10 +9,12 @@ import { Copy, Home, User, LogOut, Check } from 'lucide-react-native';
 import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
 import { LanguageToggle } from '../../components/LanguageToggle';
 import { Colors } from '../../constants/Colors';
+import { LAYOUT } from '../../constants/Layout';
 
 export default function MainIndex() {
   const { logout, houseId, userId } = useAuthStore();
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   
   const [houseName, setHouseName] = useState('');
   const [houseCode, setHouseCode] = useState('');
@@ -59,8 +62,14 @@ export default function MainIndex() {
   }
 
   return (
-    <View className="flex-1 bg-hearth p-6 pt-20">
-      <View className="items-center mb-12">
+    <View 
+      className="flex-1 bg-hearth px-6"
+      style={{ 
+        paddingTop: insets.top,
+        paddingBottom: Math.max(insets.bottom, LAYOUT.BASE_SCREEN_PADDING)
+      }}
+    >
+      <View className="items-center mb-12" style={{ marginTop: LAYOUT.BASE_SCREEN_PADDING }}>
         <Text className="text-4xl mb-2">🌲</Text>
         <Text className="text-3xl font-bold text-forest-dark text-center">{t('main.welcome')}</Text>
       </View>

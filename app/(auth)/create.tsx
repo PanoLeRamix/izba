@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, Alert, Modal, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Check } from 'lucide-react-native';
@@ -10,6 +11,7 @@ import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { LanguageToggle } from '../../components/LanguageToggle';
 import { Colors } from '../../constants/Colors';
+import { LAYOUT } from '../../constants/Layout';
 
 export default function CreateHouse() {
   const [houseName, setHouseName] = useState('');
@@ -18,6 +20,7 @@ export default function CreateHouse() {
   const [generatedCode, setGeneratedCode] = useState('');
   const [newHouseId, setNewHouseId] = useState('');
   const { copied, copy } = useCopyToClipboard();
+  const insets = useSafeAreaInsets();
   
   const router = useRouter();
   const { t } = useTranslation();
@@ -74,8 +77,14 @@ export default function CreateHouse() {
   };
 
   return (
-    <View className="flex-1 bg-hearth p-6 pt-20">
-      <View className="flex-row justify-between items-center mb-8">
+    <View 
+      className="flex-1 bg-hearth px-6"
+      style={{ 
+        paddingTop: insets.top,
+        paddingBottom: Math.max(insets.bottom, LAYOUT.BASE_SCREEN_PADDING)
+      }}
+    >
+      <View className="flex-row justify-between items-center mb-8" style={{ marginTop: LAYOUT.BASE_SCREEN_PADDING }}>
         <Text className="text-3xl font-bold text-forest-dark">{t('auth.createHouse')}</Text>
         <LanguageToggle />
       </View>

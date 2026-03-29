@@ -1,0 +1,19 @@
+# .geminiignore
+
+# Ignore build artifacts
+dist/
+.expo/
+web-build/
+node_modules/
+
+# Ignore sensitive files
+.env
+.env.*
+supabase/.temp/
+
+# Ignore large assets
+assets/fonts/
+assets/images/
+
+# Ignore git internal files
+.git/

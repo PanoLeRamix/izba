@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, Alert } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../services/supabase';
@@ -9,10 +10,12 @@ import { Button } from '../../components/Button';
 import { UserPlus } from 'lucide-react-native';
 import { LanguageToggle } from '../../components/LanguageToggle';
 import { Colors } from '../../constants/Colors';
+import { LAYOUT } from '../../constants/Layout';
 
 export default function SelectUser() {
   const { houseId: paramHouseId } = useLocalSearchParams<{ houseId: string }>();
   const { houseId: storeHouseId, setAuth } = useAuthStore();
+  const insets = useSafeAreaInsets();
   
   const houseId = paramHouseId || storeHouseId;
 
@@ -74,8 +77,14 @@ export default function SelectUser() {
   }
 
   return (
-    <View className="flex-1 bg-hearth p-6 pt-20">
-      <View className="flex-row justify-between items-center mb-8">
+    <View 
+      className="flex-1 bg-hearth px-6"
+      style={{ 
+        paddingTop: insets.top,
+        paddingBottom: Math.max(insets.bottom, LAYOUT.BASE_SCREEN_PADDING)
+      }}
+    >
+      <View className="flex-row justify-between items-center mb-8" style={{ marginTop: LAYOUT.BASE_SCREEN_PADDING }}>
         <Text className="text-3xl font-bold text-forest-dark">{t('auth.selectIdentity')}</Text>
         <LanguageToggle />
       </View>
