@@ -42,12 +42,8 @@ const DayTile = memo(({ date, dateKey, status, onPress, locale, isToday: today, 
     borderColor = 'border-red-200';
   }
 
-  // Format eaters list: "User1, User2, ..."
-  const MAX_EATERS_DISPLAY = 3;
-  let eatersDisplay = eaters.slice(0, MAX_EATERS_DISPLAY).map((u: User) => u.name).join(', ');
-  if (eaters.length > MAX_EATERS_DISPLAY) {
-    eatersDisplay += ', ...';
-  }
+  // Join all eaters' names to show as many as possible
+  const eatersDisplay = eaters.map((u: User) => u.name).join(', ');
 
   return (
     <TouchableOpacity
@@ -74,9 +70,9 @@ const DayTile = memo(({ date, dateKey, status, onPress, locale, isToday: today, 
             <Text className="text-lg mr-2">👨‍🍳</Text>
             <Text className="text-sm font-medium text-forest-dark/40 italic"></Text>
           </View>
-          <View className="flex-row items-center h-6">
+          <View className="flex-row items-center h-6 overflow-hidden">
             <Text className="text-lg mr-2">🍽️</Text>
-            <Text className="text-sm font-bold text-forest-dark" numberOfLines={1} ellipsizeMode="tail">
+            <Text className="text-sm font-bold text-forest-dark flex-1" numberOfLines={1} ellipsizeMode="tail">
               {eatersDisplay}
             </Text>
           </View>
