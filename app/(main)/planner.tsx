@@ -54,14 +54,14 @@ const DayTile = memo(({ date, dateKey, status, onPress, locale, isToday: today, 
       onPress={() => onPress(dateKey)}
       activeOpacity={0.7}
       style={{ 
-        height: today ? tileHeight + 4 : tileHeight,
+        height: tileHeight,
         shadowColor: today ? '#1B3617' : '#000',
         shadowOffset: { width: 0, height: today ? 6 : 1 },
         shadowOpacity: today ? 0.4 : 0.05,
         shadowRadius: today ? 8 : 2,
         elevation: today ? 8 : 1,
       }}
-      className={`flex-row items-center justify-between p-4 mb-2 rounded-[32px] ${bgColor} ${today ? 'border-[3px] border-forest-dark scale-[1.05]' : `border-[0.5px] ${borderColor}`}`}
+      className={`flex-row items-center justify-between p-4 mb-2 rounded-[32px] ${bgColor} ${today ? 'border-[3px] border-forest-dark' : `border-[0.5px] ${borderColor}`}`}
     >
       <View className="flex-row items-center flex-1">
         <View className={`w-16 h-16 items-center justify-center rounded-2xl bg-white border ${today ? 'border-forest/40' : 'border-black/5'}`}>
