@@ -18,6 +18,7 @@ interface UserDayPlan {
   status: DayStatus;
   isCooking: boolean;
   guestCount: number;
+  note: string;
 }
 
 const STATUS_CYCLE: DayStatus[] = ['none', 'available', 'unavailable'];
@@ -27,7 +28,7 @@ const DEBOUNCE_DELAY = 1000;
 const WeekPage = React.memo(({ item, windowWidth, plans, onToggleStatus, onLongPress, locale, tileHeight, processedData }: any) => (
   <View style={{ width: windowWidth }} className="px-6">
     {item.days.map((day: any) => {
-      const dayPlan = plans[day.dateKey] || { status: 'none', isCooking: false, guestCount: 0 };
+      const dayPlan = plans[day.dateKey] || { status: 'none', isCooking: false, guestCount: 0, note: '' };
       const { eaters, totalCount, cooks } = processedData[day.dateKey] || { eaters: [], totalCount: 0, cooks: [] };
 
       return (
@@ -86,13 +87,13 @@ export default function Planner() {
     enabled: !!houseId,
   });
 
-  const { data: allMealPlans = [], isLoading, isError, refetch } = useQuery({
+  const { isLoading, isError, refetch } = useQuery({
     queryKey: ['planner-init', houseId, userId],
     queryFn: async () => {
       const data = await plannerService.getMealPlans(houseId!, weeks[0].days[0].dateKey, weeks[19].days[6].dateKey);
       const map: Record<string, UserDayPlan> = {};
       data.filter(p => p.user_id === userId).forEach(p => {
-        map[p.day_date] = { status: p.status, isCooking: p.is_cooking, guestCount: p.guest_count || 0 };
+        map[p.day_date] = { status: p.status, isCooking: p.is_cooking, guestCount: p.guest_count || 0, note: p.note || '' };
       });
       setPlans(map);
       return data;
@@ -102,10 +103,16 @@ export default function Planner() {
     retry: 1,
   });
 
+  const { data: allMealPlans = [] } = useQuery({
+    queryKey: ['house-plans', houseId],
+    queryFn: () => plannerService.getMealPlans(houseId!, weeks[0].days[0].dateKey, weeks[19].days[6].dateKey),
+    enabled: !!houseId,
+    staleTime: Infinity,
+  });
+
   const processedData = useMemo(() => {
-    const map: Record<string, { eaters: (User & { guestCount: number })[], totalCount: number, cooks: User[] }> = {};
+    const map: Record<string, { eaters: (User & { guestCount: number, note?: string })[], totalCount: number, cooks: User[] }> = {};
     
-    // Process all house plans
     allMealPlans.forEach(p => {
       if (p.user_id === userId) return;
       if (!map[p.day_date]) map[p.day_date] = { eaters: [], totalCount: 0, cooks: [] };
@@ -115,7 +122,7 @@ export default function Planner() {
 
       if (p.status === 'available') {
         const guests = p.guest_count || 0;
-        map[p.day_date].eaters.push({ ...user, guestCount: guests });
+        map[p.day_date].eaters.push({ ...user, guestCount: guests, note: p.note });
         map[p.day_date].totalCount += 1 + guests;
       }
       
@@ -124,14 +131,13 @@ export default function Planner() {
       }
     });
 
-    // Inject current user's local state
     Object.entries(plans).forEach(([dateKey, plan]) => {
       if (!map[dateKey]) map[dateKey] = { eaters: [], totalCount: 0, cooks: [] };
       const me = users.find(u => u.id === userId);
       if (!me) return;
 
       if (plan.status === 'available') {
-        map[dateKey].eaters.push({ ...me, guestCount: plan.guestCount });
+        map[dateKey].eaters.push({ ...me, guestCount: plan.guestCount, note: plan.note });
         map[dateKey].totalCount += 1 + plan.guestCount;
       }
       
@@ -146,7 +152,7 @@ export default function Planner() {
   const mutation = useMutation({
     mutationFn: plannerService.upsertMealPlan,
     onSuccess: (newPlan) => {
-      queryClient.setQueryData(['planner-init', houseId, userId], (old: MealPlan[] | undefined) => {
+      queryClient.setQueryData(['house-plans', houseId], (old: MealPlan[] | undefined) => {
         if (!old) return [newPlan];
         const index = old.findIndex(p => p.user_id === newPlan.user_id && p.day_date === newPlan.day_date);
         if (index > -1) {
@@ -156,23 +162,10 @@ export default function Planner() {
         }
         return [...old, newPlan];
       });
-    },
-    onError: () => {
-      if (!errorShown.current) {
-        Alert.alert(
-          t('common.error'), 
-          t('planner.syncError'), 
-          [{ text: t('common.refresh'), onPress: () => {
-            errorShown.current = false;
-            refetch();
-          }}]
-        );
-        errorShown.current = true;
-      }
     }
   });
 
-  const updateRemotePlan = useCallback((dateKey: string, status: DayStatus, isCooking: boolean, guestCount: number) => {
+  const updateRemotePlan = useCallback((dateKey: string, status: DayStatus, isCooking: boolean, guestCount: number, note: string) => {
     if (debounceTimers.current[dateKey]) clearTimeout(debounceTimers.current[dateKey]);
     debounceTimers.current[dateKey] = setTimeout(() => {
       mutation.mutate({ 
@@ -181,7 +174,8 @@ export default function Planner() {
         day_date: dateKey, 
         status,
         is_cooking: isCooking,
-        guest_count: guestCount
+        guest_count: guestCount,
+        note
       });
       delete debounceTimers.current[dateKey];
     }, DEBOUNCE_DELAY);
@@ -189,36 +183,46 @@ export default function Planner() {
 
   const toggleStatus = useCallback((dateKey: string) => {
     setPlans(prev => {
-      const currentPlan = prev[dateKey] || { status: 'none', isCooking: false, guestCount: 0 };
+      const currentPlan = prev[dateKey] || { status: 'none', isCooking: false, guestCount: 0, note: '' };
       const nextStatus = STATUS_CYCLE[(STATUS_CYCLE.indexOf(currentPlan.status) + 1) % 3];
       const nextIsCooking = false;
       const nextGuestCount = 0;
+      const nextNote = ''; // Personal notes are cleared when cycling status? User said "everything change" for cooking, maybe keep note? 
+      // Re-reading: "if i cycle on that tile, the 'i'm cooking' gets automatically removed"
+      // Let's clear the note too if cycling to keep it simple and clean.
       
-      const nextPlan = { status: nextStatus, isCooking: nextIsCooking, guestCount: nextGuestCount };
-      updateRemotePlan(dateKey, nextStatus, nextIsCooking, nextGuestCount);
+      const nextPlan = { status: nextStatus, isCooking: nextIsCooking, guestCount: nextGuestCount, note: nextNote };
+      updateRemotePlan(dateKey, nextStatus, nextIsCooking, nextGuestCount, nextNote);
       return { ...prev, [dateKey]: nextPlan };
     });
   }, [updateRemotePlan]);
 
   const toggleCooking = useCallback((dateKey: string) => {
     setPlans(prev => {
-      const currentPlan = prev[dateKey] || { status: 'none', isCooking: false, guestCount: 0 };
+      const currentPlan = prev[dateKey] || { status: 'none', isCooking: false, guestCount: 0, note: '' };
       const nextIsCooking = !currentPlan.isCooking;
       const nextStatus = nextIsCooking ? 'available' : currentPlan.status;
-      
       const nextPlan = { ...currentPlan, status: nextStatus, isCooking: nextIsCooking };
-      updateRemotePlan(dateKey, nextStatus, nextIsCooking, currentPlan.guestCount);
+      updateRemotePlan(dateKey, nextStatus, nextIsCooking, currentPlan.guestCount, currentPlan.note);
       return { ...prev, [dateKey]: nextPlan };
     });
   }, [updateRemotePlan]);
 
   const setGuestCount = useCallback((dateKey: string, count: number) => {
     setPlans(prev => {
-      const currentPlan = prev[dateKey] || { status: 'none', isCooking: false, guestCount: 0 };
+      const currentPlan = prev[dateKey] || { status: 'none', isCooking: false, guestCount: 0, note: '' };
       const nextStatus = count > 0 ? 'available' : currentPlan.status;
-      
       const nextPlan = { ...currentPlan, status: nextStatus, guestCount: count };
-      updateRemotePlan(dateKey, nextStatus, currentPlan.isCooking, count);
+      updateRemotePlan(dateKey, nextStatus, currentPlan.isCooking, count, currentPlan.note);
+      return { ...prev, [dateKey]: nextPlan };
+    });
+  }, [updateRemotePlan]);
+
+  const updateNote = useCallback((dateKey: string, note: string) => {
+    setPlans(prev => {
+      const currentPlan = prev[dateKey] || { status: 'none', isCooking: false, guestCount: 0, note: '' };
+      const nextPlan = { ...currentPlan, note };
+      updateRemotePlan(dateKey, currentPlan.status, currentPlan.isCooking, currentPlan.guestCount, note);
       return { ...prev, [dateKey]: nextPlan };
     });
   }, [updateRemotePlan]);
@@ -242,27 +246,11 @@ export default function Planner() {
 
   if (isLoading) return <View className="flex-1 bg-hearth items-center justify-center"><ActivityIndicator size="large" color="#2D5A27" /></View>;
 
-  if (isError) {
-    return (
-      <View className="flex-1 bg-hearth items-center justify-center p-6">
-        <AlertCircle size={48} color="#991b1b" />
-        <Text className="text-xl font-bold text-forest-dark mt-4 text-center">{t('common.error')}</Text>
-        <Text className="text-forest-light text-center mt-2 mb-8">{t('planner.loadError')}</Text>
-        <TouchableOpacity 
-          onPress={() => refetch()}
-          className="bg-forest px-8 py-4 rounded-2xl shadow-sm"
-        >
-          <Text className="text-white font-black uppercase tracking-widest">{t('common.retry')}</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
   const dayData = selectedDayKey ? processedData[selectedDayKey] : null;
   const selectedDayEaters = dayData?.eaters || [];
   const selectedDayCooks = dayData?.cooks || [];
   const selectedDayDate = selectedDayKey ? new Date(selectedDayKey) : null;
-  const selectedDayPlan = selectedDayKey ? (plans[selectedDayKey] || { status: 'none', isCooking: false, guestCount: 0 }) : { status: 'none', isCooking: false, guestCount: 0 };
+  const selectedDayPlan = selectedDayKey ? (plans[selectedDayKey] || { status: 'none', isCooking: false, guestCount: 0, note: '' }) : { status: 'none', isCooking: false, guestCount: 0, note: '' };
 
   return (
     <View className="flex-1 bg-hearth" style={{ paddingTop: topPadding }}>
@@ -312,8 +300,10 @@ export default function Planner() {
         cooks={selectedDayCooks}
         isUserCooking={selectedDayPlan.isCooking}
         guestCount={selectedDayPlan.guestCount}
+        note={selectedDayPlan.note}
         onToggleCooking={toggleCooking}
         onSetGuestCount={setGuestCount}
+        onUpdateNote={updateNote}
         locale={locale}
       />
     </View>

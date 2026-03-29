@@ -11,6 +11,7 @@
     "members": "Membres",
     "memberName": "Nom du membre",
     "addMember": "Ajouter un membre",
+    "save": "Valider",
     "fillAllFields": "Veuillez remplir tous les champs",
     "houseCreated": "Colocation créée !",
     "yourCode": "Votre code",
@@ -50,7 +51,12 @@
     "iAmCooking": "Je cuisine ce soir",
     "inviteFriends": "Inviter des ami·es",
     "friendsOf": "{{count}} ami·e de {{name}}",
-    "friendsOf_plural": "{{count}} ami·es de {{name}}"
+    "friendsOf_plural": "{{count}} ami·es de {{name}}",
+    "myNote": "Commentaires",
+    "addNote": "Ajouter un commentaire",
+    "editNote": "Modifier mon commentaire",
+    "noComments": "Aucun commentaire pour l'instant.",
+    "notePlaceholder": "Je rentre tard / Pizza party !"
   },
   "tabs": {
     "home": "Paramètres",

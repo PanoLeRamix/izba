@@ -11,6 +11,7 @@
     "members": "Members",
     "memberName": "Member name",
     "addMember": "Add a member",
+    "save": "Save",
     "fillAllFields": "Please fill all fields",
     "houseCreated": "House-share created!",
     "yourCode": "Your code",
@@ -50,8 +51,13 @@
     "iAmCooking": "I'm cooking tonight",
     "inviteFriends": "Invite friends",
     "friendsOf": "{{count}} friend of {{name}}",
-    "friendsOf_plural": "{{count}} friends of {{name}}"
-  },
+    "friendsOf_plural": "{{count}} friends of {{name}}",
+    "myNote": "Comments",
+    "addNote": "Add a comment",
+    "editNote": "Edit my comment",
+    "noComments": "No comments yet.",
+    "notePlaceholder": "I'll be home late / Pizza party!"
+    },
   "tabs": {
     "home": "Settings",
     "planner": "Planner"

@@ -10,6 +10,7 @@ export interface MealPlan {
   status: PlannerStatus;
   is_cooking: boolean;
   guest_count: number;
+  note?: string;
 }
 
 export const plannerService = {
