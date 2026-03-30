@@ -19,6 +19,7 @@ import { Colors } from '../../constants/Colors';
 import { LAYOUT } from '../../constants/Layout';
 import { Button } from '../../components/Button';
 import { TaskConfigModal } from '../../components/tasks/TaskConfigModal';
+import { TaskSkeleton } from '../../components/tasks/TaskSkeleton';
 import { useAuthStore } from '../../store/authStore';
 
 export default function TasksScreen() {
@@ -50,11 +51,7 @@ export default function TasksScreen() {
   }, [availableHeight, weeks.length, activeWeekIndex]);
 
   if (isLoading) {
-    return (
-      <View className="flex-1 bg-hearth justify-center items-center">
-        <ActivityIndicator color={Colors.forest} size="large" />
-      </View>
-    );
+    return <TaskSkeleton />;
   }
 
   if (error) {

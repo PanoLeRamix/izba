@@ -143,9 +143,9 @@ export default function Planner() {
           flatListRef.current?.scrollToOffset({ offset: info.averageItemLength * info.index, animated: false });
         }}
         scrollEventThrottle={16}
-        disableIntervalMomentum={true}
-        snapToInterval={windowWidth}
-        removeClippedSubviews={Platform.OS !== 'web'}
+        // disableIntervalMomentum={true}
+        // snapToInterval={windowWidth}
+        //removeClippedSubviews={Platform.OS !== 'web'}
         initialNumToRender={2}
         windowSize={5}
         maxToRenderPerBatch={2}

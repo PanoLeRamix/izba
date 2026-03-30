@@ -89,7 +89,11 @@
     "thisWeek": "Cette semaine",
     "nextWeeks": "Semaines à venir",
     "assignedTo": "Assigné à",
-    "whoIsDoingThisThisWeek": "Qui fait cela cette semaine ?",
-    "onDuty": "Est de corvée"
+    "whoIsDoingThisThisWeek": "Qui fait ça cette semaine ?",
+    "whoIsDoingThisThisWeekShort": "Qui fait ça ?",
+    "onDuty": "Est de corvée",
+    "members": "Membres de la maison",
+    "rotationOrder": "Ordre de rotation",
+    "rotationHint": "Changer la personne pour cette semaine décalera toute la rotation automatique pour les semaines suivantes."
   }
 }

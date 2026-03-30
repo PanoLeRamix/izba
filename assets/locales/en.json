@@ -90,6 +90,10 @@
     "nextWeeks": "Upcoming weeks",
     "assignedTo": "Assigned to",
     "whoIsDoingThisThisWeek": "Who is doing this this week?",
-    "onDuty": "On duty"
+    "whoIsDoingThisThisWeekShort": "Who is doing this?",
+    "onDuty": "On duty",
+    "members": "House members",
+    "rotationOrder": "Rotation order",
+    "rotationHint": "Changing the person for this week will shift the entire automatic rotation for the following weeks."
   }
 }

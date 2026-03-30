@@ -56,6 +56,14 @@ export const useTasks = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['house-tasks', houseId] }),
   });
 
+  const reorderMembersMutation = useMutation({
+    mutationFn: (newUsers: any[]) => userService.updateRotationOrder(newUsers.map((u, i) => ({ ...u, rotation_order: i }))),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['house-users', houseId] });
+      queryClient.invalidateQueries({ queryKey: ['house-tasks', houseId] });
+    },
+  });
+
   const weeks = useMemo(() => {
     if (users.length === 0) return [];
 
@@ -103,6 +111,7 @@ export const useTasks = () => {
     createTask: createMutation.mutateAsync,
     updateTask: (id: string, name: string) => updateMutation.mutateAsync({ id, name }),
     deleteTask: deleteMutation.mutateAsync,
+    reorderMembers: (newUsers: any[]) => reorderMembersMutation.mutateAsync(newUsers),
     setTaskPerson: async (taskId: string, userId: string) => {
       const task = tasks.find(t => t.id === taskId);
       if (!task || users.length === 0) return;

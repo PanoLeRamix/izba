@@ -27,6 +27,7 @@ interface InputModalProps {
   placeholder?: string;
   maxLength?: number;
   loading?: boolean;
+  children?: React.ReactNode;
 }
 
 export const InputModal = ({
@@ -39,7 +40,8 @@ export const InputModal = ({
   initialValue = '',
   placeholder,
   maxLength,
-  loading = false
+  loading = false,
+  children
 }: InputModalProps) => {
   const { t } = useTranslation();
   const [value, setValue] = useState(initialValue);
@@ -125,6 +127,8 @@ export const InputModal = ({
                     </Text>
                   </View>
                 )}
+
+                {children}
 
                 <View className="mt-4">
                   <Button 

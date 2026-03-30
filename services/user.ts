@@ -43,6 +43,14 @@ export const userService = {
     return data as User;
   },
 
+  async updateRotationOrder(users: { id: string, rotation_order: number }[]) {
+    const { error } = await supabase
+      .from('users')
+      .upsert(users, { onConflict: 'id' });
+
+    if (error) throw error;
+  },
+
   async deleteUser(userId: string) {
     const { error } = await supabase
       .from('users')
