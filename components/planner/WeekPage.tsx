@@ -76,4 +76,20 @@ export const WeekPage = React.memo(({
       );
     })}
   </View>
-));
+), (prevProps, nextProps) => {
+  if (prevProps.windowWidth !== nextProps.windowWidth) return false;
+  if (prevProps.tileHeight !== nextProps.tileHeight) return false;
+  if (prevProps.item.id !== nextProps.item.id) return false;
+  if (prevProps.locale !== nextProps.locale) return false;
+
+  // Check if any day in this week has changed in either userPlans or processedData
+  // Since we optimized usePlanner to preserve references, we can use simple equality checks
+  return prevProps.item.days.every(day => {
+    const prevPlan = prevProps.userPlans[day.dateKey];
+    const nextPlan = nextProps.userPlans[day.dateKey];
+    const prevData = prevProps.processedData[day.dateKey];
+    const nextData = nextProps.processedData[day.dateKey];
+    
+    return prevPlan === nextPlan && prevData === nextData;
+  });
+});

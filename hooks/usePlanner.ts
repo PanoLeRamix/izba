@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useRef } from 'react';
 import { startOfWeek, addWeeks, addDays, format } from 'date-fns';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { plannerService, MealPlan, PlannerStatus } from '../services/planner';
@@ -56,55 +56,95 @@ export function usePlanner() {
     staleTime: 1000 * 60 * 5,
   });
 
+  const prevUserPlans = useRef<Record<string, any>>({});
   const userPlans = useMemo(() => {
     const map: Record<string, { status: PlannerStatus; isCooking: boolean; guestCount: number; note: string }> = {};
     allMealPlans.filter(p => p.user_id === userId).forEach(p => {
-      map[p.day_date] = { 
+      const plan = { 
         status: p.status as PlannerStatus, 
         isCooking: p.is_cooking, 
         guestCount: p.guest_count || 0, 
         note: p.note || '' 
       };
+      
+      const prevPlan = prevUserPlans.current[p.day_date];
+      if (prevPlan && JSON.stringify(prevPlan) === JSON.stringify(plan)) {
+        map[p.day_date] = prevPlan;
+      } else {
+        map[p.day_date] = plan;
+      }
     });
+    prevUserPlans.current = map;
     return map;
   }, [allMealPlans, userId]);
 
-  const processedData = useMemo(() => {
-    const map: Record<string, { eaters: (User & { guestCount: number, note?: string })[], unavailable: User[], totalCount: number, cooks: User[] }> = {};
-    
-    allMealPlans.forEach(p => {
-      if (!map[p.day_date]) map[p.day_date] = { eaters: [], unavailable: [], totalCount: 0, cooks: [] };
-      
-      const user = users.find(u => u.id === p.user_id);
-      if (!user) return;
+  // Use a ref to store the previous processedData to preserve references
+  const prevProcessedData = useRef<Record<string, any>>({});
 
-      if (p.status === 'available') {
-        const guests = p.guest_count || 0;
-        map[p.day_date].eaters.push({ ...user, guestCount: guests, note: p.note || undefined });
-        map[p.day_date].totalCount += 1 + guests;
-      } else if (p.status === 'unavailable') {
-        map[p.day_date].unavailable.push(user);
-      }
-      
-      if (p.is_cooking) {
-        map[p.day_date].cooks.push(user);
-      }
+  const processedData = useMemo(() => {
+    const newMap: Record<string, { eaters: (User & { guestCount: number, note?: string })[], unavailable: User[], totalCount: number, cooks: User[] }> = {};
+    
+    // Create a map for faster user lookups
+    const userMap = users.reduce((acc, user) => {
+      acc[user.id] = user;
+      return acc;
+    }, {} as Record<string, User>);
+
+    // Group plans by date first
+    const plansByDate: Record<string, MealPlan[]> = {};
+    allMealPlans.forEach(p => {
+      if (!plansByDate[p.day_date]) plansByDate[p.day_date] = [];
+      plansByDate[p.day_date].push(p);
     });
 
-    // Sort every day: Me first, then alphabetically
-    Object.keys(map).forEach(dateKey => {
+    Object.keys(plansByDate).forEach(dateKey => {
+      const dayPlans = plansByDate[dateKey];
+      const eaters: (User & { guestCount: number, note?: string })[] = [];
+      const unavailable: User[] = [];
+      let totalCount = 0;
+      const cooks: User[] = [];
+
+      dayPlans.forEach(p => {
+        const user = userMap[p.user_id];
+        if (!user) return;
+
+        if (p.status === 'available') {
+          const guests = p.guest_count || 0;
+          eaters.push({ ...user, guestCount: guests, note: p.note || undefined });
+          totalCount += 1 + guests;
+        } else if (p.status === 'unavailable') {
+          unavailable.push(user);
+        }
+        
+        if (p.is_cooking) {
+          cooks.push(user);
+        }
+      });
+
       const sortFn = (a: User, b: User) => {
         if (a.id === userId) return -1;
         if (b.id === userId) return 1;
         return a.name.localeCompare(b.name);
       };
-      map[dateKey].eaters.sort(sortFn);
-      map[dateKey].unavailable.sort(sortFn);
-      map[dateKey].cooks.sort(sortFn);
+      eaters.sort(sortFn);
+      unavailable.sort(sortFn);
+      cooks.sort(sortFn);
+
+      const dayData = { eaters, unavailable, totalCount, cooks };
+      
+      // Deep compare with previous data to preserve reference if unchanged
+      // This is crucial for WeekPage's memoization
+      const prevDayData = prevProcessedData.current[dateKey];
+      if (prevDayData && JSON.stringify(prevDayData) === JSON.stringify(dayData)) {
+        newMap[dateKey] = prevDayData;
+      } else {
+        newMap[dateKey] = dayData;
+      }
     });
 
-    return map;
-  }, [allMealPlans, users]);
+    prevProcessedData.current = newMap;
+    return newMap;
+  }, [allMealPlans, users, userId]);
 
   const mutation = useMutation({
     mutationFn: plannerService.upsertMealPlan,

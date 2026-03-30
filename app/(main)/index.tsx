@@ -148,10 +148,11 @@ export default function Planner() {
         scrollEventThrottle={16}
         disableIntervalMomentum={true}
         snapToInterval={windowWidth}
-        removeClippedSubviews={false}
-        initialNumToRender={20}
-        windowSize={21}
-        maxToRenderPerBatch={20}
+        removeClippedSubviews={Platform.OS !== 'web'}
+        initialNumToRender={2}
+        windowSize={5}
+        maxToRenderPerBatch={2}
+        updateCellsBatchingPeriod={50}
         style={Platform.OS === 'web' ? { flex: 1, touchAction: 'pan-x' } : { flex: 1 }}
       />
 
