@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../store/authStore';
 import { Button } from '../../components/Button';
@@ -62,12 +62,14 @@ export default function MainIndex() {
   }
 
   return (
-    <View 
-      className="flex-1 bg-hearth px-6"
-      style={{ 
+    <ScrollView 
+      className="flex-1 bg-hearth"
+      contentContainerStyle={{ 
         paddingTop: insets.top,
-        paddingBottom: Math.max(insets.bottom, LAYOUT.BASE_SCREEN_PADDING)
+        paddingBottom: Math.max(insets.bottom, LAYOUT.BASE_SCREEN_PADDING),
+        paddingHorizontal: 24
       }}
+      showsVerticalScrollIndicator={false}
     >
       <View className="items-center mb-12" style={{ marginTop: LAYOUT.BASE_SCREEN_PADDING }}>
         <Text className="text-4xl mb-2">🌲</Text>
@@ -135,7 +137,7 @@ export default function MainIndex() {
       {/* Language Selection Tile */}
       <LanguageToggle variant="tile" />
       
-      <View className="mt-auto">
+      <View className="mt-8">
         <Button 
           title={t('main.logout')} 
           onPress={logout} 
@@ -143,6 +145,6 @@ export default function MainIndex() {
           icon={<LogOut size={20} color={Colors.forest} />}
         />
       </View>
-    </View>
+    </ScrollView>
   );
 }

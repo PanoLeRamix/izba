@@ -52,7 +52,7 @@
     "noOneCooking": "No one is cooking yet.",
     "notImplemented": "Not implemented",
     "iAmCooking": "I'm cooking",
-    "inviteFriends": "Invite friends",
+    "inviteFriends": "Guests",
     "friendsOf": "{{count}} friend of {{name}}",
     "friendsOf_plural": "{{count}} friends of {{name}}",
     "myNote": "Comments",

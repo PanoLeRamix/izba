@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useRef } from 'react';
-import { View, Text, FlatList, TouchableOpacity, useWindowDimensions, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, useWindowDimensions, ActivityIndicator, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { format, addDays, isSameMonth } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
@@ -24,13 +24,21 @@ export default function Planner() {
 
   const { weeks, userPlans, processedData, isLoading, actions } = usePlanner();
 
+  const handleScrollEnd = useCallback((e: any) => {
+    const x = e.nativeEvent.contentOffset.x;
+    const index = Math.round(x / windowWidth);
+    if (index !== currentIndex && index >= 0 && index < weeks.length) {
+      setCurrentIndex(index);
+    }
+  }, [windowWidth, currentIndex, weeks.length]);
+
   const openDetails = useCallback((dateKey: string) => {
     setSelectedDayKey(dateKey);
   }, []);
 
   const topPadding = LAYOUT.getTopPadding(insets.top);
   const bottomBuffer = LAYOUT.getBottomBuffer(insets.bottom);
-  const availableHeight = windowHeight - topPadding - LAYOUT.HEADER_HEIGHT - LAYOUT.TAB_BAR_HEIGHT - bottomBuffer;
+  const availableHeight = windowHeight - topPadding - (LAYOUT.HEADER_HEIGHT - 10) - LAYOUT.TAB_BAR_HEIGHT - bottomBuffer;
   const tileHeight = LAYOUT.getTileHeight(availableHeight);
 
   const currentWeekLabel = useMemo(() => {
@@ -40,8 +48,11 @@ export default function Planner() {
   }, [currentIndex, locale, weeks]);
 
   const scrollToWeek = useCallback((index: number) => {
-    flatListRef.current?.scrollToIndex({ index, animated: true });
-  }, []);
+    if (index >= 0 && index < weeks.length) {
+      flatListRef.current?.scrollToIndex({ index, animated: true });
+      setCurrentIndex(index);
+    }
+  }, [weeks.length]);
 
   if (isLoading) {
     return (
@@ -57,9 +68,15 @@ export default function Planner() {
   return (
     <View className="flex-1 bg-hearth" style={{ paddingTop: topPadding }}>
       {/* Header */}
-      <View className="px-6 mb-4 flex-row items-center justify-between" style={{ height: LAYOUT.HEADER_HEIGHT - 10 }}>
+      <View className="px-6 mb-2 flex-row items-center justify-between" style={{ height: LAYOUT.HEADER_HEIGHT - 10 }}>
         <View className="flex-1 mr-4">
-          <Text className="text-3xl font-black text-forest-dark uppercase">{t('tabs.planner')}</Text>
+          <Text 
+            className="text-3xl font-black text-forest-dark uppercase"
+            numberOfLines={1}
+            adjustsFontSizeToFit
+          >
+            {t('tabs.planner')}
+          </Text>
           <Text className="text-xs font-bold text-forest-light uppercase opacity-60">{currentWeekLabel}</Text>
         </View>
         <View className="flex-row items-center bg-white shadow-sm p-1 rounded-2xl border border-sage-light/30">
@@ -92,18 +109,24 @@ export default function Planner() {
             onToggleStatus={actions.toggleStatus} 
             onLongPress={openDetails} 
             locale={locale} 
-            tileHeight={tileHeight} 
             processedData={processedData}
+            tileHeight={tileHeight}
           />
         )}
-        horizontal pagingEnabled showsHorizontalScrollIndicator={false}
+        horizontal 
+        pagingEnabled 
+        showsHorizontalScrollIndicator={false}
         initialScrollIndex={INITIAL_WEEK_INDEX}
         onMomentumScrollEnd={e => setCurrentIndex(Math.round(e.nativeEvent.contentOffset.x / windowWidth))}
+        // onMomentumScrollEnd={handleScrollEnd}
+        disableIntervalMomentum={true}
+        //snapToInterval={windowWidth}
         getItemLayout={(_, index) => ({ length: windowWidth, offset: windowWidth * index, index })}
         removeClippedSubviews={true}
-        initialNumToRender={3}
-        windowSize={5}
-        maxToRenderPerBatch={2}
+        initialNumToRender={1}
+        windowSize={3}
+        maxToRenderPerBatch={1}
+        //style={Platform.OS === 'web' ? { flex: 1, touchAction: 'pan-x' } : { flex: 1 }}
       />
 
       <DetailModal
@@ -112,6 +135,7 @@ export default function Planner() {
         date={selectedDayKey ? new Date(selectedDayKey) : null}
         dateKey={selectedDayKey || ''}
         eaters={selectedDayData?.eaters || []}
+        unavailable={selectedDayData?.unavailable || []}
         totalEatersCount={selectedDayData?.totalCount || 0}
         cooks={selectedDayData?.cooks || []}
         isUserCooking={selectedDayPlan.isCooking}

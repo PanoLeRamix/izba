@@ -64,10 +64,10 @@ export function usePlanner() {
   }, [allMealPlans, userId]);
 
   const processedData = useMemo(() => {
-    const map: Record<string, { eaters: (User & { guestCount: number, note?: string })[], totalCount: number, cooks: User[] }> = {};
+    const map: Record<string, { eaters: (User & { guestCount: number, note?: string })[], unavailable: User[], totalCount: number, cooks: User[] }> = {};
     
     allMealPlans.forEach(p => {
-      if (!map[p.day_date]) map[p.day_date] = { eaters: [], totalCount: 0, cooks: [] };
+      if (!map[p.day_date]) map[p.day_date] = { eaters: [], unavailable: [], totalCount: 0, cooks: [] };
       
       const user = users.find(u => u.id === p.user_id);
       if (!user) return;
@@ -76,6 +76,8 @@ export function usePlanner() {
         const guests = p.guest_count || 0;
         map[p.day_date].eaters.push({ ...user, guestCount: guests, note: p.note || undefined });
         map[p.day_date].totalCount += 1 + guests;
+      } else if (p.status === 'unavailable') {
+        map[p.day_date].unavailable.push(user);
       }
       
       if (p.is_cooking) {
@@ -91,6 +93,7 @@ export function usePlanner() {
         return a.name.localeCompare(b.name);
       };
       map[dateKey].eaters.sort(sortFn);
+      map[dateKey].unavailable.sort(sortFn);
       map[dateKey].cooks.sort(sortFn);
     });
 

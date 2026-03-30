@@ -39,11 +39,20 @@ export const WeekPage = React.memo(({
   onToggleStatus, 
   onLongPress, 
   locale, 
-  tileHeight, 
   processedData,
-  userPlans
+  userPlans,
+  tileHeight
 }: WeekPageProps) => (
-  <View style={{ width: windowWidth }} className="px-6">
+  <View 
+    style={{ 
+      width: windowWidth,
+      // @ts-ignore
+      scrollSnapAlign: 'start',
+      // @ts-ignore
+      scrollSnapStop: 'always',
+    }} 
+    className="px-6"
+  >
     {item.days.map((day) => {
       const dayPlan = userPlans[day.dateKey] || { status: 'none', isCooking: false, guestCount: 0 };
       const { eaters, totalCount, cooks } = processedData[day.dateKey] || { eaters: [], totalCount: 0, cooks: [] };
@@ -59,7 +68,7 @@ export const WeekPage = React.memo(({
           onLongPress={onLongPress}
           locale={locale} 
           isToday={isToday(day.date)} 
-          tileHeight={tileHeight} 
+          tileHeight={tileHeight}
           eaters={eaters}
           eatersCount={totalCount}
           cookName={cooks.map((u) => u.name).join(', ')}

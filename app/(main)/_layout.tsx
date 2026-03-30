@@ -1,4 +1,5 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,13 +19,13 @@ export default function MainLayout() {
         tabBarStyle: {
           backgroundColor: Colors.hearth,
           borderTopColor: Colors.sage + '20',
-          paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
-          paddingTop: 8,
-          height: 60 + (insets.bottom > 0 ? insets.bottom / 2 : 0),
+          paddingBottom: Platform.OS === 'web' ? 0 : insets.bottom,
+          paddingTop: 10,
+          height: Platform.OS === 'web' ? 70 : 60 + insets.bottom,
         },
         tabBarLabelStyle: {
           fontSize: 12,
-          fontWeight: '500',
+          fontWeight: '600',
         },
       }}
     >

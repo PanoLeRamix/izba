@@ -32,11 +32,12 @@ export const DayTile = memo(({
   onLongPress, 
   locale, 
   isToday: today, 
-  tileHeight, 
+  tileHeight,
   eaters,
   eatersCount,
   cookName
 }: DayTileProps) => {
+// ... (omitting getStatusStyle and hunters logic for brevity in replace call, using full context below)
   const getStatusStyle = () => {
     switch (status) {
       case 'available':

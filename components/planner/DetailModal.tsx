@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
-import { XCircle, Minus, Plus, MessageSquarePlus, MessageSquareText, Check, X, ChefHat } from 'lucide-react-native';
+import { XCircle, Minus, Plus, MessageSquarePlus, MessageSquareText, Check, X, ChefHat, Hand } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { User } from '../../services/user';
 import { useAuthStore } from '../../store/authStore';
@@ -29,6 +29,7 @@ interface DetailModalProps {
   date: Date | null;
   dateKey: string;
   eaters: (User & { guestCount?: number, note?: string })[];
+  unavailable: User[];
   totalEatersCount: number;
   cooks: User[];
   isUserCooking: boolean;
@@ -51,6 +52,7 @@ export const DetailModal = ({
   date, 
   dateKey,
   eaters, 
+  unavailable = [],
   totalEatersCount,
   cooks,
   isUserCooking,
@@ -97,15 +99,15 @@ export const DetailModal = ({
 
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => !IS_WEB && !isEditingNote,
-      onMoveShouldSetPanResponder: (_, gestureState) => !IS_WEB && !isEditingNote && Math.abs(gestureState.dy) > 10,
+      onStartShouldSetPanResponder: () => !isEditingNote,
+      onMoveShouldSetPanResponder: (_, gestureState) => !isEditingNote && Math.abs(gestureState.dy) > 10,
       onPanResponderMove: (_, gestureState) => {
-        if (!IS_WEB && !isEditingNote && gestureState.dy > 0) {
+        if (!isEditingNote && gestureState.dy > 0) {
           panY.setValue(gestureState.dy);
         }
       },
       onPanResponderRelease: (_, gestureState) => {
-        if (!IS_WEB && !isEditingNote) {
+        if (!isEditingNote) {
           if (gestureState.dy > LAYOUT.MODAL_SWIPE_THRESHOLD || gestureState.vy > LAYOUT.MODAL_VELOCITY_THRESHOLD) {
             onClose();
           } else {
@@ -133,26 +135,37 @@ export const DetailModal = ({
     outputRange: [0, 1],
   });
 
-  const renderMemberChip = (user: User & { guestCount?: number, note?: string }) => {
+  const renderMemberChip = (user: User & { guestCount?: number, note?: string }, variant: 'eating' | 'unavailable' | 'cooking' = 'eating') => {
     const isMe = user.id === userId;
-    const themeColorClass = isMe ? 'bg-forest' : 'bg-sage';
-    const themeBorderClass = isMe ? 'border-forest' : 'border-sage';
+    
+    let bgColor = isMe ? 'bg-forest/20' : 'bg-forest/5';
+    let borderColor = isMe ? 'border-forest/40' : 'border-forest/10';
+    let textColor = 'text-forest';
+    let chipBg = isMe ? 'bg-forest' : 'bg-sage';
+    let chipBorder = isMe ? 'border-forest' : 'border-sage';
+
+    if (variant === 'unavailable') {
+      bgColor = isMe ? 'bg-red-500/20' : 'bg-red-500/5';
+      borderColor = isMe ? 'border-red-500/40' : 'border-red-500/10';
+      textColor = 'text-red-600';
+      chipBg = 'bg-red-500';
+      chipBorder = 'border-red-500';
+    }
 
     return (
-      <View key={user.id} className={`items-start ${user.note ? 'mb-5' : ''}`}>
+      <View key={`${variant}-${user.id}`} className={`items-start ${user.note ? 'mb-5' : ''}`}>
         <View className="relative">
-
           <View 
-            className={`px-4 py-2 rounded-full border ${isMe ? 'bg-forest/20 border-forest/40' : 'bg-forest/5 border-forest/10'}`}
+            className={`px-4 py-2 rounded-full border ${bgColor} ${borderColor}`}
           >
-            <Text className="font-bold text-forest text-sm">
+            <Text className={`font-bold text-sm ${textColor} ${variant === 'unavailable' ? 'line-through opacity-70' : ''}`}>
               {user.name}
             </Text>
           </View>
           
           {user.guestCount && user.guestCount > 0 ? (
             <View 
-              className={`absolute -top-2 -right-3 px-1.5 py-0.5 rounded-lg border border-white shadow-sm z-20 ${themeColorClass} ${themeBorderClass}`}
+              className={`absolute -top-2 -right-3 px-1.5 py-0.5 rounded-lg border border-white shadow-sm z-20 ${chipBg} ${chipBorder}`}
             >
               <Text className="text-[10px] text-white font-black">
                 +{user.guestCount}
@@ -162,7 +175,7 @@ export const DetailModal = ({
           
           {user.note ? (
             <View 
-              className={`absolute top-[90%] right-0 px-2 py-1 rounded-xl border border-white shadow-sm z-10 ${themeColorClass} ${themeBorderClass}`}
+              className={`absolute top-[90%] right-0 px-2 py-1 rounded-xl border border-white shadow-sm z-10 ${chipBg} ${chipBorder}`}
               style={{ minWidth: 40, maxWidth: 110 }}
             >
               <Text className="text-white text-[9px] font-bold italic leading-tight" numberOfLines={2}>
@@ -174,6 +187,8 @@ export const DetailModal = ({
       </View>
     );
   };
+// ... (rest of the file logic around rendering these chips)
+
 
   const handleSaveNote = () => {
     onUpdateNote(dateKey, tempNote.replace(/\n/g, ' '));
@@ -204,7 +219,7 @@ export const DetailModal = ({
 
           <View style={styles.contentContainer} pointerEvents="box-none">
             <Animated.View
-              {...(IS_WEB ? {} : panResponder.panHandlers)}
+              {...panResponder.panHandlers}
               style={{ 
                 transform: [
                   { translateY: translateY },
@@ -229,7 +244,9 @@ export const DetailModal = ({
                 <View className="flex-1 mr-2">
                   {date && (
                     <Text className="text-3xl font-black text-forest-dark uppercase leading-tight">
-                      {format(date, 'EEE d MMMM', { locale })}
+                      {format(date, 'EEE', { locale })}
+                      {"\n"}
+                      {format(date, 'd MMMM', { locale })}
                     </Text>
                   )}
                 </View>
@@ -269,17 +286,16 @@ export const DetailModal = ({
                       activeOpacity={0.7}
                       className={`flex-row items-center px-4 py-2 rounded-xl border ${isUserCooking ? 'bg-forest/10 border-forest/30' : 'bg-sage-light/10 border-sage/20'}`}
                     >
-                      <Text className="text-xs font-black text-forest uppercase tracking-widest mr-2">
-                        {isUserCooking ? '🍳' : '+'}
-                      </Text>
-                      <Text className="text-xs font-black text-forest uppercase tracking-widest">
-                        {t('planner.iAmCooking')}
-                      </Text>
+                      {isUserCooking ? (
+                        <ChefHat size={18} color={Colors.forest} strokeWidth={2.5} />
+                      ) : (
+                        <Hand size={18} color={Colors.forest} strokeWidth={2.5} />
+                      )}
                     </TouchableOpacity>
                   </View>
                   
                   <View className="flex-row flex-wrap gap-x-3 gap-y-2">
-                    {cooks.length > 0 ? cooks.map(renderMemberChip) : (
+                    {cooks.length > 0 ? cooks.map(u => renderMemberChip(u, 'cooking')) : (
                       <Text className="text-forest-dark/40 italic font-medium">{t('planner.noOneCooking')}</Text>
                     )}
                   </View>
@@ -301,18 +317,24 @@ export const DetailModal = ({
                       className={`flex-row items-center px-4 py-2 rounded-xl border ${note ? 'bg-forest/10 border-forest/30' : 'bg-sage-light/10 border-sage/20'}`}
                     >
                       {note ? (
-                        <MessageSquareText size={16} color={Colors.forest} style={{ marginRight: 8 }} />
+                        <MessageSquareText size={18} color={Colors.forest} strokeWidth={2.5} />
                       ) : (
-                        <MessageSquarePlus size={16} color={Colors.forest} style={{ marginRight: 8 }} />
+                        <MessageSquarePlus size={18} color={Colors.forest} strokeWidth={2.5} />
                       )}
-                      <Text className="text-xs font-black text-forest uppercase tracking-widest">
-                        {note ? t('planner.editNote') : t('planner.addNote')}
-                      </Text>
                     </TouchableOpacity>
                   </View>
                   
                   <View className="flex-row flex-wrap gap-x-3 gap-y-2">
-                    {eaters.length > 0 ? eaters.map(renderMemberChip) : (
+                    {eaters.length > 0 || unavailable.length > 0 ? (
+                      <>
+                        {eaters.map(u => renderMemberChip(u, 'eating'))}
+                        {unavailable.length > 0 && (
+                          <View className="w-full mt-2 pt-2 border-t border-red-100 flex-row flex-wrap gap-x-3 gap-y-2">
+                            {unavailable.map(u => renderMemberChip(u, 'unavailable'))}
+                          </View>
+                        )}
+                      </>
+                    ) : (
                       <Text className="text-forest-dark/40 italic font-medium">{t('planner.noOneEating')}</Text>
                     )}
                   </View>
