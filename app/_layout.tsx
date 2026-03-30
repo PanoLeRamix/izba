@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { useEffect, useState, useMemo } from 'react';
+import { View, ActivityIndicator, Alert } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, MutationCache, QueryCache } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import { initI18n } from '../services/i18n';
+import { ConnectionBanner } from '../components/ConnectionBanner';
 import '../global.css';
-
-const queryClient = new QueryClient();
 
 function InitialLayout() {
   const { houseId, userId, isInitialized } = useAuthStore();
@@ -35,13 +35,41 @@ function InitialLayout() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }} />
+    <View className="flex-1">
+      <Stack screenOptions={{ headerShown: false }} />
+      <ConnectionBanner />
+    </View>
   );
 }
 
 export default function RootLayout() {
   const { initialize } = useAuthStore();
   const [appReady, setAppReady] = useState(false);
+  const { t } = useTranslation();
+
+  const queryClient = useMemo(() => new QueryClient({
+    queryCache: new QueryCache({
+      onError: (error: any) => {
+        if (error?.message?.includes('Fetch') || error?.message?.includes('network')) {
+          Alert.alert(t('common.error'), t('common.loadError'));
+        }
+      },
+    }),
+    mutationCache: new MutationCache({
+      onError: (error: any) => {
+        Alert.alert(t('common.error'), t('common.syncError'));
+      },
+    }),
+    defaultOptions: {
+      queries: {
+        retry: (failureCount, error: any) => {
+          // Don't retry if it's a 404 or other permanent error
+          if (error?.status === 404) return false;
+          return failureCount < 3;
+        },
+      },
+    },
+  }), [t]);
 
   useEffect(() => {
     const setup = async () => {
@@ -66,3 +94,4 @@ export default function RootLayout() {
     </QueryClientProvider>
   );
 }
+

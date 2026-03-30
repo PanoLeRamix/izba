@@ -1,6 +1,9 @@
 import { useMemo, useCallback, useRef } from 'react';
+import { Platform, Alert } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { startOfWeek, addWeeks, addDays, format } from 'date-fns';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { plannerService, MealPlan, PlannerStatus } from '../services/planner';
 import { userService, User } from '../services/user';
 import { useAuthStore } from '../store/authStore';
@@ -20,9 +23,16 @@ export interface WeekItem {
   days: DayInfo[];
 }
 
+const triggerHaptic = (style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle.Medium) => {
+  if (Platform.OS !== 'web') {
+    Haptics.impactAsync(style);
+  }
+};
+
 export function usePlanner() {
   const { userId, houseId } = useAuthStore();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const weeks = useMemo(() => {
     const startOfCurrentWeek = startOfWeek(new Date(), { weekStartsOn: 1 });
@@ -175,6 +185,7 @@ export function usePlanner() {
   });
 
   const toggleStatus = useCallback((dateKey: string) => {
+    triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
     const current = userPlans[dateKey] || { status: 'none', isCooking: false, guestCount: 0, note: '' };
     const nextStatus = STATUS_CYCLE[(STATUS_CYCLE.indexOf(current.status) + 1) % 3];
     
@@ -190,6 +201,7 @@ export function usePlanner() {
   }, [userId, houseId, mutation, userPlans]);
 
   const toggleCooking = useCallback((dateKey: string) => {
+    triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
     const current = userPlans[dateKey] || { status: 'none', isCooking: false, guestCount: 0, note: '' };
     const nextIsCooking = !current.isCooking;
     const nextStatus = nextIsCooking ? 'available' : current.status;

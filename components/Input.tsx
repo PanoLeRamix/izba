@@ -7,6 +7,8 @@ interface InputProps {
   onChangeText: (text: string) => void;
   placeholder?: string;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  error?: string;
+  secureTextEntry?: boolean;
 }
 
 export const Input = forwardRef<TextInput, InputProps>(({ 
@@ -14,7 +16,9 @@ export const Input = forwardRef<TextInput, InputProps>(({
   value, 
   onChangeText, 
   placeholder,
-  autoCapitalize = 'words'
+  autoCapitalize = 'words',
+  error,
+  secureTextEntry
 }, ref) => {
   return (
     <View className="w-full mb-4">
@@ -26,8 +30,12 @@ export const Input = forwardRef<TextInput, InputProps>(({
         placeholder={placeholder}
         placeholderTextColor="#A3B18A"
         autoCapitalize={autoCapitalize}
-        className="w-full bg-sage-light/30 p-4 rounded-2xl text-lg text-hearth-earth border border-sage/30"
+        secureTextEntry={secureTextEntry}
+        className={`w-full bg-sage-light/30 p-4 rounded-2xl text-lg text-hearth-earth border ${error ? 'border-red-400' : 'border-sage/30'}`}
       />
+      {error ? (
+        <Text className="text-red-500 text-xs mt-1 ml-1 font-bold uppercase">{error}</Text>
+      ) : null}
     </View>
   );
 });

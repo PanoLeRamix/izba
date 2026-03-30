@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePlanner, CURRENT_WEEK_INDEX } from '../../hooks/usePlanner';
 import { WeekPage } from '../../components/planner/WeekPage';
 import { DetailModal } from '../../components/planner/DetailModal';
+import { PlannerSkeleton } from '../../components/planner/PlannerSkeleton';
 import { LAYOUT } from '../../constants/Layout';
 import { Colors } from '../../constants/Colors';
 
@@ -70,11 +71,7 @@ export default function Planner() {
   const tileHeight = LAYOUT.getTileHeight(availableHeight);
 
   if (isLoading) {
-    return (
-      <View className="flex-1 bg-hearth items-center justify-center">
-        <ActivityIndicator size="large" color="#2D5A27" />
-      </View>
-    );
+    return <PlannerSkeleton />;
   }
 
   const selectedDayData = selectedDayKey ? processedData[selectedDayKey] : null;
@@ -153,7 +150,7 @@ export default function Planner() {
         windowSize={5}
         maxToRenderPerBatch={2}
         updateCellsBatchingPeriod={50}
-        style={Platform.OS === 'web' ? { flex: 1, touchAction: 'pan-x' } : { flex: 1 }}
+        style={(Platform.OS === 'web' ? { flex: 1, touchAction: 'pan-x' } : { flex: 1 }) as any}
       />
 
       <DetailModal

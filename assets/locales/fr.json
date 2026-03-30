@@ -34,17 +34,20 @@
   "common": {
     "loading": "Chargement...",
     "error": "Une erreur est survenue",
+    "loadError": "Impossible de charger les informations.",
+    "syncError": "Les modifications n'ont pas pu être enregistrées.",
+    "networkError": "Erreur réseau. Veuillez vérifier votre connexion.",
+    "saveError": "Impossible d'enregistrer les modifications. Veuillez réessayer.",
     "back": "Retour",
     "language": "Langue",
     "appLanguage": "Langue de l'application",
     "today": "Aujourd'hui",
     "retry": "Réessayer",
     "refresh": "Actualiser",
-    "me": "Moi"
+    "me": "Moi",
+    "noConnection": "Pas de connexion internet. Les changements pourraient ne pas être sauvegardés."
   },
   "planner": {
-    "loadError": "Impossible de charger le planning. Veuillez vérifier votre connexion.",
-    "syncError": "Les modifications n'ont pas pu être enregistrées. Veuillez actualiser la page pour synchroniser.",
     "cooking": "Cuisine",
     "eating": "Mangent",
     "details": "Détails de la soirée",

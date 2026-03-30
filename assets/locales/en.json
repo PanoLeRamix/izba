@@ -34,17 +34,20 @@
   "common": {
     "loading": "Loading...",
     "error": "An error occurred",
+    "loadError": "Could not load the information.",
+    "syncError": "Changes couldn't be saved.",
+    "networkError": "Network error. Please check your connection.",
+    "saveError": "Could not save changes. Please try again.",
     "back": "Back",
     "language": "Language",
     "appLanguage": "App Language",
     "today": "Today",
     "retry": "Retry",
     "refresh": "Refresh",
-    "me": "Me"
+    "me": "Me",
+    "noConnection": "No internet connection. Changes might not be saved."
   },
   "planner": {
-    "loadError": "Could not load the planner. Please check your connection.",
-    "syncError": "Changes couldn't be saved. Please refresh the page to sync.",
     "cooking": "Cooking",
     "eating": "Eating",
     "details": "Evening Details",

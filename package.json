@@ -12,12 +12,14 @@
     "supabase:push": "supabase db push"
   },
   "dependencies": {
+    "@react-native-community/netinfo": "11.4.1",
     "@supabase/supabase-js": "^2.100.1",
     "@tanstack/react-query": "^5.95.2",
     "date-fns": "^4.1.0",
     "expo": "~54.0.33",
     "expo-clipboard": "~8.0.8",
     "expo-constants": "~18.0.13",
+    "expo-haptics": "~15.0.8",
     "expo-linking": "~8.0.11",
     "expo-localization": "~17.0.8",
     "expo-router": "~6.0.23",
@@ -28,6 +30,7 @@
     "nativewind": "^4.2.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-hook-form": "^7.72.0",
     "react-i18next": "^17.0.1",
     "react-native": "0.81.5",
     "react-native-reanimated": "~4.1.1",
