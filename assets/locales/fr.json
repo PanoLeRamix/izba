@@ -73,6 +73,23 @@
   },
   "tabs": {
     "home": "Paramètres",
-    "planner": "Planning"
+    "planner": "Planning",
+    "tasks": "Tâches"
+  },
+  "tasks": {
+    "title": "Tâches",
+    "config": "Gérer les tâches",
+    "addTask": "Ajouter une tâche",
+    "editTask": "Modifier la tâche",
+    "deleteTask": "Supprimer la tâche",
+    "delete": "Supprimer",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette tâche ?",
+    "noTasks": "Aucune tâche définie.",
+    "lastWeek": "La semaine dernière",
+    "thisWeek": "Cette semaine",
+    "nextWeeks": "Semaines à venir",
+    "assignedTo": "Assigné à",
+    "whoIsDoingThisThisWeek": "Qui fait cela cette semaine ?",
+    "onDuty": "Est de corvée"
   }
 }

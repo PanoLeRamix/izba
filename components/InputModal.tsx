@@ -21,6 +21,7 @@ interface InputModalProps {
   onClose: () => void;
   onSave: (value: string) => void;
   onDelete?: () => void;
+  deleteLabel?: string;
   title: string;
   initialValue?: string;
   placeholder?: string;
@@ -143,7 +144,7 @@ export const InputModal = ({
                 {onDelete && (
                   <View className="mt-8 pt-6 border-t border-sage/20">
                     <Button 
-                      title={t('main.deleteIdentity')} 
+                      title={deleteLabel || t('main.deleteIdentity')} 
                       onPress={onDelete} 
                       variant="ghost"
                       icon={<Trash2 size={18} color={Colors.status.unavailable} />}

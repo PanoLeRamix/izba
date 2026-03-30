@@ -4,6 +4,7 @@ export interface User {
   id: string;
   name: string;
   house_id: string;
+  rotation_order: number;
 }
 
 export const userService = {
@@ -11,7 +12,9 @@ export const userService = {
     const { data, error } = await supabase
       .from('users')
       .select('*')
-      .eq('house_id', houseId);
+      .eq('house_id', houseId)
+      .order('rotation_order', { ascending: true })
+      .order('created_at', { ascending: true });
 
     if (error) throw error;
     return data as User[];

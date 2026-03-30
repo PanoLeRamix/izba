@@ -20,6 +20,9 @@ module.exports = {
           warm: "#FAF3E0",
           earth: "#582F0E",
         },
+        chef: {
+          DEFAULT: "#E67E22",
+        },
       },
     },
   },

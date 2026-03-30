@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Settings, CalendarDays } from 'lucide-react-native';
+import { Settings, CalendarDays, ClipboardCheck } from 'lucide-react-native';
 import { Colors } from '../../constants/Colors';
 
 export default function MainLayout() {
@@ -34,6 +34,13 @@ export default function MainLayout() {
         options={{
           title: t('tabs.planner'),
           tabBarIcon: ({ color, size }) => <CalendarDays size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="tasks"
+        options={{
+          title: t('tabs.tasks'),
+          tabBarIcon: ({ color, size }) => <ClipboardCheck size={size} color={color} />,
         }}
       />
       <Tabs.Screen
