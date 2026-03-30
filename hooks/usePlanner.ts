@@ -6,6 +6,8 @@ import { userService, User } from '../services/user';
 import { useAuthStore } from '../store/authStore';
 
 const STATUS_CYCLE: PlannerStatus[] = ['none', 'available', 'unavailable'];
+const PLANNER_WEEK_COUNT = 20;
+export const CURRENT_WEEK_INDEX = 5;
 
 export interface DayInfo {
   date: Date;
@@ -23,11 +25,11 @@ export function usePlanner() {
   const queryClient = useQueryClient();
 
   const weeks = useMemo(() => {
-    const start = startOfWeek(new Date(), { weekStartsOn: 1 });
-    return Array.from({ length: 20 }, (_, i) => {
-      const weekStart = addWeeks(start, i - 5);
+    const startOfCurrentWeek = startOfWeek(new Date(), { weekStartsOn: 1 });
+    return Array.from({ length: PLANNER_WEEK_COUNT }, (_, i) => {
+      const weekStart = addWeeks(startOfCurrentWeek, i - CURRENT_WEEK_INDEX);
       return {
-        id: `week-${i - 5}`,
+        id: `week-${i - CURRENT_WEEK_INDEX}`,
         startDate: weekStart,
         days: Array.from({ length: 7 }, (_, j) => {
           const d = addDays(weekStart, j);
@@ -45,7 +47,11 @@ export function usePlanner() {
 
   const { data: allMealPlans = [], isLoading } = useQuery({
     queryKey: ['house-plans', houseId],
-    queryFn: () => plannerService.getMealPlans(houseId!, weeks[0].days[0].dateKey, weeks[19].days[6].dateKey),
+    queryFn: () => {
+      const firstDay = weeks[0].days[0].dateKey;
+      const lastDay = weeks[PLANNER_WEEK_COUNT - 1].days[6].dateKey;
+      return plannerService.getMealPlans(houseId!, firstDay, lastDay);
+    },
     enabled: !!houseId,
     staleTime: 1000 * 60 * 5,
   });

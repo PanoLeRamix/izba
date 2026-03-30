@@ -5,12 +5,10 @@ import { format, addDays, isSameMonth } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { usePlanner } from '../../hooks/usePlanner';
+import { usePlanner, CURRENT_WEEK_INDEX } from '../../hooks/usePlanner';
 import { WeekPage } from '../../components/planner/WeekPage';
 import { DetailModal } from '../../components/planner/DetailModal';
 import { LAYOUT } from '../../constants/Layout';
-
-const INITIAL_WEEK_INDEX = 5;
 
 export default function Planner() {
   const { t, i18n } = useTranslation();
@@ -19,40 +17,54 @@ export default function Planner() {
   const locale = i18n.language === 'fr' ? fr : enUS;
   const flatListRef = useRef<FlatList>(null);
   
-  const [currentIndex, setCurrentIndex] = useState(INITIAL_WEEK_INDEX);
+  const [activeWeekIndex, setActiveWeekIndex] = useState(CURRENT_WEEK_INDEX);
+  // Ref for Button navigation (avoids stale state during fast clicks)
+  const targetWeekIndex = useRef(CURRENT_WEEK_INDEX);
+  
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
 
   const { weeks, userPlans, processedData, isLoading, actions } = usePlanner();
 
-  const handleScrollEnd = useCallback((e: any) => {
-    const x = e.nativeEvent.contentOffset.x;
-    const index = Math.round(x / windowWidth);
-    if (index !== currentIndex && index >= 0 && index < weeks.length) {
-      setCurrentIndex(index);
+  const handleScroll = useCallback((e: any) => {
+    const offset = e.nativeEvent.contentOffset.x;
+    const index = Math.round(offset / windowWidth);
+    
+    if (index >= 0 && index < weeks.length && index !== activeWeekIndex) {
+      setActiveWeekIndex(index);
+      targetWeekIndex.current = index;
     }
-  }, [windowWidth, currentIndex, weeks.length]);
+  }, [windowWidth, weeks.length, activeWeekIndex]);
 
   const openDetails = useCallback((dateKey: string) => {
     setSelectedDayKey(dateKey);
   }, []);
 
+  const scrollToWeek = useCallback((index: number) => {
+    if (index >= 0 && index < weeks.length) {
+      targetWeekIndex.current = index;
+      flatListRef.current?.scrollToOffset({ 
+        offset: index * windowWidth, 
+        animated: true 
+      });
+    }
+  }, [weeks.length, windowWidth]);
+
+  const currentMonthLabel = useMemo(() => {
+    const week = weeks[activeWeekIndex];
+    const start = week.startDate;
+    const end = addDays(start, 6);
+    
+    if (isSameMonth(start, end)) {
+      return format(start, 'MMMM yyyy', { locale });
+    }
+    
+    return `${format(start, 'MMM.', { locale })} / ${format(end, 'MMM.', { locale })} ${format(end, 'yyyy', { locale })}`;
+  }, [activeWeekIndex, locale, weeks]);
+
   const topPadding = LAYOUT.getTopPadding(insets.top);
   const bottomBuffer = LAYOUT.getBottomBuffer(insets.bottom);
   const availableHeight = windowHeight - topPadding - (LAYOUT.HEADER_HEIGHT - 10) - LAYOUT.TAB_BAR_HEIGHT - bottomBuffer;
   const tileHeight = LAYOUT.getTileHeight(availableHeight);
-
-  const currentWeekLabel = useMemo(() => {
-    const s = weeks[currentIndex].startDate;
-    const e = addDays(s, 6);
-    return isSameMonth(s, e) ? format(s, 'MMMM yyyy', { locale }) : `${format(s, 'MMM.', { locale })} / ${format(e, 'MMM.', { locale })} ${format(e, 'yyyy', { locale })}`;
-  }, [currentIndex, locale, weeks]);
-
-  const scrollToWeek = useCallback((index: number) => {
-    if (index >= 0 && index < weeks.length) {
-      flatListRef.current?.scrollToIndex({ index, animated: true });
-      setCurrentIndex(index);
-    }
-  }, [weeks.length]);
 
   if (isLoading) {
     return (
@@ -77,21 +89,13 @@ export default function Planner() {
           >
             {t('tabs.planner')}
           </Text>
-          <Text className="text-xs font-bold text-forest-light uppercase opacity-60">{currentWeekLabel}</Text>
+          <Text className="text-xs font-bold text-forest-light uppercase opacity-60">{currentMonthLabel}</Text>
         </View>
         <View className="flex-row items-center bg-white shadow-sm p-1 rounded-2xl border border-sage-light/30">
-          <TouchableOpacity onPress={() => scrollToWeek(currentIndex - 1)} className="p-2">
+          <TouchableOpacity onPress={() => scrollToWeek(targetWeekIndex.current - 1)} className="p-2">
             <ChevronLeft size={24} color="#2D5A27" />
           </TouchableOpacity>
-          <TouchableOpacity 
-            onPress={() => scrollToWeek(INITIAL_WEEK_INDEX)} 
-            className={`px-4 py-2 rounded-xl border ${currentIndex === INITIAL_WEEK_INDEX ? 'bg-forest border-forest' : 'bg-hearth border-sage-light/20'}`}
-          >
-            <Text className={`text-xs font-black uppercase ${currentIndex === INITIAL_WEEK_INDEX ? 'text-white' : 'text-forest'}`}>
-              {t('common.today')}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => scrollToWeek(currentIndex + 1)} className="p-2">
+          <TouchableOpacity onPress={() => scrollToWeek(targetWeekIndex.current + 1)} className="p-2">
             <ChevronRight size={24} color="#2D5A27" />
           </TouchableOpacity>
         </View>
@@ -116,17 +120,21 @@ export default function Planner() {
         horizontal 
         pagingEnabled 
         showsHorizontalScrollIndicator={false}
-        initialScrollIndex={INITIAL_WEEK_INDEX}
-        onMomentumScrollEnd={e => setCurrentIndex(Math.round(e.nativeEvent.contentOffset.x / windowWidth))}
-        // onMomentumScrollEnd={handleScrollEnd}
+        initialScrollIndex={CURRENT_WEEK_INDEX}
+        getItemLayout={(_, index) => ({
+          length: windowWidth,
+          offset: windowWidth * index,
+          index,
+        })}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         disableIntervalMomentum={true}
-        //snapToInterval={windowWidth}
-        getItemLayout={(_, index) => ({ length: windowWidth, offset: windowWidth * index, index })}
-        removeClippedSubviews={true}
-        initialNumToRender={1}
-        windowSize={3}
-        maxToRenderPerBatch={1}
-        //style={Platform.OS === 'web' ? { flex: 1, touchAction: 'pan-x' } : { flex: 1 }}
+        snapToInterval={windowWidth}
+        removeClippedSubviews={false}
+        initialNumToRender={CURRENT_WEEK_INDEX + 1}
+        windowSize={5}
+        maxToRenderPerBatch={3}
+        style={Platform.OS === 'web' ? { flex: 1, touchAction: 'pan-x' } : { flex: 1 }}
       />
 
       <DetailModal
