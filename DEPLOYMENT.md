@@ -15,6 +15,14 @@ We use **EAS (Expo Application Services)** to build the Android app. This happen
 
 ### Generate an APK (for testing)
 Run this command to get an installable `.apk` file for your phone:
+
+**CRITICAL:** Before building for the first time, you MUST add your Supabase credentials as EAS environment variables so they can be inlined in the APK:
+```bash
+eas env:create --name EXPO_PUBLIC_SUPABASE_URL --value <your-url>
+eas env:create --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value <your-anon-key>
+```
+
+Then run the build:
 ```bash
 eas build --platform android --profile preview
 ```
