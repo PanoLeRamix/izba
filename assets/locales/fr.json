@@ -28,6 +28,8 @@
     "inviteCode": "Code d'invitation",
     "identity": "Connecté en tant que",
     "logout": "Se déconnecter",
+    "deleteIdentity": "Supprimer mon identité",
+    "deleteConfirmation": "Êtes-vous sûr de vouloir supprimer votre identité ? Toutes vos données de planning seront supprimées. Cette action est irréversible.",
     "copied": "Copié !",
     "copyCode": "Appuyez pour copier"
   },

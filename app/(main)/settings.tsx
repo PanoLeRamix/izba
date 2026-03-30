@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, ReactNode } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Platform, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/authStore';
@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { houseService } from '../../services/house';
 import { userService } from '../../services/user';
 import { SettingsSkeleton } from '../../components/settings/SettingsSkeleton';
-import { Copy, Home, User, LogOut, Check, Pencil } from 'lucide-react-native';
+import { Copy, Home, User, LogOut, Check, Pencil, Trash2 } from 'lucide-react-native';
 import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
 import { LanguageToggle } from '../../components/LanguageToggle';
 import { InputModal } from '../../components/InputModal';
@@ -88,6 +88,41 @@ export default function Settings() {
       setEditModalVisible(false);
     },
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => userService.deleteUser(userId!),
+    onSuccess: () => {
+      logout();
+    },
+    onError: (error: any) => {
+      Alert.alert(t('common.error'), t('common.saveError'));
+    }
+  });
+
+  const handleDeleteIdentity = () => {
+    // Close the edit modal first to avoid overlapping UI
+    setEditModalVisible(false);
+
+    if (Platform.OS === 'web') {
+      if (confirm(t('main.deleteConfirmation'))) {
+        deleteMutation.mutate();
+      }
+      return;
+    }
+
+    Alert.alert(
+      t('main.deleteIdentity'),
+      t('main.deleteConfirmation'),
+      [
+        { text: t('common.back'), style: 'cancel' },
+        { 
+          text: t('auth.confirm'), 
+          style: 'destructive',
+          onPress: () => deleteMutation.mutate()
+        }
+      ]
+    );
+  };
 
   const openEditModal = (target: 'house' | 'user') => {
     setEditTarget(target);
@@ -172,10 +207,12 @@ export default function Settings() {
         visible={editModalVisible}
         onClose={() => setEditModalVisible(false)}
         onSave={handleSave}
+        onDelete={editTarget === 'user' ? handleDeleteIdentity : undefined}
         title={editTarget === 'house' ? t('auth.houseName') : t('auth.memberName')}
         initialValue={editTarget === 'house' ? house?.name : user?.name}
         placeholder={editTarget === 'house' ? t('auth.houseNamePlaceholder') : t('auth.memberNamePlaceholder')}
         loading={updateMutation.isPending}
+        maxLength={20}
       />
     </View>
   );

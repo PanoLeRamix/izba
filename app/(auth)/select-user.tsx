@@ -131,6 +131,7 @@ export default function SelectUser() {
             value={newName}
             onChangeText={setNewName}
             placeholder={t('auth.memberNamePlaceholder')}
+            maxLength={20}
           />
 
           <View className="mt-4">

@@ -102,6 +102,7 @@ export default function CreateHouse() {
         value={houseName}
         onChangeText={setHouseName}
         placeholder={t('auth.houseNamePlaceholder')}
+        maxLength={20}
       />
 
 

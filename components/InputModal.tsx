@@ -14,10 +14,13 @@ import { Colors } from '../constants/Colors';
 import { Input } from './Input';
 import { Button } from './Button';
 
+import { Trash2 } from 'lucide-react-native';
+
 interface InputModalProps {
   visible: boolean;
   onClose: () => void;
   onSave: (value: string) => void;
+  onDelete?: () => void;
   title: string;
   initialValue?: string;
   placeholder?: string;
@@ -29,6 +32,7 @@ export const InputModal = ({
   visible,
   onClose,
   onSave,
+  onDelete,
   title,
   initialValue = '',
   placeholder,
@@ -109,6 +113,7 @@ export const InputModal = ({
                     }
                   }}
                   placeholder={placeholder}
+                  maxLength={maxLength}
                 />
 
                 {maxLength && (
@@ -134,6 +139,18 @@ export const InputModal = ({
                     onPress={onClose} 
                   />
                 </View>
+
+                {onDelete && (
+                  <View className="mt-8 pt-6 border-t border-sage/20">
+                    <Button 
+                      title={t('main.deleteIdentity')} 
+                      onPress={onDelete} 
+                      variant="ghost"
+                      icon={<Trash2 size={18} color={Colors.status.unavailable} />}
+                      textStyle={{ color: Colors.status.unavailable, fontSize: 14 }}
+                    />
+                  </View>
+                )}
               </View>
             </KeyboardAvoidingView>
           </TouchableWithoutFeedback>
