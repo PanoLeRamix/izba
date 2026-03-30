@@ -51,13 +51,21 @@ export default function CreateHouse() {
         .select()
         .single();
 
-      if (houseError) throw houseError;
+      if (houseError) {
+        const isNetworkError = houseError.message?.toLowerCase().includes('fetch') || 
+                              houseError.message?.toLowerCase().includes('network');
+        Alert.alert(t('common.error'), isNetworkError ? t('common.networkError') : t('common.error'));
+        setLoading(false);
+        return;
+      }
 
       setGeneratedCode(code);
       setNewHouseId(house.id);
       setShowModal(true);
-    } catch (e) {
-      Alert.alert(t('common.error'), t('common.error'));
+    } catch (e: any) {
+      const isNetworkError = e.message?.toLowerCase().includes('fetch') || 
+                            e.message?.toLowerCase().includes('network');
+      Alert.alert(t('common.error'), isNetworkError ? t('common.networkError') : t('common.error'));
     } finally {
       setLoading(false);
     }

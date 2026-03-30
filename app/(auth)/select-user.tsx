@@ -59,11 +59,19 @@ export default function SelectUser() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        const isNetworkError = error.message?.toLowerCase().includes('fetch') || 
+                              error.message?.toLowerCase().includes('network');
+        Alert.alert(t('common.error'), isNetworkError ? t('common.networkError') : t('common.error'));
+        setAdding(false);
+        return;
+      }
       
       await handleSelect(data.id);
-    } catch (e) {
-      Alert.alert(t('common.error'), t('common.error'));
+    } catch (e: any) {
+      const isNetworkError = e.message?.toLowerCase().includes('fetch') || 
+                            e.message?.toLowerCase().includes('network');
+      Alert.alert(t('common.error'), isNetworkError ? t('common.networkError') : t('common.error'));
       setAdding(false);
     }
   };

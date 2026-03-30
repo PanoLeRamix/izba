@@ -31,7 +31,22 @@ export default function JoinHouse() {
         .eq('code', code.trim().toUpperCase())
         .single();
 
-      if (error || !data) {
+      if (error) {
+        // Handle Supabase/Network errors
+        const isNetworkError = error.message?.toLowerCase().includes('fetch') || 
+                              error.message?.toLowerCase().includes('network') ||
+                              error.code === 'PGRST116'; // Not found is technically PGRST116 for single()
+        
+        const message = isNetworkError && !error.code 
+          ? t('common.networkError') 
+          : t('auth.invalidCode');
+          
+        setErrorMsg(message);
+        Alert.alert(t('common.error'), message);
+        return;
+      }
+
+      if (!data) {
         setErrorMsg(t('auth.invalidCode'));
         Alert.alert(t('common.error'), t('auth.invalidCode'));
         return;
@@ -42,8 +57,11 @@ export default function JoinHouse() {
         pathname: '/(auth)/select-user',
         params: { houseId: data.id }
       });
-    } catch (e) {
-      setErrorMsg(t('common.error'));
+    } catch (e: any) {
+      const isNetworkError = e.message?.toLowerCase().includes('fetch') || 
+                            e.message?.toLowerCase().includes('network');
+      const message = isNetworkError ? t('common.networkError') : t('common.error');
+      setErrorMsg(message);
     } finally {
       setLoading(false);
     }
