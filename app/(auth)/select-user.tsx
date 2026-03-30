@@ -101,6 +101,11 @@ export default function SelectUser() {
         <FlatList
           data={users}
           keyExtractor={(item) => item.id}
+          className="flex-1"
+          contentContainerStyle={{ 
+            paddingBottom: LAYOUT.BASE_SCREEN_PADDING 
+          }}
+          showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <TouchableOpacity 
               className="w-full bg-sage-light/30 p-6 rounded-2xl mb-4 border border-sage/20"

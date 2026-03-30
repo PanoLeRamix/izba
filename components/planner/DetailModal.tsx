@@ -16,12 +16,13 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
-import { XCircle, Minus, Plus, MessageSquarePlus, MessageSquareText, Check, X, ChefHat, Hand } from 'lucide-react-native';
+import { Minus, Plus, MessageSquarePlus, MessageSquareText, ChefHat, Hand } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { User } from '../../services/user';
 import { useAuthStore } from '../../store/authStore';
 import { Colors } from '../../constants/Colors';
 import { LAYOUT } from '../../constants/Layout';
+import { InputModal } from '../InputModal';
 
 interface DetailModalProps {
   visible: boolean;
@@ -190,8 +191,8 @@ export const DetailModal = ({
 // ... (rest of the file logic around rendering these chips)
 
 
-  const handleSaveNote = () => {
-    onUpdateNote(dateKey, tempNote.replace(/\n/g, ' '));
+  const handleSaveNote = (content: string) => {
+    onUpdateNote(dateKey, content.replace(/\n/g, ' '));
     setIsEditingNote(false);
   };
 
@@ -375,60 +376,15 @@ export const DetailModal = ({
         </View>
       </Modal>
 
-      {/* Note Editing Popup */}
-      <Modal
+      <InputModal 
         visible={isEditingNote}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setIsEditingNote(false)}
-      >
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          className="flex-1"
-        >
-          <View className="flex-1 items-center justify-center bg-black/60 px-6">
-            <View className="bg-hearth w-full rounded-[40px] p-8 shadow-2xl" style={{ backgroundColor: Colors.hearth }}>
-              <View className="flex-row items-center justify-between mb-6">
-                <Text className="text-2xl font-black text-forest-dark uppercase">{t('planner.editNote')}</Text>
-                <TouchableOpacity onPress={() => setIsEditingNote(false)}>
-                  <XCircle size={32} color={Colors.forest} opacity={0.3} />
-                </TouchableOpacity>
-              </View>
-
-              <View className="bg-white rounded-3xl p-4 border border-forest/30 shadow-inner mb-2">
-                <TextInput
-                  autoFocus={true}
-                  value={tempNote}
-                  onChangeText={(text) => setTempNote(text.replace(/\n/g, '').slice(0, MAX_NOTE_LENGTH))}
-                  placeholder={t('planner.notePlaceholder')}
-                  placeholderTextColor="rgba(27, 54, 23, 0.3)"
-                  className="text-forest-dark font-medium text-lg min-h-[60px]"
-                  multiline={false}
-                  returnKeyType="done"
-                  onSubmitEditing={handleSaveNote}
-                  maxLength={MAX_NOTE_LENGTH}
-                />
-              </View>
-              
-              <View className="flex-row justify-end mb-6 px-4">
-                <Text className={`text-xs font-bold ${tempNote.length >= MAX_NOTE_LENGTH ? 'text-red-500' : 'text-forest-dark/40'}`}>
-                  {tempNote.length} / {MAX_NOTE_LENGTH}
-                </Text>
-              </View>
-
-              <TouchableOpacity 
-                onPress={handleSaveNote}
-                className="bg-forest py-4 rounded-2xl flex-row items-center justify-center shadow-sm"
-              >
-                <Check size={24} color="white" strokeWidth={4} className="mr-2" />
-                <Text className="text-white font-black uppercase tracking-widest text-lg">
-                  {t('auth.save')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+        onClose={() => setIsEditingNote(false)}
+        onSave={handleSaveNote}
+        title={t('planner.editNote')}
+        initialValue={note}
+        placeholder={t('planner.notePlaceholder')}
+        maxLength={MAX_NOTE_LENGTH}
+      />
     </React.Fragment>
   );
 };

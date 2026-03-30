@@ -34,4 +34,5 @@ export const Colors = {
   forestAlpha10: 'rgba(45, 90, 39, 0.1)',
   forestAlpha5: 'rgba(45, 90, 39, 0.05)',
   blackAlpha5: 'rgba(0, 0, 0, 0.05)',
+  backdrop: 'rgba(0, 0, 0, 0.4)',
 };
