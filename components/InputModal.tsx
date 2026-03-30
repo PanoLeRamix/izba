@@ -34,6 +34,7 @@ export const InputModal = ({
   onClose,
   onSave,
   onDelete,
+  deleteLabel,
   title,
   initialValue = '',
   placeholder,
