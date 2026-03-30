@@ -45,7 +45,7 @@
     "@babel/runtime": "^7.29.2",
     "@types/react": "~19.1.0",
     "babel-preset-expo": "~54.0.10",
-    "supabase": "^2.84.4",
+    "supabase": "^2.84.5",
     "typescript": "~5.9.2"
   },
   "private": true

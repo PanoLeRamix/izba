@@ -15,5 +15,28 @@ export const userService = {
 
     if (error) throw error;
     return data as User[];
+  },
+
+  async getUser(userId: string) {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (error) throw error;
+    return data as User;
+  },
+
+  async updateName(userId: string, name: string) {
+    const { data, error } = await supabase
+      .from('users')
+      .update({ name })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as User;
   }
 };

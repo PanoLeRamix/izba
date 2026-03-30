@@ -1,18 +1,56 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, ScrollView, Modal, Alert, KeyboardAvoidingView, Platform, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../store/authStore';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { useTranslation } from 'react-i18next';
-import { supabase } from '../../services/supabase';
+import { houseService } from '../../services/house';
+import { userService } from '../../services/user';
 import { Copy, Home, User, LogOut, Check, Pencil } from 'lucide-react-native';
 import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
 import { LanguageToggle } from '../../components/LanguageToggle';
 import { Colors } from '../../constants/Colors';
 import { LAYOUT } from '../../constants/Layout';
 
-export default function MainIndex() {
+interface SettingTileProps {
+  icon: ReactNode;
+  label: string;
+  value: string;
+  onEdit?: () => void;
+  children?: ReactNode;
+}
+
+const SettingTile = ({ icon, label, value, onEdit, children }: SettingTileProps) => (
+  <View 
+    style={{ backgroundColor: Colors.tileBackground }}
+    className="p-6 rounded-3xl mb-6 border border-sage/30 shadow-sm overflow-hidden"
+  >
+    <View className="flex-row items-center mb-4 bg-transparent">
+      <View className="bg-forest/10 p-3 rounded-2xl mr-4">
+        {icon}
+      </View>
+      <View className="flex-1 bg-transparent">
+        <Text className="text-[10px] text-hearth-earth/40 uppercase font-bold tracking-[2px] mb-1">
+          {label}
+        </Text>
+        <View className="flex-row items-center bg-transparent">
+          <Text className="text-2xl font-bold text-forest-dark flex-1">
+            {value}
+          </Text>
+          {onEdit && (
+            <TouchableOpacity onPress={onEdit} className="p-2 ml-2 bg-white/50 rounded-xl">
+              <Pencil size={16} color={Colors.forest} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+    </View>
+    {children}
+  </View>
+);
+
+export default function Settings() {
   const { logout, houseId, userId } = useAuthStore();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -28,27 +66,23 @@ export default function MainIndex() {
   const [editTarget, setEditTarget] = useState<'house' | 'user' | null>(null);
   const [editValue, setEditValue] = useState('');
   const [saving, setSaving] = useState(false);
-  const inputRef = useRef<TextInput>(null);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
+  const inputRef = useRef<TextInput>(null);
 
   const fetchData = useCallback(async () => {
     if (!houseId || !userId) return;
     
     try {
-      const [houseRes, userRes] = await Promise.all([
-        supabase.from('houses').select('name, code').eq('id', houseId).single(),
-        supabase.from('users').select('name').eq('id', userId).single()
+      const [house, user] = await Promise.all([
+        houseService.getHouse(houseId),
+        userService.getUser(userId)
       ]);
 
-      if (houseRes.data) {
-        setHouseName(houseRes.data.name);
-        setHouseCode(houseRes.data.code);
-      }
-      if (userRes.data) {
-        setUserName(userRes.data.name);
-      }
+      setHouseName(house.name);
+      setHouseCode(house.code);
+      setUserName(user.name);
     } catch (e) {
-      console.error(e);
+      console.error('Settings fetch error:', e);
     } finally {
       setLoading(false);
     }
@@ -65,7 +99,6 @@ export default function MainIndex() {
     const handleResize = () => {
       const vv = window.visualViewport;
       if (!vv) return;
-      // If viewport height is significantly less than window height, keyboard is likely up
       const offset = window.innerHeight - vv.height;
       setKeyboardOffset(offset > 0 ? offset : 0);
     };
@@ -81,17 +114,12 @@ export default function MainIndex() {
   // Focus input when modal opens
   useEffect(() => {
     if (editModalVisible) {
-      // Small timeout to ensure modal is rendered before focusing
       const timer = setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
       return () => clearTimeout(timer);
     }
   }, [editModalVisible]);
-
-  const copyToClipboard = async () => {
-    await copy(houseCode);
-  };
 
   const openEditModal = (target: 'house' | 'user') => {
     setEditTarget(target);
@@ -100,32 +128,17 @@ export default function MainIndex() {
   };
 
   const handleSave = async () => {
-    if (!editValue.trim()) return;
+    const trimmedValue = editValue.trim();
+    if (!trimmedValue || !houseId || !userId) return;
     
     setSaving(true);
     try {
       if (editTarget === 'house') {
-        const { error } = await supabase
-          .from('houses')
-          .update({ name: editValue.trim() })
-          .eq('id', houseId);
-        
-        if (error) {
-          console.error('Update house error:', error);
-          throw error;
-        }
-        setHouseName(editValue.trim());
+        await houseService.updateName(houseId, trimmedValue);
+        setHouseName(trimmedValue);
       } else {
-        const { error } = await supabase
-          .from('users')
-          .update({ name: editValue.trim() })
-          .eq('id', userId);
-        
-        if (error) {
-          console.error('Update user error:', error);
-          throw error;
-        }
-        setUserName(editValue.trim());
+        await userService.updateName(userId, trimmedValue);
+        setUserName(trimmedValue);
       }
       setEditModalVisible(false);
     } catch (e: any) {
@@ -159,32 +172,14 @@ export default function MainIndex() {
         <Text className="text-3xl font-bold text-forest-dark text-center">{t('main.welcome')}</Text>
       </View>
 
-      {/* House Tile */}
-      <View 
-        style={{ backgroundColor: Colors.tileBackground }}
-        className="p-6 rounded-3xl mb-6 border border-sage/30 shadow-sm overflow-hidden"
+      <SettingTile 
+        icon={<Home size={24} color={Colors.forest} />}
+        label={t('main.house')}
+        value={houseName}
+        onEdit={() => openEditModal('house')}
       >
-        <View className="flex-row items-center mb-6 bg-transparent">
-          <View className="bg-forest/10 p-3 rounded-2xl mr-4">
-            <Home size={24} color={Colors.forest} />
-          </View>
-          <View className="flex-1 bg-transparent">
-            <Text className="text-[10px] text-hearth-earth/40 uppercase font-bold tracking-[2px] mb-1">
-              {t('main.house')}
-            </Text>
-            <View className="flex-row items-center bg-transparent">
-              <Text className="text-2xl font-bold text-forest-dark flex-1">
-                {houseName}
-              </Text>
-              <TouchableOpacity onPress={() => openEditModal('house')} className="p-2 ml-2 bg-white/50 rounded-xl">
-                <Pencil size={16} color={Colors.forest} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-
         <TouchableOpacity 
-          onPress={copyToClipboard}
+          onPress={() => copy(houseCode)}
           className="bg-forest/5 p-4 rounded-2xl flex-row items-center justify-between border border-forest/10"
           activeOpacity={0.6}
         >
@@ -202,32 +197,15 @@ export default function MainIndex() {
             )}
           </View>
         </TouchableOpacity>
-      </View>
+      </SettingTile>
 
-      {/* User Tile */}
-      <View 
-        style={{ backgroundColor: Colors.tileBackground }}
-        className="p-6 rounded-3xl mb-6 border border-sage/30 shadow-sm flex-row items-center overflow-hidden"
-      >
-        <View className="bg-forest/10 p-3 rounded-2xl mr-4">
-          <User size={24} color={Colors.forest} />
-        </View>
-        <View className="flex-1 bg-transparent">
-          <Text className="text-[10px] text-hearth-earth/40 uppercase font-bold tracking-[2px] mb-1">
-            {t('main.identity')}
-          </Text>
-          <View className="flex-row items-center bg-transparent">
-            <Text className="text-2xl font-bold text-forest-dark flex-1">
-              {userName}
-            </Text>
-            <TouchableOpacity onPress={() => openEditModal('user')} className="p-2 ml-2 bg-white/50 rounded-xl">
-              <Pencil size={16} color={Colors.forest} />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
+      <SettingTile 
+        icon={<User size={24} color={Colors.forest} />}
+        label={t('main.identity')}
+        value={userName}
+        onEdit={() => openEditModal('user')}
+      />
 
-      {/* Language Selection Tile */}
       <LanguageToggle variant="tile" />
       
       <View className="mt-8">
@@ -239,7 +217,6 @@ export default function MainIndex() {
         />
       </View>
 
-      {/* Edit Modal */}
       <Modal
         visible={editModalVisible}
         transparent={true}
