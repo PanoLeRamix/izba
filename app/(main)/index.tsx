@@ -3,12 +3,13 @@ import { View, Text, FlatList, TouchableOpacity, useWindowDimensions, ActivityIn
 import { useTranslation } from 'react-i18next';
 import { format, addDays, isSameMonth } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, CalendarArrowDown } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePlanner, CURRENT_WEEK_INDEX } from '../../hooks/usePlanner';
 import { WeekPage } from '../../components/planner/WeekPage';
 import { DetailModal } from '../../components/planner/DetailModal';
 import { LAYOUT } from '../../constants/Layout';
+import { Colors } from '../../constants/Colors';
 
 export default function Planner() {
   const { t, i18n } = useTranslation();
@@ -93,10 +94,22 @@ export default function Planner() {
         </View>
         <View className="flex-row items-center bg-white shadow-sm p-1 rounded-2xl border border-sage-light/30">
           <TouchableOpacity onPress={() => scrollToWeek(targetWeekIndex.current - 1)} className="p-2">
-            <ChevronLeft size={24} color="#2D5A27" />
+            <ChevronLeft size={24} color={Colors.forest} />
           </TouchableOpacity>
+          
+          <TouchableOpacity 
+            onPress={() => scrollToWeek(CURRENT_WEEK_INDEX)} 
+            className="p-2"
+          >
+            <CalendarArrowDown 
+              size={22} 
+              color={Colors.forest} 
+              strokeWidth={2.5}
+            />
+          </TouchableOpacity>
+
           <TouchableOpacity onPress={() => scrollToWeek(targetWeekIndex.current + 1)} className="p-2">
-            <ChevronRight size={24} color="#2D5A27" />
+            <ChevronRight size={24} color={Colors.forest} />
           </TouchableOpacity>
         </View>
       </View>
