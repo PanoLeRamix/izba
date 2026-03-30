@@ -28,6 +28,8 @@ export default function Planner() {
 
   const handleScroll = useCallback((e: any) => {
     const offset = e.nativeEvent.contentOffset.x;
+    if (offset < 0) return; // Ignore bounce
+    
     const index = Math.round(offset / windowWidth);
     
     if (index >= 0 && index < weeks.length && index !== activeWeekIndex) {
@@ -140,13 +142,16 @@ export default function Planner() {
           index,
         })}
         onScroll={handleScroll}
+        onScrollToIndexFailed={(info) => {
+          flatListRef.current?.scrollToOffset({ offset: info.averageItemLength * info.index, animated: false });
+        }}
         scrollEventThrottle={16}
         disableIntervalMomentum={true}
         snapToInterval={windowWidth}
         removeClippedSubviews={false}
-        initialNumToRender={CURRENT_WEEK_INDEX + 1}
-        windowSize={5}
-        maxToRenderPerBatch={3}
+        initialNumToRender={20}
+        windowSize={21}
+        maxToRenderPerBatch={20}
         style={Platform.OS === 'web' ? { flex: 1, touchAction: 'pan-x' } : { flex: 1 }}
       />
 
