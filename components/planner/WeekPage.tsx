@@ -26,7 +26,7 @@ interface WeekPageProps {
   item: WeekItem;
   windowWidth: number;
   onToggleStatus: (dateKey: string) => void;
-  onLongPress: (dateKey: string) => void;
+  onShowDetails: (dateKey: string) => void;
   locale: any;
   tileHeight: number;
   processedData: Record<string, ProcessedDay>;
@@ -37,7 +37,7 @@ export const WeekPage = React.memo(({
   item, 
   windowWidth, 
   onToggleStatus, 
-  onLongPress, 
+  onShowDetails, 
   locale, 
   processedData,
   userPlans,
@@ -64,8 +64,8 @@ export const WeekPage = React.memo(({
           status={dayPlan.status} 
           isUserCooking={dayPlan.isCooking}
           userGuestCount={dayPlan.guestCount}
-          onPress={onToggleStatus} 
-          onLongPress={onLongPress}
+          onToggleStatus={onToggleStatus} 
+          onShowDetails={onShowDetails}
           locale={locale} 
           isToday={isToday(day.date)} 
           tileHeight={tileHeight}

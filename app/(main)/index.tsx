@@ -126,7 +126,7 @@ export default function Planner() {
             windowWidth={windowWidth} 
             userPlans={userPlans} 
             onToggleStatus={actions.toggleStatus} 
-            onLongPress={openDetails} 
+            onShowDetails={openDetails} 
             locale={locale} 
             processedData={processedData}
             tileHeight={tileHeight}

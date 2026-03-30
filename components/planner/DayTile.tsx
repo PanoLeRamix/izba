@@ -12,8 +12,8 @@ interface DayTileProps {
   status: string;
   isUserCooking: boolean;
   userGuestCount?: number;
-  onPress: (dateKey: string) => void;
-  onLongPress: (dateKey: string) => void;
+  onToggleStatus: (dateKey: string) => void;
+  onShowDetails: (dateKey: string) => void;
   locale: any;
   isToday: boolean;
   tileHeight: number;
@@ -28,8 +28,8 @@ export const DayTile = memo(({
   status, 
   isUserCooking,
   userGuestCount = 0,
-  onPress, 
-  onLongPress, 
+  onToggleStatus, 
+  onShowDetails, 
   locale, 
   isToday: today, 
   tileHeight,
@@ -71,11 +71,7 @@ export const DayTile = memo(({
   }).join(', ');
 
   return (
-    <TouchableOpacity
-      onPress={() => onPress(dateKey)}
-      onLongPress={() => onLongPress(dateKey)}
-      delayLongPress={LAYOUT.LONG_PRESS_DELAY}
-      activeOpacity={0.7}
+    <View
       style={{ 
         height: tileHeight,
         shadowColor: today ? Colors.forestDark : '#000',
@@ -87,17 +83,19 @@ export const DayTile = memo(({
         borderColor: today ? Colors.forestDark : borderColor,
         borderWidth: today ? 3 : 0.5,
       }}
-      className="flex-row items-center justify-between p-4 mb-2 rounded-[32px]"
+      className="flex-row items-center mb-2 rounded-[32px] overflow-hidden"
     >
-      <View className="flex-row items-center flex-1">
-        <TouchableOpacity 
-          activeOpacity={0.6}
-          onPress={() => onLongPress(dateKey)}
+      <TouchableOpacity 
+        activeOpacity={0.7}
+        onPress={() => onShowDetails(dateKey)}
+        className="flex-row items-center flex-1 h-full px-4"
+      >
+        <View 
           className={`w-16 h-16 items-center justify-center rounded-2xl bg-white border ${today ? 'border-forest/40' : 'border-black/5'}`}
         >
           <Text className="text-xs font-black text-forest uppercase tracking-widest mb-0.5">{format(date, 'EEE', { locale })}</Text>
           <Text className="text-2xl font-black text-forest-dark leading-none">{format(date, 'd', { locale })}</Text>
-        </TouchableOpacity>
+        </View>
         
         <View className="ml-4 flex-1">
           <View className="flex-row items-center h-6">
@@ -120,29 +118,36 @@ export const DayTile = memo(({
             </Text>
           </View>
         </View>
-      </View>
-      
-      <View className={`w-14 h-14 items-center justify-center rounded-full bg-white border ${today ? 'border-forest/30' : 'border-black/5'}`}>
-        {isUserCooking ? (
-          <ChefHat size={32} color={Colors.chefOrange} strokeWidth={3} />
-        ) : (
-          status === 'available' ? <Check size={32} color={iconColor} strokeWidth={4} /> : 
-          status === 'unavailable' ? <X size={32} color={iconColor} strokeWidth={4} /> : 
-          <View className="items-center justify-center w-full h-full">
-            <Text style={{ color: iconColor, fontSize: 28, fontWeight: '900', textAlign: 'center', includeFontPadding: false }}>?</Text>
-          </View>
-        )}
-        
-        {userGuestCount > 0 && (
-          <View 
-            className="absolute -top-1 -right-1 bg-forest px-1.5 py-0.5 rounded-lg border border-white shadow-sm"
-          >
-            <Text className="text-[10px] text-white font-black">
-              +{userGuestCount}
-            </Text>
-          </View>
-        )}
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        activeOpacity={0.8}
+        onPress={() => onToggleStatus(dateKey)}
+        style={{ backgroundColor: 'rgba(255,255,255,0.4)' }}
+        className="w-20 h-full items-center justify-center border-l border-black/5"
+      >
+        <View className={`w-14 h-14 items-center justify-center rounded-full bg-white border ${today ? 'border-forest/30' : 'border-black/5'} shadow-sm`}>
+          {isUserCooking ? (
+            <ChefHat size={32} color={Colors.chefOrange} strokeWidth={3} />
+          ) : (
+            status === 'available' ? <Check size={32} color={iconColor} strokeWidth={4} /> : 
+            status === 'unavailable' ? <X size={32} color={iconColor} strokeWidth={4} /> : 
+            <View className="items-center justify-center w-full h-full">
+              <Text style={{ color: iconColor, fontSize: 28, fontWeight: '900', textAlign: 'center', includeFontPadding: false }}>?</Text>
+            </View>
+          )}
+          
+          {userGuestCount > 0 && (
+            <View 
+              className="absolute -top-1 -right-1 bg-forest px-1.5 py-0.5 rounded-lg border border-white shadow-sm"
+            >
+              <Text className="text-[10px] text-white font-black">
+                +{userGuestCount}
+              </Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+    </View>
   );
 });
