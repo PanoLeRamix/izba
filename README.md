@@ -20,6 +20,7 @@ Izba is a meal planning app for shared households built with Expo, NativeWind, a
 - Private data access is brokered through Supabase RPC functions.
 - Onboarding creates a `house_token`.
 - Selecting an identity creates a `user_token`.
+- Sessions are durable and do not expire automatically.
 - Client code should use the service layer in `services/` instead of direct table queries for private data.
 
 ## Local Setup
@@ -39,5 +40,6 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 
 ## Database Notes
 - Schema changes must live in `supabase/migrations/`.
+- The repository now uses a single baseline migration that reflects the current schema and RPC surface.
 - Do not reopen direct anon access to private tables.
 - Extend the RPC layer when adding authenticated features.

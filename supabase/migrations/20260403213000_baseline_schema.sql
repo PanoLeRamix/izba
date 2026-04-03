@@ -1,6 +1,36 @@
 create extension if not exists pgcrypto;
 
-create table if not exists house_sessions (
+create table houses (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamp with time zone not null default timezone('utc', now()),
+  name text not null,
+  code text not null unique
+);
+
+create table users (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamp with time zone not null default timezone('utc', now()),
+  house_id uuid not null references houses(id) on delete cascade,
+  name text not null
+);
+
+create table meal_plans (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamp with time zone not null default timezone('utc', now()),
+  updated_at timestamp with time zone not null default timezone('utc', now()),
+  user_id uuid not null references users(id) on delete cascade,
+  house_id uuid not null references houses(id) on delete cascade,
+  day_date date not null,
+  status text not null default 'none',
+  is_cooking boolean not null default false,
+  guest_count integer not null default 0,
+  note text,
+  constraint meal_plans_user_id_day_date_key unique (user_id, day_date),
+  constraint meal_plans_status_check check (status in ('none', 'available', 'unavailable')),
+  constraint meal_plans_guest_count_check check (guest_count >= 0)
+);
+
+create table house_sessions (
   id uuid primary key default gen_random_uuid(),
   house_id uuid not null references houses(id) on delete cascade,
   session_token text not null unique,
@@ -8,7 +38,7 @@ create table if not exists house_sessions (
   last_used_at timestamp with time zone not null default timezone('utc', now())
 );
 
-create table if not exists user_sessions (
+create table user_sessions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references users(id) on delete cascade,
   house_id uuid not null references houses(id) on delete cascade,
@@ -17,35 +47,30 @@ create table if not exists user_sessions (
   last_used_at timestamp with time zone not null default timezone('utc', now())
 );
 
-create index if not exists house_sessions_house_id_idx on house_sessions(house_id);
-create index if not exists user_sessions_house_id_idx on user_sessions(house_id);
-create index if not exists user_sessions_user_id_idx on user_sessions(user_id);
+create index house_sessions_house_id_idx on house_sessions(house_id);
+create index user_sessions_house_id_idx on user_sessions(house_id);
+create index user_sessions_user_id_idx on user_sessions(user_id);
 
-alter table meal_plans drop constraint if exists meal_plans_status_check;
-alter table meal_plans
-  add constraint meal_plans_status_check
-  check (status in ('none', 'available', 'unavailable'));
+create or replace function update_updated_at_column()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = timezone('utc', now());
+  return new;
+end;
+$$;
 
-alter table meal_plans drop constraint if exists meal_plans_guest_count_check;
-alter table meal_plans
-  add constraint meal_plans_guest_count_check
-  check (guest_count >= 0);
+create trigger update_meal_plans_updated_at
+before update on meal_plans
+for each row
+execute procedure update_updated_at_column();
 
-drop policy if exists "Allow house lookup by code" on houses;
-drop policy if exists "Allow house creation" on houses;
-drop policy if exists "Allow viewing housemates" on users;
-drop policy if exists "Allow housemate creation" on users;
-drop policy if exists "Secure viewing housemates" on users;
-drop policy if exists "Secure housemate creation" on users;
-drop policy if exists "Allow viewing meal plans" on meal_plans;
-drop policy if exists "Allow inserting meal plans" on meal_plans;
-drop policy if exists "Allow updating meal plans" on meal_plans;
-drop policy if exists "Secure viewing meal plans" on meal_plans;
-drop policy if exists "Secure inserting meal plans" on meal_plans;
-drop policy if exists "Secure updating meal plans" on meal_plans;
-drop policy if exists "Allow house updates" on houses;
-drop policy if exists "Allow housemate updates" on users;
-drop policy if exists "Allow housemate deletion" on users;
+alter table houses enable row level security;
+alter table users enable row level security;
+alter table meal_plans enable row level security;
+alter table house_sessions enable row level security;
+alter table user_sessions enable row level security;
 
 revoke all on table houses from anon, authenticated;
 revoke all on table users from anon, authenticated;
@@ -510,18 +535,7 @@ create or replace function upsert_my_meal_plan(
   p_guest_count integer,
   p_note text
 )
-returns table (
-  id uuid,
-  user_id uuid,
-  house_id uuid,
-  day_date date,
-  status text,
-  is_cooking boolean,
-  guest_count integer,
-  note text,
-  created_at timestamp with time zone,
-  updated_at timestamp with time zone
-)
+returns setof meal_plans
 language plpgsql
 security definer
 set search_path = public
@@ -573,24 +587,14 @@ begin
     v_guest_count,
     v_note
   )
-  on conflict (user_id, day_date) do update
+  on conflict on constraint meal_plans_user_id_day_date_key do update
   set
     house_id = excluded.house_id,
     status = excluded.status,
     is_cooking = excluded.is_cooking,
     guest_count = excluded.guest_count,
     note = excluded.note
-  returning
-    meal_plans.id,
-    meal_plans.user_id,
-    meal_plans.house_id,
-    meal_plans.day_date,
-    meal_plans.status,
-    meal_plans.is_cooking,
-    meal_plans.guest_count,
-    meal_plans.note,
-    meal_plans.created_at,
-    meal_plans.updated_at;
+  returning meal_plans.*;
 end;
 $$;
 
