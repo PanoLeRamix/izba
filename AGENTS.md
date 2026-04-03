@@ -19,6 +19,7 @@ This document contains mandatory project guidance for all AI agents working in t
 - Never reintroduce direct anon table access for `houses`, `users`, `meal_plans`, `house_sessions`, or `user_sessions`.
 - Do not add new client code that queries private tables with `supabase.from(...)`. Route private access through service modules and RPC functions instead.
 - House onboarding uses a `house_token`. Authenticated in-app actions use a `user_token`.
+- Session tokens now use sliding expiry in the database. If you touch session SQL, preserve expiry refresh and cleanup behavior unless you are intentionally replacing it.
 - Persist session data through `store/authStore.ts` and `utils/storage.ts`. Current storage keys are `house_id`, `house_token`, `user_id`, `user_token`, and `user-language`.
 - If you change the security model, update this file and the README in the same change.
 
