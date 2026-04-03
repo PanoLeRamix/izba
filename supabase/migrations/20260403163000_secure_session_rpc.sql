@@ -83,7 +83,7 @@ create or replace function generate_session_token()
 returns text
 language sql
 as $$
-  select encode(gen_random_bytes(24), 'hex');
+  select replace(gen_random_uuid()::text, '-', '') || replace(gen_random_uuid()::text, '-', '');
 $$;
 
 create or replace function issue_house_session(p_house_id uuid)
