@@ -11,7 +11,7 @@ interface LanguageToggleProps {
 
 export const LanguageToggle = ({ variant = 'button' }: LanguageToggleProps) => {
   const { t, i18n } = useTranslation();
-  const languageLabel = i18n.language === 'fr' ? 'Francais' : 'English';
+  const languageLabel = i18n.language === 'fr' ? 'Français' : 'English';
 
   const toggleLanguage = async () => {
     const newLng = i18n.language === 'fr' ? 'en' : 'fr';

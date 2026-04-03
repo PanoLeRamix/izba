@@ -73,7 +73,15 @@ export default function Settings() {
 
       return target === 'house' ? houseService.updateName(userToken, value) : userService.updateName(userToken, value);
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: (data, variables) => {
+      if (variables.target === 'house' && houseId && data) {
+        queryClient.setQueryData(['house', houseId], data);
+      }
+
+      if (variables.target === 'user' && userId && data) {
+        queryClient.setQueryData(['user', userId], data);
+      }
+
       void queryClient.invalidateQueries({
         queryKey: [variables.target, variables.target === 'house' ? houseId : userId],
       });
