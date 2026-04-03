@@ -1,15 +1,17 @@
-import { useEffect, useState, useMemo } from 'react';
-import { View, ActivityIndicator, Alert } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Alert, View } from 'react-native';
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { QueryClient, QueryClientProvider, MutationCache, QueryCache } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '../store/authStore';
-import { initI18n } from '../services/i18n';
 import { ConnectionBanner } from '../components/ConnectionBanner';
+import { Colors } from '../constants/Colors';
+import { initI18n } from '../services/i18n';
+import { useAuthStore } from '../store/authStore';
+import { getErrorMessage, getErrorStatus, isNetworkError } from '../utils/errors';
 import '../global.css';
 
 function InitialLayout() {
-  const { houseId, userId, isInitialized } = useAuthStore();
+  const { houseId, houseToken, userId, userToken, isInitialized } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
 
@@ -17,19 +19,19 @@ function InitialLayout() {
     if (!isInitialized) return;
 
     const inAuthGroup = segments[0] === '(auth)';
-    const isLoggedIn = !!(houseId && userId);
+    const isLoggedIn = !!(houseId && houseToken && userId && userToken);
 
     if (isLoggedIn && inAuthGroup) {
       router.replace('/(main)');
     } else if (!isLoggedIn && !inAuthGroup) {
       router.replace('/(auth)');
     }
-  }, [houseId, userId, isInitialized, segments]);
+  }, [houseId, houseToken, isInitialized, router, segments, userId, userToken]);
 
   if (!isInitialized) {
     return (
       <View className="flex-1 items-center justify-center bg-hearth">
-        <ActivityIndicator size="large" color="#2D5A27" />
+        <ActivityIndicator size="large" color={Colors.forest} />
       </View>
     );
   }
@@ -43,33 +45,50 @@ function InitialLayout() {
 }
 
 export default function RootLayout() {
-  const { initialize } = useAuthStore();
+  const { initialize, logout } = useAuthStore();
   const [appReady, setAppReady] = useState(false);
   const { t } = useTranslation();
 
-  const queryClient = useMemo(() => new QueryClient({
-    queryCache: new QueryCache({
-      onError: (error: any) => {
-        if (error?.message?.includes('Fetch') || error?.message?.includes('network')) {
-          Alert.alert(t('common.error'), t('common.loadError'));
-        }
-      },
-    }),
-    mutationCache: new MutationCache({
-      onError: (error: any) => {
-        Alert.alert(t('common.error'), t('common.syncError'));
-      },
-    }),
-    defaultOptions: {
-      queries: {
-        retry: (failureCount, error: any) => {
-          // Don't retry if it's a 404 or other permanent error
-          if (error?.status === 404) return false;
-          return failureCount < 3;
+  const queryClient = useMemo(
+    () =>
+      new QueryClient({
+        queryCache: new QueryCache({
+          onError: (error: unknown) => {
+            const message = getErrorMessage(error).toLowerCase();
+
+            if (message.includes('invalid') && message.includes('session')) {
+              void logout();
+              return;
+            }
+
+            if (isNetworkError(error)) {
+              Alert.alert(t('common.error'), t('common.loadError'));
+            }
+          },
+        }),
+        mutationCache: new MutationCache({
+          onError: (error: unknown) => {
+            const message = getErrorMessage(error).toLowerCase();
+
+            if (message.includes('invalid') && message.includes('session')) {
+              void logout();
+              return;
+            }
+
+            Alert.alert(t('common.error'), t('common.syncError'));
+          },
+        }),
+        defaultOptions: {
+          queries: {
+            retry: (failureCount, error: unknown) => {
+              if (getErrorStatus(error) === 404) return false;
+              return failureCount < 3;
+            },
+          },
         },
-      },
-    },
-  }), [t]);
+      }),
+    [logout, t],
+  );
 
   useEffect(() => {
     const setup = async () => {
@@ -77,13 +96,14 @@ export default function RootLayout() {
       await initialize();
       setAppReady(true);
     };
-    setup();
+
+    void setup();
   }, [initialize]);
 
   if (!appReady) {
     return (
       <View className="flex-1 items-center justify-center bg-hearth">
-        <ActivityIndicator size="large" color="#2D5A27" />
+        <ActivityIndicator size="large" color={Colors.forest} />
       </View>
     );
   }
@@ -94,4 +114,3 @@ export default function RootLayout() {
     </QueryClientProvider>
   );
 }
-

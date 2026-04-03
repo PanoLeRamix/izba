@@ -11,29 +11,33 @@ export interface MealPlan {
   is_cooking: boolean;
   guest_count: number;
   note?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export const plannerService = {
-  async getMealPlans(houseId: string, startDate: string, endDate: string) {
-    const { data, error } = await supabase
-      .from('meal_plans')
-      .select('*')
-      .eq('house_id', houseId)
-      .gte('day_date', startDate)
-      .lte('day_date', endDate);
+  async getMealPlans(userToken: string, startDate: string, endDate: string) {
+    const { data, error } = await supabase.rpc('list_meal_plans', {
+      p_user_token: userToken,
+      p_start_date: startDate,
+      p_end_date: endDate,
+    });
 
     if (error) throw error;
     return data as MealPlan[];
   },
 
-  async upsertMealPlan(plan: Omit<MealPlan, 'id' | 'created_at' | 'updated_at'>) {
-    const { data, error } = await supabase
-      .from('meal_plans')
-      .upsert(plan, { onConflict: 'user_id,day_date' })
-      .select()
-      .single();
+  async upsertMealPlan(plan: { userToken: string; dayDate: string; status: PlannerStatus; isCooking: boolean; guestCount: number; note?: string }) {
+    const { data, error } = await supabase.rpc('upsert_my_meal_plan', {
+      p_user_token: plan.userToken,
+      p_day_date: plan.dayDate,
+      p_status: plan.status,
+      p_is_cooking: plan.isCooking,
+      p_guest_count: plan.guestCount,
+      p_note: plan.note ?? '',
+    });
 
     if (error) throw error;
-    return data as MealPlan;
+    return (data?.[0] ?? null) as MealPlan | null;
   }
 };

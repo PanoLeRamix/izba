@@ -1,77 +1,80 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, Alert } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLocalSearchParams } from 'expo-router';
-import { useTranslation } from 'react-i18next';
-import { supabase } from '../../services/supabase';
-import { useAuthStore } from '../../store/authStore';
-import { Input } from '../../components/Input';
-import { Button } from '../../components/Button';
+import { ActivityIndicator, Alert, FlatList, Text, TouchableOpacity, View } from 'react-native';
 import { UserPlus } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Button } from '../../components/Button';
+import { Input } from '../../components/Input';
 import { LanguageToggle } from '../../components/LanguageToggle';
 import { Colors } from '../../constants/Colors';
 import { LAYOUT } from '../../constants/Layout';
+import { authService } from '../../services/auth';
+import { useAuthStore } from '../../store/authStore';
+import { isNetworkError } from '../../utils/errors';
 
 export default function SelectUser() {
-  const { houseId: paramHouseId } = useLocalSearchParams<{ houseId: string }>();
-  const { houseId: storeHouseId, setAuth } = useAuthStore();
+  const { houseId, houseToken, setUserSession, logout } = useAuthStore();
   const insets = useSafeAreaInsets();
-  
-  const houseId = paramHouseId || storeHouseId;
-
-  const [users, setUsers] = useState<{ id: string, name: string }[]>([]);
+  const [users, setUsers] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newName, setNewName] = useState('');
   const [adding, setAdding] = useState(false);
-  
   const { t } = useTranslation();
 
-  const fetchUsers = async () => {
-    if (!houseId) return;
-    const { data, error } = await supabase
-      .from('users')
-      .select('id, name')
-      .eq('house_id', houseId);
-
-    if (!error && data) {
-      setUsers(data);
-    }
-    setLoading(false);
-  };
-
   useEffect(() => {
-    fetchUsers();
-  }, [houseId]);
+    const fetchUsers = async () => {
+      if (!houseToken) {
+        setLoading(false);
+        return;
+      }
 
-  const handleSelect = async (userId: string) => {
-    if (!houseId) return;
-    await setAuth(houseId, userId);
+      try {
+        const data = await authService.listHouseUsers(houseToken);
+        setUsers(data.map(({ id, name }) => ({ id, name })));
+      } catch (error: unknown) {
+        Alert.alert(t('common.error'), isNetworkError(error) ? t('common.networkError') : t('common.loadError'));
+        await logout();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void fetchUsers();
+  }, [houseToken, logout, t]);
+
+  const handleSelect = async (selectedUserId: string) => {
+    if (!houseId || !houseToken) return;
+
+    try {
+      const session = await authService.selectUser(houseToken, selectedUserId);
+      await setUserSession({
+        houseId,
+        houseToken,
+        userId: session.id,
+        userToken: session.userToken,
+      });
+    } catch (error: unknown) {
+      Alert.alert(t('common.error'), isNetworkError(error) ? t('common.networkError') : t('common.error'));
+    }
   };
 
   const handleAddUser = async () => {
-    if (!newName.trim() || !houseId) return;
-    setAdding(true);
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .insert({ name: newName.trim(), house_id: houseId })
-        .select()
-        .single();
+    if (!newName.trim() || !houseId || !houseToken) return;
 
-      if (error) {
-        const isNetworkError = error.message?.toLowerCase().includes('fetch') || 
-                              error.message?.toLowerCase().includes('network');
-        Alert.alert(t('common.error'), isNetworkError ? t('common.networkError') : t('common.error'));
-        setAdding(false);
-        return;
-      }
-      
-      await handleSelect(data.id);
-    } catch (e: any) {
-      const isNetworkError = e.message?.toLowerCase().includes('fetch') || 
-                            e.message?.toLowerCase().includes('network');
-      Alert.alert(t('common.error'), isNetworkError ? t('common.networkError') : t('common.error'));
+    setAdding(true);
+
+    try {
+      const session = await authService.createUser(houseToken, newName.trim());
+      await setUserSession({
+        houseId,
+        houseToken,
+        userId: session.id,
+        userToken: session.userToken,
+      });
+    } catch (error: unknown) {
+      Alert.alert(t('common.error'), isNetworkError(error) ? t('common.networkError') : t('common.error'));
+    } finally {
       setAdding(false);
     }
   };
@@ -85,37 +88,35 @@ export default function SelectUser() {
   }
 
   return (
-    <View 
+    <View
       className="flex-1 bg-hearth px-6"
-      style={{ 
+      style={{
         paddingTop: insets.top,
-        paddingBottom: Math.max(insets.bottom, LAYOUT.BASE_SCREEN_PADDING)
+        paddingBottom: Math.max(insets.bottom, LAYOUT.BASE_SCREEN_PADDING),
       }}
     >
       <View className="flex-row justify-between items-center mb-8" style={{ marginTop: LAYOUT.BASE_SCREEN_PADDING }}>
         <Text className="text-3xl font-bold text-forest-dark">{t('auth.selectIdentity')}</Text>
         <LanguageToggle />
       </View>
-      
+
       {!showAddForm ? (
         <FlatList
           data={users}
           keyExtractor={(item) => item.id}
           className="flex-1"
-          contentContainerStyle={{ 
-            paddingBottom: LAYOUT.BASE_SCREEN_PADDING 
-          }}
+          contentContainerStyle={{ paddingBottom: LAYOUT.BASE_SCREEN_PADDING }}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
-            <TouchableOpacity 
+            <TouchableOpacity
               className="w-full bg-sage-light/30 p-6 rounded-2xl mb-4 border border-sage/20"
-              onPress={() => handleSelect(item.id)}
+              onPress={() => void handleSelect(item.id)}
             >
               <Text className="text-xl font-medium text-forest-dark">{item.name}</Text>
             </TouchableOpacity>
           )}
           ListFooterComponent={
-            <TouchableOpacity 
+            <TouchableOpacity
               className="w-full border-2 border-dashed border-sage p-6 rounded-2xl mb-4 flex-row items-center justify-center"
               onPress={() => setShowAddForm(true)}
             >
@@ -126,7 +127,7 @@ export default function SelectUser() {
         />
       ) : (
         <View className="mt-4">
-          <Input 
+          <Input
             label={t('auth.memberName')}
             value={newName}
             onChangeText={setNewName}
@@ -135,18 +136,10 @@ export default function SelectUser() {
           />
 
           <View className="mt-4">
-            <Button 
-              title={t('auth.confirm')} 
-              onPress={handleAddUser} 
-              loading={adding}
-            />
+            <Button title={t('auth.confirm')} onPress={handleAddUser} loading={adding} />
           </View>
           <View className="mt-4">
-            <Button 
-              title={t('common.back')} 
-              variant="outline"
-              onPress={() => setShowAddForm(false)} 
-            />
+            <Button title={t('common.back')} variant="outline" onPress={() => setShowAddForm(false)} />
           </View>
         </View>
       )}

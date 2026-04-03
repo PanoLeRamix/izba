@@ -7,44 +7,38 @@ export interface User {
 }
 
 export const userService = {
-  async getHouseUsers(houseId: string) {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('house_id', houseId);
+  async getHouseUsers(houseToken: string) {
+    const { data, error } = await supabase.rpc('list_house_users', {
+      p_house_token: houseToken,
+    });
 
     if (error) throw error;
     return data as User[];
   },
 
-  async getUser(userId: string) {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .single();
+  async getUser(userToken: string) {
+    const { data, error } = await supabase.rpc('get_current_user', {
+      p_user_token: userToken,
+    });
 
     if (error) throw error;
-    return data as User;
+    return (data?.[0] ?? null) as User | null;
   },
 
-  async updateName(userId: string, name: string) {
-    const { data, error } = await supabase
-      .from('users')
-      .update({ name })
-      .eq('id', userId)
-      .select()
-      .single();
+  async updateName(userToken: string, name: string) {
+    const { data, error } = await supabase.rpc('rename_current_user', {
+      p_user_token: userToken,
+      p_name: name,
+    });
 
     if (error) throw error;
-    return data as User;
+    return (data?.[0] ?? null) as User | null;
   },
 
-  async deleteUser(userId: string) {
-    const { error } = await supabase
-      .from('users')
-      .delete()
-      .eq('id', userId);
+  async deleteUser(userToken: string) {
+    const { error } = await supabase.rpc('delete_current_user', {
+      p_user_token: userToken,
+    });
 
     if (error) throw error;
   }

@@ -8,26 +8,22 @@ export interface House {
 }
 
 export const houseService = {
-  async getHouse(houseId: string) {
-    const { data, error } = await supabase
-      .from('houses')
-      .select('*')
-      .eq('id', houseId)
-      .single();
+  async getHouse(houseToken: string) {
+    const { data, error } = await supabase.rpc('get_current_house', {
+      p_house_token: houseToken,
+    });
 
     if (error) throw error;
-    return data as House;
+    return (data?.[0] ?? null) as House | null;
   },
 
-  async updateName(houseId: string, name: string) {
-    const { data, error } = await supabase
-      .from('houses')
-      .update({ name })
-      .eq('id', houseId)
-      .select()
-      .single();
+  async updateName(userToken: string, name: string) {
+    const { data, error } = await supabase.rpc('rename_current_house', {
+      p_user_token: userToken,
+      p_name: name,
+    });
 
     if (error) throw error;
-    return data as House;
+    return (data?.[0] ?? null) as House | null;
   }
 };
