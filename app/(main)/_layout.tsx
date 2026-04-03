@@ -1,9 +1,8 @@
 import React from 'react';
-import { Platform } from 'react-native';
 import { Tabs } from 'expo-router';
+import { CalendarDays, Settings } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Settings, CalendarDays } from 'lucide-react-native';
 import { Colors } from '../../constants/Colors';
 
 export default function MainLayout() {
@@ -11,17 +10,17 @@ export default function MainLayout() {
   const insets = useSafeAreaInsets();
 
   return (
-    <Tabs 
-      screenOptions={{ 
+    <Tabs
+      screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: Colors.forest,
         tabBarInactiveTintColor: Colors.sage,
         tabBarStyle: {
           backgroundColor: Colors.hearth,
-          borderTopColor: Colors.sage + '20',
-          paddingBottom: Platform.OS === 'web' ? 0 : insets.bottom,
+          borderTopColor: `${Colors.sage}20`,
+          paddingBottom: insets.bottom,
           paddingTop: 10,
-          height: Platform.OS === 'web' ? 70 : 60 + insets.bottom,
+          height: 70 + insets.bottom,
         },
         tabBarLabelStyle: {
           fontSize: 12,

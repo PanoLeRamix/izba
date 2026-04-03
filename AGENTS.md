@@ -1,50 +1,52 @@
-# Guidelines for AI Agents (AGENTS.md)
+# Guidelines for AI Agents
 
-This document contains mandatory guidelines and context for all AI agents working on this project.
+This document contains mandatory project guidance for all AI agents working in this repository.
 
-## 🛠️ Technical Standards
-- **TypeScript Only:** No JavaScript files allowed. Use strict typing and avoid `any`.
-- **Validation:** Always use `npm run typecheck` to validate code. The standard `tsc` command may fail due to node stack size limits in this environment.
-- **Expo Router:** Follow file-based navigation conventions in the `app/` directory.
-- **NativeWind & Colors:** Use Tailwind classes for layout. For fixed hex/rgba colors, always use `constants/Colors.ts`. Avoid hardcoding hex strings in components.
-- **Hooks & Components:** Encapsulate logic in custom hooks. Extract repetitive UI patterns into reusable components. For complex features (like the Planner), use feature-specific folders: `components/feature_name/`.
-- **i18n Consistency:** Never hardcode strings. Use `t('key')` from `react-i18next`. Translation files are in `assets/locales/`.
-- **Safe Area Management:** Always use `useSafeAreaInsets` from `react-native-safe-area-context` for top/bottom padding. Never hardcode magic numbers for notches or home indicators.
-- **Layout Constants:** Use `constants/Layout.ts` for semantic spacing, radii, and magic numbers. This ensures a consistent "Slavic-inspired" airy aesthetic.
-- **Platform-Agnostic Layout:** Discourage branching on `Platform.OS` for spacing/padding. Let Safe Area insets handle the platform differences.
-- **Optimistic Updates:** For features involving frequent user interactions (like meal planning), always use TanStack Query's optimistic updates to ensure a lag-free UI.
+## Technical Standards
+- TypeScript only. Do not add JavaScript files.
+- Keep strict typing. Avoid `any`, `@ts-ignore`, and ad hoc type escapes unless there is no safer option.
+- Validate with `npm run typecheck`. The script is now the cross-platform source of truth for TypeScript validation.
+- Follow Expo Router file-based navigation in `app/`.
+- Use Tailwind classes for layout. For fixed colors, use `constants/Colors.ts`. Do not hardcode new hex colors in components.
+- Use `constants/Layout.ts` for reusable spacing, radii, and layout constants.
+- Use `useSafeAreaInsets` for top and bottom padding. Do not hardcode notch or home-indicator spacing.
+- Prefer custom hooks for non-trivial logic and reusable components for repeated UI patterns.
+- Do not hardcode user-facing copy. Add strings to both `assets/locales/en.json` and `assets/locales/fr.json`.
 
-## 📁 Project Structure
+## Security Model
+- This app does not use traditional account auth.
+- Private access is now mediated through Supabase RPC functions plus bearer session tokens.
+- Never reintroduce direct anon table access for `houses`, `users`, `meal_plans`, `house_sessions`, or `user_sessions`.
+- Do not add new client code that queries private tables with `supabase.from(...)`. Route private access through service modules and RPC functions instead.
+- House onboarding uses a `house_token`. Authenticated in-app actions use a `user_token`.
+- Persist session data through `store/authStore.ts` and `utils/storage.ts`. Current storage keys are `house_id`, `house_token`, `user_id`, `user_token`, and `user-language`.
+- If you change the security model, update this file and the README in the same change.
+
+## Data Access Rules
+- Treat SQL migrations in `supabase/migrations/` as the source of truth.
+- Keep RLS enabled on tables, even when access is brokered through security-definer RPCs.
+- Apply schema changes via migrations only.
+- Prefer extending the existing RPC surface over adding permissive policies.
+- Planner mutations should keep optimistic updates in the client.
+
+## Project Structure
 - `app/`: Expo Router screens and layouts.
 - `components/`: Reusable UI components.
-- `constants/`: Global constants like `Colors.ts`.
+- `constants/`: Global constants such as colors and layout values.
 - `hooks/`: Custom React hooks.
-- `services/`: API clients (Supabase), storage, and external integrations.
-- `store/`: Zustand state definitions.
-- `types/`: Global TypeScript definitions.
-- `utils/`: Helper functions and constants.
-- `assets/locales/`: JSON translation files for i18n.
+- `services/`: Supabase and app service wrappers. Use this layer instead of inline data access in screens.
+- `store/`: Zustand state.
+- `utils/`: Shared helpers.
+- `assets/locales/`: Translation JSON files.
+- `supabase/migrations/`: Database migrations.
 
-## 🔐 Privacy & Security (No-Account Auth)
-- **No Traditional Auth:** Do not implement email/password or OAuth unless explicitly requested.
-- **House-Level Isolation:** Ensure all data operations are scoped to the `house_id`.
-- **Security-First RLS:** Never use `using (true)` for RLS policies in production. Always validate that the user's `house_id` matches the record's `house_id`.
-- **Secure Storage:** Always use `expo-secure-store` for sensitive local identifiers like `house_id` or `user_id`.
+## Localization
+- Primary language: French (`fr`).
+- Secondary language: English (`en`).
+- Prefer non-gendered language when possible.
+- Keep locale files synchronized when adding or changing copy.
 
-## 🌍 Localization (i18n)
-- Primary Language: **French** (`fr`).
-- Secondary Language: **English** (`en`).
-- Use non gendered language.
-- When adding a new string, ensure both `fr.json` and `en.json` are updated.
-
-## 🗄️ Database Strategy
-- **Migrations:** All schema changes must be in `supabase/migrations/`.
-- **RLS:** Always enable Row Level Security (RLS) policies for new tables.
-- **Application:** Use `npm run supabase:push` to apply changes.
-- **SQL-First:** Treat the migration files as the source of truth for the database model.
-
-## ✅ Verification & Evolution
-- **Iterative Approach:** Only implement the specific step requested by the user. Do not over-engineer.
-- **Proactive Refactoring:** Propose refactors even if out of scope if they benefit long-term maintenance.
-- **Document Paradigm Changes:** When introducing a major architectural shift (e.g., centralized colors, new component patterns), you MUST update this `AGENTS.md` file to reflect the new "source of truth".
-- **Validation:** Run `npx tsc` to ensure no type errors are introduced.
+## Verification
+- Run `npm run typecheck` after code changes.
+- If a change affects storage, auth flow, or RPC contracts, review the corresponding screens and services together before finishing.
+- If a change alters architecture or workflow for future agents, document it here.

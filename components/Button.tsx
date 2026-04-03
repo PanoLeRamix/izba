@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, Text, ActivityIndicator, View, ViewStyle, TextStyle } from 'react-native';
+import { ActivityIndicator, Text, TouchableOpacity, View, type TextStyle, type ViewStyle } from 'react-native';
+import { Colors } from '../constants/Colors';
 
 interface ButtonProps {
   onPress: () => void;
@@ -12,22 +13,12 @@ interface ButtonProps {
   textStyle?: TextStyle;
 }
 
-export const Button = ({ 
-  onPress, 
-  title, 
-  variant = 'primary', 
-  loading = false, 
-  disabled = false,
-  icon,
-  style,
-  textStyle
-}: ButtonProps) => {
+export const Button = ({ onPress, title, variant = 'primary', loading = false, disabled = false, icon, style, textStyle }: ButtonProps) => {
   const isPrimary = variant === 'primary';
   const isOutline = variant === 'outline';
-  const isGhost = variant === 'ghost';
-  
+
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       onPress={onPress}
       disabled={disabled || loading}
       style={style}
@@ -36,16 +27,11 @@ export const Button = ({
       } ${disabled ? 'opacity-50' : ''}`}
     >
       {loading ? (
-        <ActivityIndicator color={isPrimary ? '#F9F7F2' : '#2D5A27'} />
+        <ActivityIndicator color={isPrimary ? Colors.hearth : Colors.forest} />
       ) : (
         <>
-          {icon && <View className="mr-2">{icon}</View>}
-          <Text 
-            style={textStyle}
-            className={`font-semibold text-lg ${
-              isPrimary ? 'text-hearth' : 'text-forest'
-            }`}
-          >
+          {icon ? <View className="mr-2">{icon}</View> : null}
+          <Text style={textStyle} className={`font-semibold text-lg ${isPrimary ? 'text-hearth' : 'text-forest'}`}>
             {title}
           </Text>
         </>

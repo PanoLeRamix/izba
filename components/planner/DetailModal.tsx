@@ -1,59 +1,58 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { 
-  View, 
-  Text, 
-  Modal, 
-  TouchableOpacity, 
-  TouchableWithoutFeedback, 
-  Platform, 
-  Animated, 
-  PanResponder, 
-  useWindowDimensions,
-  StyleSheet,
-  TextInput,
-  KeyboardAvoidingView,
+import {
+  Animated,
+  Modal,
+  PanResponder,
+  Platform,
   ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+  useWindowDimensions,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { format } from 'date-fns';
-import { Minus, Plus, MessageSquarePlus, MessageSquareText, ChefHat, Hand } from 'lucide-react-native';
+import { format, type Locale } from 'date-fns';
+import { ChefHat, Hand, MessageSquarePlus, MessageSquareText, Minus, Plus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { User } from '../../services/user';
-import { useAuthStore } from '../../store/authStore';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 import { LAYOUT } from '../../constants/Layout';
+import { useAuthStore } from '../../store/authStore';
 import { InputModal } from '../InputModal';
+import { type PlannerStatus } from '../../services/planner';
+import { type User } from '../../services/user';
 
 interface DetailModalProps {
   visible: boolean;
   onClose: () => void;
   date: Date | null;
   dateKey: string;
-  eaters: (User & { guestCount?: number, note?: string })[];
+  eaters: Array<User & { guestCount?: number; note?: string }>;
   unavailable: User[];
   totalEatersCount: number;
   cooks: User[];
   isUserCooking: boolean;
   guestCount: number;
   note: string;
-  status: string;
+  status: PlannerStatus;
   onToggleStatus: (dateKey: string) => void;
   onToggleCooking: (dateKey: string) => void;
   onSetGuestCount: (dateKey: string, count: number) => void;
   onUpdateNote: (dateKey: string, content: string) => void;
-  locale: any;
+  locale: Locale;
 }
 
 const IS_WEB = Platform.OS === 'web';
 const MAX_NOTE_LENGTH = 20;
 
-export const DetailModal = ({ 
-  visible, 
-  onClose, 
-  date, 
+export const DetailModal = ({
+  visible,
+  onClose,
+  date,
   dateKey,
-  eaters, 
-  unavailable = [],
+  eaters,
+  unavailable,
   totalEatersCount,
   cooks,
   isUserCooking,
@@ -64,7 +63,7 @@ export const DetailModal = ({
   onToggleCooking,
   onSetGuestCount,
   onUpdateNote,
-  locale 
+  locale,
 }: DetailModalProps) => {
   const { t } = useTranslation();
   const { userId } = useAuthStore();
@@ -72,15 +71,12 @@ export const DetailModal = ({
   const { height: screenHeight } = useWindowDimensions();
   const [shouldRender, setShouldRender] = useState(visible);
   const [isEditingNote, setIsEditingNote] = useState(false);
-  const [tempNote, setTempNote] = useState(note);
-  
   const animValue = useRef(new Animated.Value(0)).current;
   const panY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (visible) {
       setShouldRender(true);
-      setTempNote(note);
       panY.setValue(0);
       Animated.timing(animValue, {
         toValue: 1,
@@ -96,49 +92,55 @@ export const DetailModal = ({
         setShouldRender(false);
       });
     }
-  }, [visible, note]);
+  }, [animValue, note, panY, visible]);
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => !isEditingNote,
-      onMoveShouldSetPanResponder: (_, gestureState) => !isEditingNote && Math.abs(gestureState.dy) > 10,
-      onPanResponderMove: (_, gestureState) => {
+      onMoveShouldSetPanResponder: (_event, gestureState) => !isEditingNote && Math.abs(gestureState.dy) > 10,
+      onPanResponderMove: (_event, gestureState) => {
         if (!isEditingNote && gestureState.dy > 0) {
           panY.setValue(gestureState.dy);
         }
       },
-      onPanResponderRelease: (_, gestureState) => {
-        if (!isEditingNote) {
-          if (gestureState.dy > LAYOUT.MODAL_SWIPE_THRESHOLD || gestureState.vy > LAYOUT.MODAL_VELOCITY_THRESHOLD) {
-            onClose();
-          } else {
-            Animated.spring(panY, {
-              toValue: 0,
-              useNativeDriver: !IS_WEB,
-              tension: 40,
-              friction: 8,
-            }).start();
-          }
+      onPanResponderRelease: (_event, gestureState) => {
+        if (isEditingNote) {
+          return;
         }
+
+        if (gestureState.dy > LAYOUT.MODAL_SWIPE_THRESHOLD || gestureState.vy > LAYOUT.MODAL_VELOCITY_THRESHOLD) {
+          onClose();
+          return;
+        }
+
+        Animated.spring(panY, {
+          toValue: 0,
+          useNativeDriver: !IS_WEB,
+          tension: 40,
+          friction: 8,
+        }).start();
       },
-    })
+    }),
   ).current;
 
-  if (!shouldRender && !visible) return null;
+  if (!shouldRender && !visible) {
+    return null;
+  }
 
   const translateY = animValue.interpolate({
     inputRange: [0, 1],
     outputRange: [screenHeight, 0],
   });
-  
   const backdropOpacity = animValue.interpolate({
     inputRange: [0, 1],
     outputRange: [0, 1],
   });
 
-  const renderMemberChip = (user: User & { guestCount?: number, note?: string }, variant: 'eating' | 'unavailable' | 'cooking' = 'eating') => {
+  const renderMemberChip = (
+    user: User & { guestCount?: number; note?: string },
+    variant: 'eating' | 'unavailable' | 'cooking' = 'eating',
+  ) => {
     const isMe = user.id === userId;
-    
     let bgColor = isMe ? 'bg-forest/20' : 'bg-forest/5';
     let borderColor = isMe ? 'border-forest/40' : 'border-forest/10';
     let textColor = 'text-forest';
@@ -156,29 +158,18 @@ export const DetailModal = ({
     return (
       <View key={`${variant}-${user.id}`} className={`items-start ${user.note ? 'mb-5' : ''}`}>
         <View className="relative">
-          <View 
-            className={`px-4 py-2 rounded-full border ${bgColor} ${borderColor}`}
-          >
-            <Text className={`font-bold text-sm ${textColor} ${variant === 'unavailable' ? 'line-through opacity-70' : ''}`}>
-              {user.name}
-            </Text>
+          <View className={`px-4 py-2 rounded-full border ${bgColor} ${borderColor}`}>
+            <Text className={`font-bold text-sm ${textColor} ${variant === 'unavailable' ? 'line-through opacity-70' : ''}`}>{user.name}</Text>
           </View>
-          
+
           {user.guestCount && user.guestCount > 0 ? (
-            <View 
-              className={`absolute -top-2 -right-3 px-1.5 py-0.5 rounded-lg border border-white shadow-sm z-20 ${chipBg} ${chipBorder}`}
-            >
-              <Text className="text-[10px] text-white font-black">
-                +{user.guestCount}
-              </Text>
+            <View className={`absolute -top-2 -right-3 px-1.5 py-0.5 rounded-lg border border-white shadow-sm z-20 ${chipBg} ${chipBorder}`}>
+              <Text className="text-[10px] text-white font-black">+{user.guestCount}</Text>
             </View>
           ) : null}
-          
+
           {user.note ? (
-            <View 
-              className={`absolute top-[90%] right-0 px-2 py-1 rounded-xl border border-white shadow-sm z-10 ${chipBg} ${chipBorder}`}
-              style={{ minWidth: 40, maxWidth: 110 }}
-            >
+            <View className={`absolute top-[90%] right-0 px-2 py-1 rounded-xl border border-white shadow-sm z-10 ${chipBg} ${chipBorder}`} style={{ minWidth: 40, maxWidth: 110 }}>
               <Text className="text-white text-[9px] font-bold italic leading-tight" numberOfLines={2}>
                 {user.note}
               </Text>
@@ -188,121 +179,101 @@ export const DetailModal = ({
       </View>
     );
   };
-// ... (rest of the file logic around rendering these chips)
-
-
-  const handleSaveNote = (content: string) => {
-    onUpdateNote(dateKey, content.replace(/\n/g, ' '));
-    setIsEditingNote(false);
-  };
 
   return (
-    <React.Fragment>
-      <Modal
-        visible={shouldRender || visible}
-        transparent={true}
-        animationType="none"
-        onRequestClose={onClose}
-        statusBarTranslucent={true}
-      >
+    <>
+      <Modal visible={shouldRender || visible} transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
         <View style={styles.container}>
           <TouchableWithoutFeedback onPress={onClose}>
-            <Animated.View 
-              style={[
-                StyleSheet.absoluteFill,
-                { 
-                  backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                  opacity: backdropOpacity 
-                }
-              ]} 
-            />
+            <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.backdrop, opacity: backdropOpacity }]} />
           </TouchableWithoutFeedback>
 
           <View style={styles.contentContainer} pointerEvents="box-none">
             <Animated.View
               {...panResponder.panHandlers}
-              style={{ 
-                transform: [
-                  { translateY: translateY },
-                  { translateY: panY }
-                ],
+              style={{
+                transform: [{ translateY }, { translateY: panY }],
                 paddingTop: IS_WEB ? LAYOUT.BASE_MODAL_PADDING_TOP / 2 : LAYOUT.BASE_MODAL_PADDING_TOP,
                 paddingBottom: Math.max(insets.bottom, LAYOUT.BASE_MODAL_PADDING_BOTTOM),
                 paddingHorizontal: LAYOUT.BASE_MODAL_PADDING_HORIZONTAL,
-                backgroundColor: Colors.hearth, 
+                backgroundColor: Colors.hearth,
                 borderTopLeftRadius: IS_WEB ? 0 : LAYOUT.MODAL_BORDER_RADIUS,
                 borderTopRightRadius: IS_WEB ? 0 : LAYOUT.MODAL_BORDER_RADIUS,
                 overflow: 'hidden',
-                maxHeight: '90%'
+                maxHeight: '90%',
               }}
               className="shadow-xl w-full max-w-2xl self-center"
             >
-              {!IS_WEB && (
-                <View className="w-12 h-1.5 bg-forest-dark/10 rounded-full self-center mb-6" />
-              )}
+              {!IS_WEB ? <View className="w-12 h-1.5 bg-forest-dark/10 rounded-full self-center mb-6" /> : null}
 
               <View className="flex-row items-center justify-between mb-8">
                 <View className="flex-1 mr-2">
-                  {date && (
+                  {date ? (
                     <Text className="text-3xl font-black text-forest-dark uppercase leading-tight">
                       {format(date, 'EEE', { locale })}
-                      {"\n"}
+                      {'\n'}
                       {format(date, 'd MMMM', { locale })}
                     </Text>
-                  )}
+                  ) : null}
                 </View>
-                
-                <TouchableOpacity 
+
+                <TouchableOpacity
                   onPress={() => onToggleStatus(dateKey)}
                   activeOpacity={0.7}
                   style={{
-                    backgroundColor: status === 'available' ? Colors.status.availableBg : status === 'unavailable' ? Colors.status.unavailableBg : Colors.status.noneBg,
-                    borderColor: status === 'available' ? Colors.status.availableBorder : status === 'unavailable' ? Colors.status.unavailableBorder : Colors.status.noneBorder,
+                    backgroundColor:
+                      status === 'available'
+                        ? Colors.status.availableBg
+                        : status === 'unavailable'
+                          ? Colors.status.unavailableBg
+                          : Colors.status.noneBg,
+                    borderColor:
+                      status === 'available'
+                        ? Colors.status.availableBorder
+                        : status === 'unavailable'
+                          ? Colors.status.unavailableBorder
+                          : Colors.status.noneBorder,
                   }}
                   className="px-5 py-3 items-center justify-center rounded-2xl border shadow-sm"
                 >
-                  <Text 
-                    className="font-black uppercase tracking-widest text-[10px]" 
-                    style={{ color: status === 'available' ? Colors.status.available : status === 'unavailable' ? Colors.status.unavailable : Colors.status.none }}
+                  <Text
+                    className="font-black uppercase tracking-widest text-[10px]"
+                    style={{
+                      color:
+                        status === 'available'
+                          ? Colors.status.available
+                          : status === 'unavailable'
+                            ? Colors.status.unavailable
+                            : Colors.status.none,
+                    }}
                   >
                     {t(`planner.status.${status}`)}
                   </Text>
                 </TouchableOpacity>
               </View>
 
-              <ScrollView 
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 20 }}
-              >
-                {/* Cooking Section */}
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
                 <View className="bg-white rounded-[32px] p-6 mb-4 border border-sage-light/30 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
                   <View className="flex-row items-center justify-between mb-4">
                     <View className="flex-row items-center">
-                      <Text className="text-2xl mr-3">🧑‍🍳</Text>
+                      <Text className="text-2xl mr-3">👩‍🍳</Text>
                       <Text className="text-lg font-black text-forest-dark uppercase tracking-tight">{t('planner.cooking')}</Text>
                     </View>
-                    
-                    <TouchableOpacity 
+
+                    <TouchableOpacity
                       onPress={() => onToggleCooking(dateKey)}
                       activeOpacity={0.7}
                       className={`flex-row items-center px-4 py-2 rounded-xl border ${isUserCooking ? 'bg-forest/10 border-forest/30' : 'bg-sage-light/10 border-sage/20'}`}
                     >
-                      {isUserCooking ? (
-                        <ChefHat size={18} color={Colors.forest} strokeWidth={2.5} />
-                      ) : (
-                        <Hand size={18} color={Colors.forest} strokeWidth={2.5} />
-                      )}
+                      {isUserCooking ? <ChefHat size={18} color={Colors.forest} strokeWidth={2.5} /> : <Hand size={18} color={Colors.forest} strokeWidth={2.5} />}
                     </TouchableOpacity>
                   </View>
-                  
+
                   <View className="flex-row flex-wrap gap-x-3 gap-y-2">
-                    {cooks.length > 0 ? cooks.map(u => renderMemberChip(u, 'cooking')) : (
-                      <Text className="text-forest-dark/40 italic font-medium">{t('planner.noOneCooking')}</Text>
-                    )}
+                    {cooks.length > 0 ? cooks.map((user) => renderMemberChip(user, 'cooking')) : <Text className="text-forest-dark/40 italic font-medium">{t('planner.noOneCooking')}</Text>}
                   </View>
                 </View>
 
-                {/* Eating Section */}
                 <View className="bg-white rounded-[32px] p-6 mb-4 border border-sage-light/30 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
                   <View className="flex-row items-center justify-between mb-4">
                     <View className="flex-row items-center">
@@ -313,7 +284,7 @@ export const DetailModal = ({
                       </View>
                     </View>
 
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       onPress={() => setIsEditingNote(true)}
                       className={`flex-row items-center px-4 py-2 rounded-xl border ${note ? 'bg-forest/10 border-forest/30' : 'bg-sage-light/10 border-sage/20'}`}
                     >
@@ -324,16 +295,16 @@ export const DetailModal = ({
                       )}
                     </TouchableOpacity>
                   </View>
-                  
+
                   <View className="flex-row flex-wrap gap-x-3 gap-y-2">
                     {eaters.length > 0 || unavailable.length > 0 ? (
                       <>
-                        {eaters.map(u => renderMemberChip(u, 'eating'))}
-                        {unavailable.length > 0 && (
+                        {eaters.map((user) => renderMemberChip(user, 'eating'))}
+                        {unavailable.length > 0 ? (
                           <View className="w-full mt-2 pt-2 border-t border-red-100 flex-row flex-wrap gap-x-3 gap-y-2">
-                            {unavailable.map(u => renderMemberChip(u, 'unavailable'))}
+                            {unavailable.map((user) => renderMemberChip(user, 'unavailable'))}
                           </View>
-                        )}
+                        ) : null}
                       </>
                     ) : (
                       <Text className="text-forest-dark/40 italic font-medium">{t('planner.noOneEating')}</Text>
@@ -341,27 +312,26 @@ export const DetailModal = ({
                   </View>
                 </View>
 
-                {/* Invite Friends Section */}
                 <View className="bg-white rounded-[32px] p-6 mb-4 border border-sage-light/30 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
                   <View className="flex-row items-center justify-between">
                     <View className="flex-row items-center">
                       <Text className="text-2xl mr-3">👋</Text>
                       <Text className="text-lg font-black text-forest-dark uppercase tracking-tight">{t('planner.inviteFriends')}</Text>
                     </View>
-                    
+
                     <View className="flex-row items-center bg-sage-light/10 rounded-2xl border border-sage/20 p-1">
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         onPress={() => onSetGuestCount(dateKey, Math.max(0, guestCount - 1))}
                         className="w-10 h-10 items-center justify-center rounded-xl bg-white border border-sage/10 shadow-sm"
                       >
                         <Minus size={20} color={Colors.forest} strokeWidth={3} />
                       </TouchableOpacity>
-                      
+
                       <View className="w-12 items-center justify-center">
                         <Text className="text-lg font-black text-forest-dark">{guestCount}</Text>
                       </View>
-                      
-                      <TouchableOpacity 
+
+                      <TouchableOpacity
                         onPress={() => onSetGuestCount(dateKey, guestCount + 1)}
                         className="w-10 h-10 items-center justify-center rounded-xl bg-forest border border-forest shadow-sm"
                       >
@@ -376,16 +346,19 @@ export const DetailModal = ({
         </View>
       </Modal>
 
-      <InputModal 
+      <InputModal
         visible={isEditingNote}
         onClose={() => setIsEditingNote(false)}
-        onSave={handleSaveNote}
+        onSave={(content) => {
+          onUpdateNote(dateKey, content.replace(/\n/g, ' '));
+          setIsEditingNote(false);
+        }}
         title={t('planner.editNote')}
         initialValue={note}
         placeholder={t('planner.notePlaceholder')}
         maxLength={MAX_NOTE_LENGTH}
       />
-    </React.Fragment>
+    </>
   );
 };
 
@@ -399,5 +372,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     width: '100%',
-  }
+  },
 });
