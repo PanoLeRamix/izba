@@ -267,28 +267,35 @@ language plpgsql
 set search_path = public
 as $$
 begin
+  -- 1. Remove entries for users no longer in the house
   delete from house_task_member_order
-  where house_task_member_order.house_id = p_house_id;
+  where house_id = p_house_id
+    and user_id not in (
+      select id from users where house_id = p_house_id
+    );
 
-  with ordered_users as (
+  -- 2. Upsert existing and new users with updated sort_order
+  with updated_order as (
     select
-      users.id,
+      u.id as user_id,
       row_number() over (
         order by
-          coalesce(house_task_member_order.sort_order, 2147483647),
-          lower(users.name),
-          users.created_at,
-          users.id
+          coalesce(mo.sort_order, 2147483647), -- Keep existing order, newcomers at the end
+          lower(u.name),
+          u.created_at,
+          u.id
       ) - 1 as next_sort_order
-    from users
-    left join house_task_member_order
-      on house_task_member_order.house_id = users.house_id
-     and house_task_member_order.user_id = users.id
-    where users.house_id = p_house_id
+    from users u
+    left join house_task_member_order mo
+      on mo.house_id = u.house_id
+     and mo.user_id = u.id
+    where u.house_id = p_house_id
   )
   insert into house_task_member_order (house_id, user_id, sort_order)
-  select p_house_id, ordered_users.id, ordered_users.next_sort_order
-  from ordered_users;
+  select p_house_id, user_id, next_sort_order
+  from updated_order
+  on conflict (house_id, user_id) do update
+  set sort_order = excluded.sort_order;
 end;
 $$;
 
