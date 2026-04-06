@@ -185,6 +185,7 @@ export default function Settings() {
         onClose={() => setEditModalVisible(false)}
         onSave={handleSave}
         onDelete={editTarget === 'user' ? handleDeleteIdentity : undefined}
+        deleteTitle={t('main.deleteIdentity')}
         title={editTarget === 'house' ? t('auth.houseName') : t('auth.memberName')}
         initialValue={editTarget === 'house' ? house?.name : user?.name}
         placeholder={editTarget === 'house' ? t('auth.houseNamePlaceholder') : t('auth.memberNamePlaceholder')}

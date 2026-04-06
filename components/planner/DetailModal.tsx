@@ -1,21 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
-  Animated,
-  Modal,
-  PanResponder,
   Platform,
-  ScrollView,
-  StyleSheet,
   Text,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
-  useWindowDimensions,
 } from 'react-native';
 import { format, type Locale } from 'date-fns';
 import { ChefHat, Hand, MessageSquarePlus, MessageSquareText, Minus, Plus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BottomSheetModal } from '../BottomSheetModal';
 import { Colors } from '../../constants/Colors';
 import { LAYOUT } from '../../constants/Layout';
 import { useAuthStore } from '../../store/authStore';
@@ -67,74 +60,7 @@ export const DetailModal = ({
 }: DetailModalProps) => {
   const { t } = useTranslation();
   const { userId } = useAuthStore();
-  const insets = useSafeAreaInsets();
-  const { height: screenHeight } = useWindowDimensions();
-  const [shouldRender, setShouldRender] = useState(visible);
   const [isEditingNote, setIsEditingNote] = useState(false);
-  const animValue = useRef(new Animated.Value(0)).current;
-  const panY = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (visible) {
-      setShouldRender(true);
-      panY.setValue(0);
-      Animated.timing(animValue, {
-        toValue: 1,
-        duration: LAYOUT.MODAL_ANIM_DURATION,
-        useNativeDriver: !IS_WEB,
-      }).start();
-    } else {
-      Animated.timing(animValue, {
-        toValue: 0,
-        duration: LAYOUT.MODAL_ANIM_DURATION - 50,
-        useNativeDriver: !IS_WEB,
-      }).start(() => {
-        setShouldRender(false);
-      });
-    }
-  }, [animValue, note, panY, visible]);
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => !isEditingNote,
-      onMoveShouldSetPanResponder: (_event, gestureState) => !isEditingNote && Math.abs(gestureState.dy) > 10,
-      onPanResponderMove: (_event, gestureState) => {
-        if (!isEditingNote && gestureState.dy > 0) {
-          panY.setValue(gestureState.dy);
-        }
-      },
-      onPanResponderRelease: (_event, gestureState) => {
-        if (isEditingNote) {
-          return;
-        }
-
-        if (gestureState.dy > LAYOUT.MODAL_SWIPE_THRESHOLD || gestureState.vy > LAYOUT.MODAL_VELOCITY_THRESHOLD) {
-          onClose();
-          return;
-        }
-
-        Animated.spring(panY, {
-          toValue: 0,
-          useNativeDriver: !IS_WEB,
-          tension: 40,
-          friction: 8,
-        }).start();
-      },
-    }),
-  ).current;
-
-  if (!shouldRender && !visible) {
-    return null;
-  }
-
-  const translateY = animValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [screenHeight, 0],
-  });
-  const backdropOpacity = animValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 1],
-  });
 
   const renderMemberChip = (
     user: User & { guestCount?: number; note?: string },
@@ -182,78 +108,58 @@ export const DetailModal = ({
 
   return (
     <>
-      <Modal visible={shouldRender || visible} transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
-        <View style={styles.container}>
-          <TouchableWithoutFeedback onPress={onClose}>
-            <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.backdrop, opacity: backdropOpacity }]} />
-          </TouchableWithoutFeedback>
+      <BottomSheetModal
+        visible={visible}
+        onClose={onClose}
+        header={
+          <View className="flex-row items-center justify-between mb-8">
+            <View className="flex-1 mr-2">
+              {date ? (
+                <Text className="text-3xl font-black text-forest-dark uppercase leading-tight">
+                  {format(date, 'EEE', { locale })}
+                  {'\n'}
+                  {format(date, 'd MMMM', { locale })}
+                </Text>
+              ) : null}
+            </View>
 
-          <View style={styles.contentContainer} pointerEvents="box-none">
-            <Animated.View
-              {...panResponder.panHandlers}
+            <TouchableOpacity
+              onPress={() => onToggleStatus(dateKey)}
+              activeOpacity={0.7}
               style={{
-                transform: [{ translateY }, { translateY: panY }],
-                paddingTop: IS_WEB ? LAYOUT.BASE_MODAL_PADDING_TOP / 2 : LAYOUT.BASE_MODAL_PADDING_TOP,
-                paddingBottom: Math.max(insets.bottom, LAYOUT.BASE_MODAL_PADDING_BOTTOM),
-                paddingHorizontal: LAYOUT.BASE_MODAL_PADDING_HORIZONTAL,
-                backgroundColor: Colors.hearth,
-                borderTopLeftRadius: IS_WEB ? 0 : LAYOUT.MODAL_BORDER_RADIUS,
-                borderTopRightRadius: IS_WEB ? 0 : LAYOUT.MODAL_BORDER_RADIUS,
-                overflow: 'hidden',
-                maxHeight: '90%',
+                backgroundColor:
+                  status === 'available'
+                    ? Colors.status.availableBg
+                    : status === 'unavailable'
+                      ? Colors.status.unavailableBg
+                      : Colors.status.noneBg,
+                borderColor:
+                  status === 'available'
+                    ? Colors.status.availableBorder
+                    : status === 'unavailable'
+                      ? Colors.status.unavailableBorder
+                      : Colors.status.noneBorder,
               }}
-              className="shadow-xl w-full max-w-2xl self-center"
+              className="px-5 py-3 items-center justify-center rounded-2xl border shadow-sm"
             >
-              {!IS_WEB ? <View className="w-12 h-1.5 bg-forest-dark/10 rounded-full self-center mb-6" /> : null}
-
-              <View className="flex-row items-center justify-between mb-8">
-                <View className="flex-1 mr-2">
-                  {date ? (
-                    <Text className="text-3xl font-black text-forest-dark uppercase leading-tight">
-                      {format(date, 'EEE', { locale })}
-                      {'\n'}
-                      {format(date, 'd MMMM', { locale })}
-                    </Text>
-                  ) : null}
-                </View>
-
-                <TouchableOpacity
-                  onPress={() => onToggleStatus(dateKey)}
-                  activeOpacity={0.7}
-                  style={{
-                    backgroundColor:
-                      status === 'available'
-                        ? Colors.status.availableBg
-                        : status === 'unavailable'
-                          ? Colors.status.unavailableBg
-                          : Colors.status.noneBg,
-                    borderColor:
-                      status === 'available'
-                        ? Colors.status.availableBorder
-                        : status === 'unavailable'
-                          ? Colors.status.unavailableBorder
-                          : Colors.status.noneBorder,
-                  }}
-                  className="px-5 py-3 items-center justify-center rounded-2xl border shadow-sm"
-                >
-                  <Text
-                    className="font-black uppercase tracking-widest text-[10px]"
-                    style={{
-                      color:
-                        status === 'available'
-                          ? Colors.status.available
-                          : status === 'unavailable'
-                            ? Colors.status.unavailable
-                            : Colors.status.none,
-                    }}
-                  >
-                    {t(`planner.status.${status}`)}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
-                <View className="bg-white rounded-[32px] p-6 mb-4 border border-sage-light/30 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
+              <Text
+                className="font-black uppercase tracking-widest text-[10px]"
+                style={{
+                  color:
+                    status === 'available'
+                      ? Colors.status.available
+                      : status === 'unavailable'
+                        ? Colors.status.unavailable
+                        : Colors.status.none,
+                }}
+              >
+                {t(`planner.status.${status}`)}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        }
+      >
+        <View className="bg-white rounded-[32px] p-6 mb-4 border border-sage-light/30 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
                   <View className="flex-row items-center justify-between mb-4">
                     <View className="flex-row items-center">
                       <Text className="text-2xl mr-3">👩‍🍳</Text>
@@ -274,7 +180,7 @@ export const DetailModal = ({
                   </View>
                 </View>
 
-                <View className="bg-white rounded-[32px] p-6 mb-4 border border-sage-light/30 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
+        <View className="bg-white rounded-[32px] p-6 mb-4 border border-sage-light/30 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
                   <View className="flex-row items-center justify-between mb-4">
                     <View className="flex-row items-center">
                       <Text className="text-2xl mr-3">🍽️</Text>
@@ -312,7 +218,7 @@ export const DetailModal = ({
                   </View>
                 </View>
 
-                <View className="bg-white rounded-[32px] p-6 mb-4 border border-sage-light/30 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
+        <View className="bg-white rounded-[32px] p-6 mb-4 border border-sage-light/30 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
                   <View className="flex-row items-center justify-between">
                     <View className="flex-row items-center">
                       <Text className="text-2xl mr-3">👋</Text>
@@ -339,12 +245,8 @@ export const DetailModal = ({
                       </TouchableOpacity>
                     </View>
                   </View>
-                </View>
-              </ScrollView>
-            </Animated.View>
-          </View>
         </View>
-      </Modal>
+      </BottomSheetModal>
 
       <InputModal
         visible={isEditingNote}
@@ -361,16 +263,3 @@ export const DetailModal = ({
     </>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  contentContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    width: '100%',
-  },
-});

@@ -21,6 +21,9 @@ interface InputModalProps {
   onClose: () => void;
   onSave: (value: string) => void;
   onDelete?: () => void;
+  saveTitle?: string;
+  cancelTitle?: string;
+  deleteTitle?: string;
   title: string;
   initialValue?: string;
   placeholder?: string;
@@ -33,6 +36,9 @@ export const InputModal = ({
   onClose,
   onSave,
   onDelete,
+  saveTitle,
+  cancelTitle,
+  deleteTitle,
   title,
   initialValue = '',
   placeholder,
@@ -126,7 +132,7 @@ export const InputModal = ({
 
                 <View className="mt-4">
                   <Button 
-                    title={t('auth.save')} 
+                    title={saveTitle ?? t('auth.save')} 
                     onPress={handleSave} 
                     loading={loading}
                     disabled={!value.trim()}
@@ -134,7 +140,7 @@ export const InputModal = ({
                 </View>
                 <View className="mt-4">
                   <Button 
-                    title={t('common.back')} 
+                    title={cancelTitle ?? t('common.back')} 
                     variant="outline"
                     onPress={onClose} 
                   />
@@ -143,7 +149,7 @@ export const InputModal = ({
                 {onDelete && (
                   <View className="mt-8 pt-6 border-t border-sage/20">
                     <Button 
-                      title={t('main.deleteIdentity')} 
+                      title={deleteTitle ?? t('common.delete')} 
                       onPress={onDelete} 
                       variant="ghost"
                       icon={<Trash2 size={18} color={Colors.status.unavailable} />}

@@ -47,6 +47,7 @@
     "retry": "Réessayer",
     "refresh": "Actualiser",
     "me": "Moi",
+    "delete": "Supprimer",
     "noConnection": "Pas de connexion internet. Les changements risquent de ne pas être enregistrés."
   },
   "planner": {
@@ -71,8 +72,39 @@
       "none": "Je ne sais pas encore"
     }
   },
+  "tasks": {
+    "manage": "Gérer",
+    "doneManaging": "Fermer",
+    "taskLabel": "Tâche",
+    "assignedTo": "Cette semaine",
+    "nextUp": "Ensuite : {{name}}",
+    "manageTasks": "Tâches",
+    "addTask": "Ajouter une tâche",
+    "editTask": "Modifier la tâche",
+    "deleteTask": "Supprimer la tâche",
+    "deleteTaskConfirmation": "Voulez-vous vraiment supprimer \"{{task}}\" ?",
+    "taskPlaceholder": "Ex. : Salle de bain",
+    "noTasksTitle": "Aucune tâche",
+    "noTasksMessage": "Ajoutez quelques tâches récurrentes pour lancer la rotation.",
+    "noTasksManageHint": "Ajoutez votre première tâche pour démarrer la roue.",
+    "noMembersTitle": "Aucun membre",
+    "noMembersMessage": "Ajoutez d'abord des membres à la coloc pour générer la rotation.",
+    "rotationOrder": "Ordre de rotation",
+    "anchorWeek": "Semaine de départ",
+    "anchorWeekValue": "Semaine de référence : {{date}}",
+    "anchorWeekUnset": "Aucune semaine de référence définie pour le moment.",
+    "useViewedWeekAsAnchor": "Utiliser cette semaine comme départ",
+    "settingsTitle": "Réglages des tâches",
+    "settingsInfo": "Gérez les tâches récurrentes, l'ordre de rotation de la coloc et la semaine de départ utilisée pour la roue.",
+    "anchorWeekInfoTitle": "À quoi sert la semaine de départ ?",
+    "anchorWeekInfoMessage": "La semaine de départ définit la semaine de référence pour la rotation. Les attributions affichées pour toutes les autres semaines sont calculées à partir de ce point.",
+    "reorderError": "Impossible de mettre à jour l'ordre.",
+    "anchorError": "Impossible de mettre à jour la semaine de départ.",
+    "manageError": "Impossible de mettre à jour les réglages des tâches."
+  },
   "tabs": {
     "home": "Réglages",
-    "planner": "Planning"
+    "planner": "Planning",
+    "tasks": "Tâches"
   }
 }

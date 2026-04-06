@@ -30,6 +30,33 @@ create table meal_plans (
   constraint meal_plans_guest_count_check check (guest_count >= 0)
 );
 
+create table house_task_rotation_configs (
+  house_id uuid primary key references houses(id) on delete cascade,
+  created_at timestamp with time zone not null default timezone('utc', now()),
+  updated_at timestamp with time zone not null default timezone('utc', now()),
+  anchor_week_start date not null default date_trunc('week', timezone('utc', now()))::date
+);
+
+create table house_task_chores (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamp with time zone not null default timezone('utc', now()),
+  updated_at timestamp with time zone not null default timezone('utc', now()),
+  house_id uuid not null references houses(id) on delete cascade,
+  name text not null,
+  sort_order integer not null,
+  constraint house_task_chores_name_check check (char_length(trim(name)) > 0),
+  constraint house_task_chores_house_sort_order_key unique (house_id, sort_order)
+);
+
+create table house_task_member_order (
+  house_id uuid not null references houses(id) on delete cascade,
+  user_id uuid not null references users(id) on delete cascade,
+  sort_order integer not null,
+  created_at timestamp with time zone not null default timezone('utc', now()),
+  primary key (house_id, user_id),
+  constraint house_task_member_order_house_sort_order_key unique (house_id, sort_order)
+);
+
 create table house_sessions (
   id uuid primary key default gen_random_uuid(),
   house_id uuid not null references houses(id) on delete cascade,
@@ -50,6 +77,8 @@ create table user_sessions (
 create index house_sessions_house_id_idx on house_sessions(house_id);
 create index user_sessions_house_id_idx on user_sessions(house_id);
 create index user_sessions_user_id_idx on user_sessions(user_id);
+create index house_task_chores_house_id_idx on house_task_chores(house_id);
+create index house_task_member_order_user_id_idx on house_task_member_order(user_id);
 
 create or replace function update_updated_at_column()
 returns trigger
@@ -66,15 +95,31 @@ before update on meal_plans
 for each row
 execute procedure update_updated_at_column();
 
+create trigger update_house_task_rotation_configs_updated_at
+before update on house_task_rotation_configs
+for each row
+execute procedure update_updated_at_column();
+
+create trigger update_house_task_chores_updated_at
+before update on house_task_chores
+for each row
+execute procedure update_updated_at_column();
+
 alter table houses enable row level security;
 alter table users enable row level security;
 alter table meal_plans enable row level security;
+alter table house_task_rotation_configs enable row level security;
+alter table house_task_chores enable row level security;
+alter table house_task_member_order enable row level security;
 alter table house_sessions enable row level security;
 alter table user_sessions enable row level security;
 
 revoke all on table houses from anon, authenticated;
 revoke all on table users from anon, authenticated;
 revoke all on table meal_plans from anon, authenticated;
+revoke all on table house_task_rotation_configs from anon, authenticated;
+revoke all on table house_task_chores from anon, authenticated;
+revoke all on table house_task_member_order from anon, authenticated;
 revoke all on table house_sessions from anon, authenticated;
 revoke all on table user_sessions from anon, authenticated;
 
@@ -195,6 +240,58 @@ begin
 end;
 $$;
 
+create or replace function ensure_house_task_rotation_config(p_house_id uuid)
+returns house_task_rotation_configs
+language plpgsql
+set search_path = public
+as $$
+declare
+  v_config house_task_rotation_configs;
+begin
+  insert into house_task_rotation_configs (house_id)
+  values (p_house_id)
+  on conflict (house_id) do nothing;
+
+  select *
+  into v_config
+  from house_task_rotation_configs
+  where house_task_rotation_configs.house_id = p_house_id;
+
+  return v_config;
+end;
+$$;
+
+create or replace function sync_house_task_member_order(p_house_id uuid)
+returns void
+language plpgsql
+set search_path = public
+as $$
+begin
+  delete from house_task_member_order
+  where house_task_member_order.house_id = p_house_id;
+
+  with ordered_users as (
+    select
+      users.id,
+      row_number() over (
+        order by
+          coalesce(house_task_member_order.sort_order, 2147483647),
+          lower(users.name),
+          users.created_at,
+          users.id
+      ) - 1 as next_sort_order
+    from users
+    left join house_task_member_order
+      on house_task_member_order.house_id = users.house_id
+     and house_task_member_order.user_id = users.id
+    where users.house_id = p_house_id
+  )
+  insert into house_task_member_order (house_id, user_id, sort_order)
+  select p_house_id, ordered_users.id, ordered_users.next_sort_order
+  from ordered_users;
+end;
+$$;
+
 create or replace function create_house(p_name text)
 returns table (
   house_id uuid,
@@ -222,6 +319,8 @@ begin
   values (v_name, generate_house_code())
   returning *
   into v_house;
+
+  perform ensure_house_task_rotation_config(v_house.id);
 
   v_token := issue_house_session(v_house.id);
 
@@ -340,6 +439,8 @@ begin
   returning *
   into v_user;
 
+  perform sync_house_task_member_order(v_house_id);
+
   v_token := issue_user_session(v_user.id, v_house_id);
 
   return query
@@ -397,6 +498,7 @@ declare
   v_session user_sessions;
 begin
   v_session := get_user_session_from_token(p_user_token);
+  perform sync_house_task_member_order(v_session.house_id);
 
   return query
   select users.id, users.name, users.house_id
@@ -482,6 +584,419 @@ begin
   delete from users
   where users.id = v_session.user_id
     and users.house_id = v_session.house_id;
+
+  perform sync_house_task_member_order(v_session.house_id);
+end;
+$$;
+
+create or replace function get_house_task_rotation_config(p_user_token text)
+returns table (
+  house_id uuid,
+  anchor_week_start date,
+  created_at timestamp with time zone,
+  updated_at timestamp with time zone
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_session user_sessions;
+  v_config house_task_rotation_configs;
+begin
+  v_session := get_user_session_from_token(p_user_token);
+  v_config := ensure_house_task_rotation_config(v_session.house_id);
+
+  return query
+  select v_config.house_id, v_config.anchor_week_start, v_config.created_at, v_config.updated_at;
+end;
+$$;
+
+create or replace function set_house_task_rotation_anchor_week(p_user_token text, p_anchor_week_start date)
+returns table (
+  house_id uuid,
+  anchor_week_start date,
+  created_at timestamp with time zone,
+  updated_at timestamp with time zone
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_session user_sessions;
+  v_anchor_week_start date;
+begin
+  v_session := get_user_session_from_token(p_user_token);
+  perform ensure_house_task_rotation_config(v_session.house_id);
+
+  v_anchor_week_start := date_trunc('week', coalesce(p_anchor_week_start, timezone('utc', now())::date)::timestamp)::date;
+
+  return query
+  update house_task_rotation_configs
+  set anchor_week_start = v_anchor_week_start
+  where house_task_rotation_configs.house_id = v_session.house_id
+  returning
+    house_task_rotation_configs.house_id,
+    house_task_rotation_configs.anchor_week_start,
+    house_task_rotation_configs.created_at,
+    house_task_rotation_configs.updated_at;
+end;
+$$;
+
+create or replace function list_house_task_chores(p_user_token text)
+returns table (
+  id uuid,
+  house_id uuid,
+  name text,
+  sort_order integer,
+  created_at timestamp with time zone,
+  updated_at timestamp with time zone
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_session user_sessions;
+begin
+  v_session := get_user_session_from_token(p_user_token);
+
+  return query
+  select
+    house_task_chores.id,
+    house_task_chores.house_id,
+    house_task_chores.name,
+    house_task_chores.sort_order,
+    house_task_chores.created_at,
+    house_task_chores.updated_at
+  from house_task_chores
+  where house_task_chores.house_id = v_session.house_id
+  order by house_task_chores.sort_order, lower(house_task_chores.name), house_task_chores.id;
+end;
+$$;
+
+create or replace function create_house_task_chore(p_user_token text, p_name text)
+returns table (
+  id uuid,
+  house_id uuid,
+  name text,
+  sort_order integer,
+  created_at timestamp with time zone,
+  updated_at timestamp with time zone
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_session user_sessions;
+  v_name text;
+  v_sort_order integer;
+begin
+  v_session := get_user_session_from_token(p_user_token);
+  v_name := trim(p_name);
+
+  if v_name is null or char_length(v_name) = 0 then
+    raise exception 'Task name is required'
+      using errcode = 'P0001';
+  end if;
+
+  select coalesce(max(house_task_chores.sort_order), -1) + 1
+  into v_sort_order
+  from house_task_chores
+  where house_task_chores.house_id = v_session.house_id;
+
+  return query
+  insert into house_task_chores (house_id, name, sort_order)
+  values (v_session.house_id, v_name, v_sort_order)
+  returning
+    house_task_chores.id,
+    house_task_chores.house_id,
+    house_task_chores.name,
+    house_task_chores.sort_order,
+    house_task_chores.created_at,
+    house_task_chores.updated_at;
+end;
+$$;
+
+create or replace function rename_house_task_chore(p_user_token text, p_chore_id uuid, p_name text)
+returns table (
+  id uuid,
+  house_id uuid,
+  name text,
+  sort_order integer,
+  created_at timestamp with time zone,
+  updated_at timestamp with time zone
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_session user_sessions;
+  v_name text;
+begin
+  v_session := get_user_session_from_token(p_user_token);
+  v_name := trim(p_name);
+
+  if v_name is null or char_length(v_name) = 0 then
+    raise exception 'Task name is required'
+      using errcode = 'P0001';
+  end if;
+
+  return query
+  update house_task_chores
+  set name = v_name
+  where house_task_chores.id = p_chore_id
+    and house_task_chores.house_id = v_session.house_id
+  returning
+    house_task_chores.id,
+    house_task_chores.house_id,
+    house_task_chores.name,
+    house_task_chores.sort_order,
+    house_task_chores.created_at,
+    house_task_chores.updated_at;
+
+  if not found then
+    raise exception 'Task not found'
+      using errcode = 'P0001';
+  end if;
+end;
+$$;
+
+create or replace function delete_house_task_chore(p_user_token text, p_chore_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_session user_sessions;
+begin
+  v_session := get_user_session_from_token(p_user_token);
+
+  delete from house_task_chores
+  where house_task_chores.id = p_chore_id
+    and house_task_chores.house_id = v_session.house_id;
+
+  if not found then
+    raise exception 'Task not found'
+      using errcode = 'P0001';
+  end if;
+
+  with reordered as (
+    select
+      house_task_chores.id,
+      row_number() over (order by house_task_chores.sort_order, lower(house_task_chores.name), house_task_chores.id) - 1 as next_sort_order
+    from house_task_chores
+    where house_task_chores.house_id = v_session.house_id
+  )
+  update house_task_chores
+  set sort_order = reordered.next_sort_order
+  from reordered
+  where house_task_chores.id = reordered.id;
+end;
+$$;
+
+create or replace function reorder_house_task_chores(p_user_token text, p_chore_ids uuid[])
+returns table (
+  id uuid,
+  house_id uuid,
+  name text,
+  sort_order integer,
+  created_at timestamp with time zone,
+  updated_at timestamp with time zone
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_session user_sessions;
+  v_expected_count integer;
+begin
+  v_session := get_user_session_from_token(p_user_token);
+
+  if p_chore_ids is null or array_length(p_chore_ids, 1) is null then
+    raise exception 'Task order is required'
+      using errcode = 'P0001';
+  end if;
+
+  select count(*)
+  into v_expected_count
+  from house_task_chores
+  where house_task_chores.house_id = v_session.house_id;
+
+  if v_expected_count <> array_length(p_chore_ids, 1) then
+    raise exception 'Task order is invalid'
+      using errcode = 'P0001';
+  end if;
+
+  if exists (
+    select 1
+    from unnest(p_chore_ids) as chore_id
+    left join house_task_chores
+      on house_task_chores.id = chore_id
+     and house_task_chores.house_id = v_session.house_id
+    where house_task_chores.id is null
+  ) then
+    raise exception 'Task order is invalid'
+      using errcode = 'P0001';
+  end if;
+
+  if (select count(distinct chore_id) from unnest(p_chore_ids) as chore_id) <> v_expected_count then
+    raise exception 'Task order is invalid'
+      using errcode = 'P0001';
+  end if;
+
+  with desired_order as (
+    select chore_id, ordinality - 1 as next_sort_order
+    from unnest(p_chore_ids) with ordinality as ordered(chore_id, ordinality)
+  )
+  update house_task_chores
+  set sort_order = desired_order.next_sort_order + 1000
+  from desired_order
+  where house_task_chores.id = desired_order.chore_id
+    and house_task_chores.house_id = v_session.house_id;
+
+  with desired_order as (
+    select chore_id, ordinality - 1 as next_sort_order
+    from unnest(p_chore_ids) with ordinality as ordered(chore_id, ordinality)
+  )
+  update house_task_chores
+  set sort_order = desired_order.next_sort_order
+  from desired_order
+  where house_task_chores.id = desired_order.chore_id
+    and house_task_chores.house_id = v_session.house_id;
+
+  return query
+  select
+    house_task_chores.id,
+    house_task_chores.house_id,
+    house_task_chores.name,
+    house_task_chores.sort_order,
+    house_task_chores.created_at,
+    house_task_chores.updated_at
+  from house_task_chores
+  where house_task_chores.house_id = v_session.house_id
+  order by house_task_chores.sort_order, lower(house_task_chores.name), house_task_chores.id;
+end;
+$$;
+
+create or replace function list_house_task_member_order(p_user_token text)
+returns table (
+  user_id uuid,
+  house_id uuid,
+  name text,
+  sort_order integer
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_session user_sessions;
+begin
+  v_session := get_user_session_from_token(p_user_token);
+  perform sync_house_task_member_order(v_session.house_id);
+
+  return query
+  select
+    house_task_member_order.user_id,
+    house_task_member_order.house_id,
+    users.name,
+    house_task_member_order.sort_order
+  from house_task_member_order
+  join users
+    on users.id = house_task_member_order.user_id
+   and users.house_id = house_task_member_order.house_id
+  where house_task_member_order.house_id = v_session.house_id
+  order by house_task_member_order.sort_order, lower(users.name), users.id;
+end;
+$$;
+
+create or replace function reorder_house_task_member_order(p_user_token text, p_user_ids uuid[])
+returns table (
+  user_id uuid,
+  house_id uuid,
+  name text,
+  sort_order integer
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_session user_sessions;
+  v_expected_count integer;
+begin
+  v_session := get_user_session_from_token(p_user_token);
+
+  if p_user_ids is null or array_length(p_user_ids, 1) is null then
+    raise exception 'Member order is required'
+      using errcode = 'P0001';
+  end if;
+
+  select count(*)
+  into v_expected_count
+  from house_task_member_order
+  where house_task_member_order.house_id = v_session.house_id;
+
+  if v_expected_count <> array_length(p_user_ids, 1) then
+    raise exception 'Member order is invalid'
+      using errcode = 'P0001';
+  end if;
+
+  if exists (
+    select 1
+    from unnest(p_user_ids) as requested_user_id
+    left join house_task_member_order
+      on house_task_member_order.user_id = requested_user_id
+     and house_task_member_order.house_id = v_session.house_id
+    where house_task_member_order.user_id is null
+  ) then
+    raise exception 'Member order is invalid'
+      using errcode = 'P0001';
+  end if;
+
+  if (select count(distinct requested_user_id) from unnest(p_user_ids) as requested_user_id) <> v_expected_count then
+    raise exception 'Member order is invalid'
+      using errcode = 'P0001';
+  end if;
+
+  with desired_order as (
+    select requested_user_id, ordinality - 1 as next_sort_order
+    from unnest(p_user_ids) with ordinality as ordered(requested_user_id, ordinality)
+  )
+  update house_task_member_order
+  set sort_order = desired_order.next_sort_order + 1000
+  from desired_order
+  where house_task_member_order.user_id = desired_order.requested_user_id
+    and house_task_member_order.house_id = v_session.house_id;
+
+  with desired_order as (
+    select requested_user_id, ordinality - 1 as next_sort_order
+    from unnest(p_user_ids) with ordinality as ordered(requested_user_id, ordinality)
+  )
+  update house_task_member_order
+  set sort_order = desired_order.next_sort_order
+  from desired_order
+  where house_task_member_order.user_id = desired_order.requested_user_id
+    and house_task_member_order.house_id = v_session.house_id;
+
+  return query
+  select
+    house_task_member_order.user_id,
+    house_task_member_order.house_id,
+    users.name,
+    house_task_member_order.sort_order
+  from house_task_member_order
+  join users
+    on users.id = house_task_member_order.user_id
+   and users.house_id = house_task_member_order.house_id
+  where house_task_member_order.house_id = v_session.house_id
+  order by house_task_member_order.sort_order, lower(users.name), users.id;
 end;
 $$;
 
@@ -610,6 +1125,15 @@ grant execute on function rename_current_user(text, text) to anon, authenticated
 grant execute on function delete_current_user(text) to anon, authenticated;
 grant execute on function list_meal_plans(text, date, date) to anon, authenticated;
 grant execute on function upsert_my_meal_plan(text, date, text, boolean, integer, text) to anon, authenticated;
+grant execute on function get_house_task_rotation_config(text) to anon, authenticated;
+grant execute on function set_house_task_rotation_anchor_week(text, date) to anon, authenticated;
+grant execute on function list_house_task_chores(text) to anon, authenticated;
+grant execute on function create_house_task_chore(text, text) to anon, authenticated;
+grant execute on function rename_house_task_chore(text, uuid, text) to anon, authenticated;
+grant execute on function delete_house_task_chore(text, uuid) to anon, authenticated;
+grant execute on function reorder_house_task_chores(text, uuid[]) to anon, authenticated;
+grant execute on function list_house_task_member_order(text) to anon, authenticated;
+grant execute on function reorder_house_task_member_order(text, uuid[]) to anon, authenticated;
 
 revoke execute on function generate_house_code() from public, anon, authenticated;
 revoke execute on function generate_session_token() from public, anon, authenticated;
@@ -617,3 +1141,5 @@ revoke execute on function issue_house_session(uuid) from public, anon, authenti
 revoke execute on function issue_user_session(uuid, uuid) from public, anon, authenticated;
 revoke execute on function get_house_id_from_token(text) from public, anon, authenticated;
 revoke execute on function get_user_session_from_token(text) from public, anon, authenticated;
+revoke execute on function ensure_house_task_rotation_config(uuid) from public, anon, authenticated;
+revoke execute on function sync_house_task_member_order(uuid) from public, anon, authenticated;

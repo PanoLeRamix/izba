@@ -2,6 +2,8 @@ type ErrorLike = {
   code?: string;
   message?: string;
   status?: number;
+  details?: string;
+  hint?: string;
 };
 
 export function asErrorLike(error: unknown): ErrorLike {
@@ -26,6 +28,10 @@ export function getErrorCode(error: unknown): string | undefined {
 
 export function getErrorStatus(error: unknown): number | undefined {
   return asErrorLike(error).status;
+}
+
+export function getErrorDetails(error: unknown): string {
+  return asErrorLike(error).details ?? '';
 }
 
 export function isNetworkError(error: unknown): boolean {

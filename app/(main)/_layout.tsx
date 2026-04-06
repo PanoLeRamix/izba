@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { CalendarDays, Settings } from 'lucide-react-native';
+import { CalendarDays, ListTodo, Settings } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
@@ -33,6 +33,13 @@ export default function MainLayout() {
         options={{
           title: t('tabs.planner'),
           tabBarIcon: ({ color, size }) => <CalendarDays size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="tasks"
+        options={{
+          title: t('tabs.tasks'),
+          tabBarIcon: ({ color, size }) => <ListTodo size={size} color={color} />,
         }}
       />
       <Tabs.Screen

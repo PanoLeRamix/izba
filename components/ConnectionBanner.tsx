@@ -3,7 +3,7 @@ import { View, Text, Animated, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { WifiOff } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import NetInfo from '@react-native-community/netinfo';
+import NetInfo, { type NetInfoState } from '@react-native-community/netinfo';
 
 export const ConnectionBanner = () => {
   const { t } = useTranslation();
@@ -13,7 +13,7 @@ export const ConnectionBanner = () => {
 
   useEffect(() => {
     // NetInfo handles both Web and Native
-    const unsubscribe = NetInfo.addEventListener(state => {
+    const unsubscribe = NetInfo.addEventListener((state: NetInfoState) => {
       const offline = state.isConnected === false;
       setIsOffline(offline);
     });

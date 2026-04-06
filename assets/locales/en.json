@@ -47,6 +47,7 @@
     "retry": "Retry",
     "refresh": "Refresh",
     "me": "Me",
+    "delete": "Delete",
     "noConnection": "No internet connection. Changes might not be saved."
   },
   "planner": {
@@ -71,8 +72,39 @@
       "none": "I am undecided"
     }
   },
+  "tasks": {
+    "manage": "Manage",
+    "doneManaging": "Close",
+    "taskLabel": "Task",
+    "assignedTo": "This week",
+    "nextUp": "Next: {{name}}",
+    "manageTasks": "Tasks",
+    "addTask": "Add task",
+    "editTask": "Edit task",
+    "deleteTask": "Delete task",
+    "deleteTaskConfirmation": "Do you really want to delete \"{{task}}\"?",
+    "taskPlaceholder": "e.g. Bathroom",
+    "noTasksTitle": "No tasks yet",
+    "noTasksMessage": "Add recurring tasks to start the rotation.",
+    "noTasksManageHint": "Add your first task to start the chore wheel.",
+    "noMembersTitle": "No members yet",
+    "noMembersMessage": "Add house members first to generate the rotation.",
+    "rotationOrder": "Rotation order",
+    "anchorWeek": "Anchor week",
+    "anchorWeekValue": "Reference week: {{date}}",
+    "anchorWeekUnset": "No reference week has been set yet.",
+    "useViewedWeekAsAnchor": "Use this week as anchor",
+    "settingsTitle": "Task settings",
+    "settingsInfo": "Manage recurring tasks, house rotation order, and the week used as the starting point for the wheel.",
+    "anchorWeekInfoTitle": "What is the anchor week?",
+    "anchorWeekInfoMessage": "The anchor week defines the reference week for the rotation. The assignees shown in every other week are calculated from this point.",
+    "reorderError": "The order could not be updated.",
+    "anchorError": "The anchor week could not be updated.",
+    "manageError": "The task settings could not be updated."
+  },
   "tabs": {
     "home": "Settings",
-    "planner": "Planner"
+    "planner": "Planner",
+    "tasks": "Tasks"
   }
 }
