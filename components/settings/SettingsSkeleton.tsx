@@ -1,40 +1,20 @@
 import React from 'react';
-import { View, Animated, ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LAYOUT } from '../../constants/Layout';
+import { Skeleton } from '../Skeleton';
 
 export const SettingsSkeleton = () => {
   const insets = useSafeAreaInsets();
-  const opacity = React.useRef(new Animated.Value(0.3)).current;
-
-  React.useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: 0.7,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 0.3,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, []);
 
   const TileSkeleton = () => (
-    <Animated.View 
-      style={{ opacity }}
-      className="p-6 rounded-3xl mb-6 border border-sage/10 bg-white/50 h-32 flex-row items-center"
-    >
-      <View className="bg-forest/5 p-3 rounded-2xl mr-4 w-12 h-12" />
+    <View className="p-6 rounded-3xl mb-6 border border-sage/10 bg-white/50 h-32 flex-row items-center">
+      <Skeleton width={48} height={48} borderRadius={16} variant="forest-light" className="mr-4" />
       <View className="flex-1">
-        <View className="h-3 w-20 bg-forest/5 rounded mb-2" />
-        <View className="h-6 w-32 bg-forest/10 rounded" />
+        <Skeleton width={80} height={12} variant="forest-light" className="mb-2" />
+        <Skeleton width={128} height={24} variant="forest" />
       </View>
-    </Animated.View>
+    </View>
   );
 
   return (
@@ -47,15 +27,15 @@ export const SettingsSkeleton = () => {
       }}
     >
       <View className="items-center mb-12" style={{ marginTop: LAYOUT.BASE_SCREEN_PADDING }}>
-        <Animated.View style={{ opacity }} className="text-4xl mb-2 w-12 h-12 bg-forest/5 rounded-full" />
-        <Animated.View style={{ opacity }} className="h-8 w-48 bg-forest/10 rounded-lg" />
+        <Skeleton.Circle size={48} variant="forest-light" className="mb-2" />
+        <Skeleton width={192} height={32} borderRadius={8} variant="forest" />
       </View>
 
       <TileSkeleton />
       <TileSkeleton />
       
-      <Animated.View style={{ opacity }} className="h-16 w-full bg-white/50 rounded-3xl border border-sage/10 mb-6" />
-      <Animated.View style={{ opacity }} className="h-14 w-full bg-forest/5 rounded-2xl" />
+      <Skeleton width="100%" height={64} borderRadius={24} variant="white" className="border border-sage/10 mb-6" />
+      <Skeleton width="100%" height={56} borderRadius={16} variant="forest-light" />
     </ScrollView>
   );
 };

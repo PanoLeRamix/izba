@@ -15,6 +15,7 @@ import { CURRENT_TASK_WEEK_INDEX, type TaskWeekItem, type WeeklyChoreAssignment,
 import { type HouseTaskChore } from '../../services/tasks';
 import { useAuthStore } from '../../store/authStore';
 import { isNetworkError } from '../../utils/errors';
+import { TasksSkeleton } from '../../components/tasks/TasksSkeleton';
 
 type ChoreModalState =
   | { mode: 'create' }
@@ -265,7 +266,9 @@ function WeekRosterPage({
       }));
   }, [assignments, members]);
 
-  return (
+  return isLoading ? (
+    <TasksSkeleton />
+  ) : (
     <ScrollView
       style={{ width: pageWidth }}
       contentContainerStyle={{
@@ -275,12 +278,6 @@ function WeekRosterPage({
       }}
       showsVerticalScrollIndicator={false}
     >
-      {isLoading ? (
-        <View className="bg-white rounded-3xl p-6 border border-sage/30 shadow-sm">
-          <Text className="text-base font-semibold text-forest-dark">{t('common.loading')}</Text>
-        </View>
-      ) : null}
-
       {!isLoading && members.length === 0 ? (
         <EmptyState icon={<Users size={28} color={Colors.forest} />} title={t('tasks.noMembersTitle')} message={t('tasks.noMembersMessage')} />
       ) : null}
