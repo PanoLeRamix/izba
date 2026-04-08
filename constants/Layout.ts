@@ -27,9 +27,6 @@ export const LAYOUT = {
   // Modal Constants
   MODAL_BORDER_RADIUS: 48,
   MODAL_INNER_RADIUS: 32,
-  MODAL_ANIM_DURATION: 300,
-  MODAL_SWIPE_THRESHOLD: 100,
-  MODAL_VELOCITY_THRESHOLD: 0.5,
   
   // Interaction
   LONG_PRESS_DELAY: 300, // Even snappier
