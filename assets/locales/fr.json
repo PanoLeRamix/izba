@@ -53,6 +53,7 @@
   "planner": {
     "cooking": "Cuisine",
     "eating": "Présence",
+    "uncertain": "Indécis·es",
     "details": "Détails de la soirée",
     "noOneEating": "Personne ne s'est signalé·e pour ce soir.",
     "noOneCooking": "Personne ne cuisine pour le moment.",
@@ -73,7 +74,7 @@
     }
   },
   "tasks": {
-    "manage": "Gérer",
+    "manage": "Modifier",
     "doneManaging": "Fermer",
     "taskLabel": "Tâche",
     "assignedTo": "Cette semaine",

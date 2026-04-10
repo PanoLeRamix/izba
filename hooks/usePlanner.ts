@@ -32,6 +32,7 @@ interface UserPlan {
 interface ProcessedDay {
   eaters: Array<User & { guestCount: number; note?: string }>;
   unavailable: User[];
+  uncertain: Array<User & { note?: string }>;
   totalCount: number;
   cooks: User[];
 }
@@ -105,6 +106,7 @@ export function usePlanner() {
       acc[user.id] = user;
       return acc;
     }, {});
+    const weekDateKeys = weeks.flatMap((week) => week.days.map((day) => day.dateKey));
     const plansByDate = allMealPlans.reduce<Record<string, MealPlan[]>>((acc, plan) => {
       if (!acc[plan.day_date]) {
         acc[plan.day_date] = [];
@@ -114,11 +116,20 @@ export function usePlanner() {
       return acc;
     }, {});
 
-    for (const [dateKey, dayPlans] of Object.entries(plansByDate)) {
+    const sortUsers = (left: User, right: User) => {
+      if (left.id === userId) return -1;
+      if (right.id === userId) return 1;
+      return left.name.localeCompare(right.name);
+    };
+
+    for (const dateKey of weekDateKeys) {
+      const dayPlans = plansByDate[dateKey] ?? [];
       const eaters: Array<User & { guestCount: number; note?: string }> = [];
       const unavailable: User[] = [];
+      const uncertain: Array<User & { note?: string }> = [];
       const cooks: User[] = [];
       let totalCount = 0;
+      const plannedUserIds = new Set<string>();
 
       for (const plan of dayPlans) {
         const user = userMap[plan.user_id];
@@ -127,12 +138,16 @@ export function usePlanner() {
           continue;
         }
 
+        plannedUserIds.add(user.id);
+
         if (plan.status === 'available') {
           const guests = plan.guest_count || 0;
           eaters.push({ ...user, guestCount: guests, note: plan.note || undefined });
           totalCount += 1 + guests;
         } else if (plan.status === 'unavailable') {
           unavailable.push(user);
+        } else {
+          uncertain.push({ ...user, note: plan.note || undefined });
         }
 
         if (plan.is_cooking) {
@@ -140,21 +155,22 @@ export function usePlanner() {
         }
       }
 
-      const sortUsers = (left: User, right: User) => {
-        if (left.id === userId) return -1;
-        if (right.id === userId) return 1;
-        return left.name.localeCompare(right.name);
-      };
+      for (const user of users) {
+        if (!plannedUserIds.has(user.id)) {
+          uncertain.push(user);
+        }
+      }
 
       eaters.sort(sortUsers);
       unavailable.sort(sortUsers);
+      uncertain.sort(sortUsers);
       cooks.sort(sortUsers);
 
-      processed[dateKey] = { eaters, unavailable, totalCount, cooks };
+      processed[dateKey] = { eaters, unavailable, uncertain, totalCount, cooks };
     }
 
     return processed;
-  }, [allMealPlans, userId, users]);
+  }, [allMealPlans, userId, users, weeks]);
 
   const mutation = useMutation({
     mutationFn: plannerService.upsertMealPlan,

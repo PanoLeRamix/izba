@@ -83,6 +83,7 @@ export default function Planner() {
         dateKey={selectedDayKey || ''}
         eaters={selectedDayData?.eaters || []}
         unavailable={selectedDayData?.unavailable || []}
+        uncertain={selectedDayData?.uncertain || []}
         totalEatersCount={selectedDayData?.totalCount || 0}
         cooks={selectedDayData?.cooks || []}
         isUserCooking={selectedDayPlan.isCooking}

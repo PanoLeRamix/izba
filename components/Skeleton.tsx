@@ -2,8 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, ViewProps, ViewStyle } from 'react-native';
 
 interface SkeletonProps extends ViewProps {
-  width?: number | string;
-  height?: number | string;
+  width?: ViewStyle['width'];
+  height?: ViewStyle['height'];
   borderRadius?: number;
   style?: ViewStyle;
   variant?: 'forest' | 'white' | 'forest-light';

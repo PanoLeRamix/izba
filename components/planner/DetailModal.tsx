@@ -23,6 +23,7 @@ interface DetailModalProps {
   dateKey: string;
   eaters: Array<User & { guestCount?: number; note?: string }>;
   unavailable: User[];
+  uncertain: Array<User & { note?: string }>;
   totalEatersCount: number;
   cooks: User[];
   isUserCooking: boolean;
@@ -46,6 +47,7 @@ export const DetailModal = ({
   dateKey,
   eaters,
   unavailable,
+  uncertain,
   totalEatersCount,
   cooks,
   isUserCooking,
@@ -64,7 +66,7 @@ export const DetailModal = ({
 
   const renderMemberChip = (
     user: User & { guestCount?: number; note?: string },
-    variant: 'eating' | 'unavailable' | 'cooking' = 'eating',
+    variant: 'eating' | 'unavailable' | 'uncertain' | 'cooking' = 'eating',
   ) => {
     const isMe = user.id === userId;
     let bgColor = isMe ? 'bg-forest/20' : 'bg-forest/5';
@@ -79,6 +81,12 @@ export const DetailModal = ({
       textColor = 'text-red-600';
       chipBg = 'bg-red-500';
       chipBorder = 'border-red-500';
+    } else if (variant === 'uncertain') {
+      bgColor = isMe ? 'bg-amber-400/20' : 'bg-amber-400/10';
+      borderColor = isMe ? 'border-amber-500/40' : 'border-amber-500/20';
+      textColor = 'text-amber-700';
+      chipBg = 'bg-amber-500';
+      chipBorder = 'border-amber-500';
     }
 
     return (
@@ -203,12 +211,27 @@ export const DetailModal = ({
                   </View>
 
                   <View className="flex-row flex-wrap gap-x-3 gap-y-2">
-                    {eaters.length > 0 || unavailable.length > 0 ? (
+                    {eaters.length > 0 || uncertain.length > 0 || unavailable.length > 0 ? (
                       <>
-                        {eaters.map((user) => renderMemberChip(user, 'eating'))}
+                        {eaters.length > 0 ? (
+                          <View className="w-full flex-row flex-wrap gap-x-3 gap-y-2">
+                            {eaters.map((user) => renderMemberChip(user, 'eating'))}
+                          </View>
+                        ) : null}
+                        {uncertain.length > 0 ? (
+                          <View className="w-full mt-2 pt-2 border-t border-amber-100">
+                            <Text className="mb-3 text-xs font-black uppercase tracking-[1px] text-amber-700">{t('planner.uncertain')}</Text>
+                            <View className="flex-row flex-wrap gap-x-3 gap-y-2">
+                              {uncertain.map((user) => renderMemberChip(user, 'uncertain'))}
+                            </View>
+                          </View>
+                        ) : null}
                         {unavailable.length > 0 ? (
-                          <View className="w-full mt-2 pt-2 border-t border-red-100 flex-row flex-wrap gap-x-3 gap-y-2">
-                            {unavailable.map((user) => renderMemberChip(user, 'unavailable'))}
+                          <View className="w-full mt-2 pt-2 border-t border-red-100">
+                            <Text className="mb-3 text-xs font-black uppercase tracking-[1px] text-red-600">{t('planner.status.unavailable')}</Text>
+                            <View className="flex-row flex-wrap gap-x-3 gap-y-2">
+                              {unavailable.map((user) => renderMemberChip(user, 'unavailable'))}
+                            </View>
                           </View>
                         ) : null}
                       </>

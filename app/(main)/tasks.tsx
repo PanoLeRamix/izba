@@ -166,15 +166,7 @@ export default function Tasks() {
         currentIndex={CURRENT_TASK_WEEK_INDEX}
         keyExtractor={(item: TaskWeekItem) => item.id}
         onIndexChange={actions.setWeekIndex}
-        headerAction={
-          <TouchableOpacity
-            onPress={() => setIsSettingsVisible(true)}
-            className="flex-row items-center bg-white shadow-sm px-4 py-3 rounded-2xl border border-sage-light/30"
-          >
-              <Settings2 size={18} color={Colors.forest} />
-              <Text className="ml-2 text-sm font-bold text-forest">{t('tasks.manage')}</Text>
-          </TouchableOpacity>
-        }
+        limitSwipeToAdjacentPage
         renderItem={(item, pageWidth) => (
           <WeekRosterPage
             item={item}
@@ -187,6 +179,23 @@ export default function Tasks() {
           />
         )}
       />
+
+      <TouchableOpacity
+        onPress={() => setIsSettingsVisible(true)}
+        className="absolute flex-row items-center bg-forest shadow-sm px-5 py-3.5 rounded-2xl border border-forest-dark"
+        style={{
+          right: 24,
+          bottom: Math.max(insets.bottom, LAYOUT.BASE_SCREEN_PADDING) + 12,
+          shadowColor: Colors.forestDark,
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.22,
+          shadowRadius: 14,
+          elevation: 8,
+        }}
+      >
+        <Settings2 size={18} color="white" />
+        <Text className="ml-2 text-sm font-black text-white">{t('tasks.manage')}</Text>
+      </TouchableOpacity>
 
       <TaskSettingsModal
         visible={isSettingsVisible}

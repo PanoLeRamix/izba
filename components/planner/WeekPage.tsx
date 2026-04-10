@@ -19,6 +19,7 @@ interface WeekItem {
 interface ProcessedDay {
   eaters: Array<User & { guestCount: number; note?: string }>;
   unavailable: User[];
+  uncertain: Array<User & { note?: string }>;
   totalCount: number;
   cooks: User[];
 }
@@ -50,7 +51,7 @@ export const WeekPage = memo(({ item, windowWidth, onToggleStatus, onShowDetails
     <View style={containerStyle} className="px-6">
       {item.days.map((day) => {
         const dayPlan = userPlans[day.dateKey] || { status: 'none', isCooking: false, guestCount: 0 };
-        const dayData = processedData[day.dateKey] || { eaters: [], unavailable: [], totalCount: 0, cooks: [] };
+        const dayData = processedData[day.dateKey] || { eaters: [], unavailable: [], uncertain: [], totalCount: 0, cooks: [] };
 
         return (
           <DayTile

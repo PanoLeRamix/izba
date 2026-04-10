@@ -53,6 +53,7 @@
   "planner": {
     "cooking": "Cooking",
     "eating": "Eating",
+    "uncertain": "Undecided",
     "details": "Evening Details",
     "noOneEating": "No one is signed up for tonight.",
     "noOneCooking": "No one is cooking yet.",
