@@ -219,16 +219,14 @@ export const DetailModal = ({
                           </View>
                         ) : null}
                         {uncertain.length > 0 ? (
-                          <View className="w-full mt-2 pt-2 border-t border-amber-100">
-                            <Text className="mb-3 text-xs font-black uppercase tracking-[1px] text-amber-700">{t('planner.uncertain')}</Text>
+                          <View className="w-full mt-2 pt-2 border-t border-sage-light/30">
                             <View className="flex-row flex-wrap gap-x-3 gap-y-2">
                               {uncertain.map((user) => renderMemberChip(user, 'uncertain'))}
                             </View>
                           </View>
                         ) : null}
                         {unavailable.length > 0 ? (
-                          <View className="w-full mt-2 pt-2 border-t border-red-100">
-                            <Text className="mb-3 text-xs font-black uppercase tracking-[1px] text-red-600">{t('planner.status.unavailable')}</Text>
+                          <View className="w-full mt-2 pt-2 border-t border-sage-light/30">
                             <View className="flex-row flex-wrap gap-x-3 gap-y-2">
                               {unavailable.map((user) => renderMemberChip(user, 'unavailable'))}
                             </View>

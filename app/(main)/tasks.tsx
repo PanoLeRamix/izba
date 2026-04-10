@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { addDays, format, type Locale } from 'date-fns';
 import { enUS, fr } from 'date-fns/locale';
 import { ArrowDown, ArrowUp, CircleHelp, ListTodo, Pencil, Plus, Settings2, Users } from 'lucide-react-native';
@@ -17,6 +17,14 @@ import { useAuthStore } from '../../store/authStore';
 import { isNetworkError } from '../../utils/errors';
 import { TasksSkeleton } from '../../components/tasks/TasksSkeleton';
 
+type SnapStyle = {
+  width: number;
+  minHeight: number;
+  paddingBottom: number;
+  scrollSnapAlign?: 'start';
+  scrollSnapStop?: 'always';
+};
+
 type ChoreModalState =
   | { mode: 'create' }
   | {
@@ -27,6 +35,7 @@ type ChoreModalState =
 export default function Tasks() {
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
   const locale: Locale = i18n.language === 'fr' ? fr : enUS;
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
   const [modalState, setModalState] = useState<ChoreModalState | null>(null);
@@ -49,6 +58,10 @@ export default function Tasks() {
   }, [locale, viewedWeekStart]);
 
   const anchorLabel = config?.anchor_week_start ? format(new Date(config.anchor_week_start), 'd MMM yyyy', { locale }) : null;
+  const topPadding = LAYOUT.getTopPadding(insets.top);
+  const bottomBuffer = LAYOUT.getBottomBuffer(insets.bottom);
+  const pageHeight = windowHeight - topPadding - (LAYOUT.HEADER_HEIGHT - 10) - LAYOUT.TAB_BAR_HEIGHT - bottomBuffer;
+  const manageButtonInset = Math.max(insets.bottom, LAYOUT.BASE_SCREEN_PADDING) + 88;
 
   const showDialog = useCallback((title: string, message: string) => {
     if (Platform.OS === 'web') {
@@ -157,7 +170,7 @@ export default function Tasks() {
   );
 
   return (
-    <View className="flex-1 bg-hearth" style={{ paddingTop: LAYOUT.getTopPadding(insets.top) }}>
+    <View className="flex-1 bg-hearth" style={{ paddingTop: topPadding }}>
       <PagedCarousel
         title={t('tabs.tasks')}
         subtitle={viewedWeekLabel}
@@ -166,16 +179,17 @@ export default function Tasks() {
         currentIndex={CURRENT_TASK_WEEK_INDEX}
         keyExtractor={(item: TaskWeekItem) => item.id}
         onIndexChange={actions.setWeekIndex}
-        limitSwipeToAdjacentPage
         renderItem={(item, pageWidth) => (
           <WeekRosterPage
             item={item}
             locale={locale}
             pageWidth={pageWidth}
+            pageHeight={pageHeight}
             isLoading={isLoading}
             chores={chores}
             members={members}
             assignments={getAssignmentsForDate(item.startDate)}
+            bottomInset={manageButtonInset}
           />
         )}
       />
@@ -232,21 +246,24 @@ function WeekRosterPage({
   item,
   locale,
   pageWidth,
+  pageHeight,
   isLoading,
   chores,
   members,
   assignments,
+  bottomInset,
 }: {
   item: TaskWeekItem;
   locale: Locale;
   pageWidth: number;
+  pageHeight: number;
   isLoading: boolean;
   chores: HouseTaskChore[];
   members: Array<{ user_id: string; name: string }>;
   assignments: WeeklyChoreAssignment[];
+  bottomInset: number;
 }) {
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
   const { userId } = useAuthStore();
 
   const groupedAssignments = useMemo(() => {
@@ -275,18 +292,21 @@ function WeekRosterPage({
       }));
   }, [assignments, members]);
 
+  const containerStyle: SnapStyle = {
+    width: pageWidth,
+    minHeight: pageHeight,
+    paddingBottom: bottomInset,
+    scrollSnapAlign: 'start',
+    scrollSnapStop: 'always',
+  };
+  const cardsAreaHeight = Math.max(pageHeight - bottomInset - 8, 0);
+  const assignmentCardMinHeight =
+    groupedAssignments.length > 0 ? Math.max(104, Math.floor((cardsAreaHeight - (groupedAssignments.length - 1) * 12) / groupedAssignments.length)) : 104;
+
   return isLoading ? (
     <TasksSkeleton />
   ) : (
-    <ScrollView
-      style={{ width: pageWidth }}
-      contentContainerStyle={{
-        paddingHorizontal: 24,
-        paddingTop: 8,
-        paddingBottom: Math.max(insets.bottom, LAYOUT.BASE_SCREEN_PADDING),
-      }}
-      showsVerticalScrollIndicator={false}
-    >
+    <View style={containerStyle} className="px-6 pt-2">
       {!isLoading && members.length === 0 ? (
         <EmptyState icon={<Users size={28} color={Colors.forest} />} title={t('tasks.noMembersTitle')} message={t('tasks.noMembersMessage')} />
       ) : null}
@@ -300,7 +320,19 @@ function WeekRosterPage({
             <View
               key={group.userId}
               className={`rounded-2xl border px-4 py-3 mb-3 shadow-sm ${group.userId === userId ? 'bg-hearth border-forest-dark' : 'bg-white border-sage/30'}`}
-              style={group.userId === userId ? { borderWidth: 3, shadowColor: Colors.forestDark, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 6 } : undefined}
+              style={
+                group.userId === userId
+                  ? {
+                      minHeight: assignmentCardMinHeight,
+                      borderWidth: 3,
+                      shadowColor: Colors.forestDark,
+                      shadowOffset: { width: 0, height: 6 },
+                      shadowOpacity: 0.25,
+                      shadowRadius: 8,
+                      elevation: 6,
+                    }
+                  : { minHeight: assignmentCardMinHeight }
+              }
             >
               <Text className={`text-lg font-black ${group.userId === userId ? 'text-forest' : 'text-forest-dark'}`}>{group.name}</Text>
 
@@ -314,7 +346,7 @@ function WeekRosterPage({
             </View>
           ))
         : null}
-    </ScrollView>
+    </View>
   );
 }
 

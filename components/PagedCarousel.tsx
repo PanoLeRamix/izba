@@ -28,7 +28,6 @@ interface PagedCarouselProps<T> {
   renderItem: (item: T, pageWidth: number) => React.ReactElement;
   headerAction?: React.ReactNode;
   headerHeight?: number;
-  limitSwipeToAdjacentPage?: boolean;
 }
 
 export function PagedCarousel<T>({
@@ -42,40 +41,26 @@ export function PagedCarousel<T>({
   renderItem,
   headerAction,
   headerHeight = 60,
-  limitSwipeToAdjacentPage = false,
 }: PagedCarouselProps<T>) {
   const { width: windowWidth } = useWindowDimensions();
   const flatListRef = useRef<FlatList<T>>(null);
-  const dragStartIndexRef = useRef(activeIndex);
   const listStyle: WebListStyle = { flex: 1 };
 
   if (Platform.OS === 'web') {
     listStyle.touchAction = 'pan-x';
   }
 
-  const handleScrollEnd = useCallback(
+  const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offset = event.nativeEvent.contentOffset.x;
       if (offset < 0) return;
 
-      const rawIndex = Math.round(offset / windowWidth);
-      const boundedIndex = Math.max(0, Math.min(rawIndex, data.length - 1));
-      const nextIndex = limitSwipeToAdjacentPage
-        ? Math.max(dragStartIndexRef.current - 1, Math.min(boundedIndex, dragStartIndexRef.current + 1))
-        : boundedIndex;
-
-      if (nextIndex !== boundedIndex) {
-        flatListRef.current?.scrollToOffset({
-          offset: nextIndex * windowWidth,
-          animated: true,
-        });
-      }
-
-      if (nextIndex !== activeIndex) {
-        onIndexChange(nextIndex);
+      const index = Math.round(offset / windowWidth);
+      if (index >= 0 && index < data.length && index !== activeIndex) {
+        onIndexChange(index);
       }
     },
-    [activeIndex, data.length, limitSwipeToAdjacentPage, onIndexChange, windowWidth],
+    [activeIndex, data.length, onIndexChange, windowWidth],
   );
 
   const scrollToIndex = useCallback(
@@ -136,11 +121,7 @@ export function PagedCarousel<T>({
           offset: windowWidth * index,
           index,
         })}
-        onScrollBeginDrag={(event) => {
-          const offset = event.nativeEvent.contentOffset.x;
-          dragStartIndexRef.current = Math.max(0, Math.min(Math.round(offset / windowWidth), data.length - 1));
-        }}
-        onMomentumScrollEnd={handleScrollEnd}
+        onScroll={handleScroll}
         onScrollToIndexFailed={(info) => {
           flatListRef.current?.scrollToOffset({
             offset: info.averageItemLength * info.index,
