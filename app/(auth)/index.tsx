@@ -1,86 +1,78 @@
 import React, { useState } from 'react';
-import { Alert, Text, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
-import { LanguageToggle } from '../../components/LanguageToggle';
-import { LAYOUT } from '../../constants/Layout';
 import { authService } from '../../services/auth';
 import { useAuthStore } from '../../store/authStore';
-import { getErrorCode, isNetworkError } from '../../utils/errors';
+import { isNetworkError } from '../../utils/errors';
 
-export default function JoinHouse() {
-  const [code, setCode] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+export default function AuthIndex() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { t } = useTranslation();
   const { setHouseSession } = useAuthStore();
+  const queryClient = useQueryClient();
 
-  const handleJoin = async () => {
-    if (!code) return;
+  const [code, setCode] = useState('');
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    setLoading(true);
-    setErrorMsg(null);
-
-    try {
-      const session = await authService.joinHouse(code.trim().toUpperCase());
-      await setHouseSession(session.houseId, session.houseToken);
-      router.push('/(auth)/select-user');
-    } catch (error: unknown) {
-      const message = isNetworkError(error)
-        ? t('common.networkError')
-        : getErrorCode(error) === 'P0001'
-          ? t('auth.invalidCode')
-          : t('common.error');
-
+  const joinMutation = useMutation({
+    mutationFn: (houseCode: string) => authService.joinHouse(houseCode),
+    onSuccess: async (data) => {
+      if (data) {
+        queryClient.setQueryData(['house', data.houseId], data);
+        await setHouseSession(data.houseId, data.houseToken, data.houseName);
+        router.push('/(auth)/select-user');
+      }
+    },
+    onError: (error: unknown) => {
+      const message = isNetworkError(error) ? t('common.networkError') : t('auth.invalidCode');
       setErrorMsg(message);
       Alert.alert(t('common.error'), message);
-    } finally {
-      setLoading(false);
-    }
+    },
+  });
+
+  const handleJoin = () => {
+    const trimmed = code.trim().toUpperCase();
+    if (!trimmed) return;
+    joinMutation.mutate(trimmed);
   };
 
   return (
-    <View
-      className="flex-1 bg-hearth px-6"
-      style={{
-        paddingTop: insets.top,
-        paddingBottom: Math.max(insets.bottom, LAYOUT.BASE_SCREEN_PADDING),
-      }}
-    >
-      <View className="flex-row justify-between items-center mb-8" style={{ marginTop: LAYOUT.BASE_SCREEN_PADDING }}>
-        <Text className="text-3xl font-bold text-forest-dark">{t('auth.title')}</Text>
-        <LanguageToggle />
-      </View>
-
-      <Input
-        label={t('auth.enterCode')}
-        value={code}
-        onChangeText={(text) => {
-          setCode(text);
-          if (errorMsg) setErrorMsg(null);
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+      <ScrollView
+        contentContainerStyle={{
+          paddingTop: insets.top + 60,
+          paddingBottom: Math.max(insets.bottom, 24),
         }}
-        placeholder={t('auth.codePlaceholder')}
-        autoCapitalize="characters"
-      />
+        className="flex-1 bg-surface px-6"
+      >
+        <Text className="text-3xl font-bold text-primary mb-8">{t('auth.title')}</Text>
 
-      {errorMsg ? (
-        <View className="bg-red-50 p-4 rounded-xl mb-4 border border-red-100">
-          <Text className="text-red-600 font-medium">{errorMsg}</Text>
+        <View className="space-y-6">
+          <Input
+            label={t('auth.enterCode')}
+            placeholder={t('auth.codePlaceholder')}
+            value={code}
+            onChangeText={(val) => {
+              setCode(val);
+              setErrorMsg(null);
+            }}
+            autoCapitalize="characters"
+            error={!!errorMsg}
+          />
+
+          <Button title={t('auth.joinHouse')} onPress={handleJoin} loading={joinMutation.isPending} disabled={!code.trim()} />
+
+          <View className="mt-8 pt-8 border-t border-outline-variant/10">
+            <Button title={t('auth.createHouse')} variant="outline" onPress={() => router.push('/(auth)/create')} />
+          </View>
         </View>
-      ) : null}
-
-      <View className="mt-4">
-        <Button title={t('auth.confirm')} onPress={handleJoin} loading={loading} disabled={!code} />
-      </View>
-
-      <View className="mt-8 pt-8 border-t border-sage/20">
-        <Button title={t('auth.createHouse')} onPress={() => router.push('/(auth)/create')} variant="outline" />
-      </View>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

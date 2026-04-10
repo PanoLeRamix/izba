@@ -23,16 +23,16 @@ export const LanguageToggle = ({ variant = 'button' }: LanguageToggleProps) => {
     return (
       <TouchableOpacity
         onPress={toggleLanguage}
-        style={{ backgroundColor: Colors.tileBackground }}
-        className="p-6 rounded-3xl mb-12 border border-sage/30 shadow-sm flex-row items-center overflow-hidden"
+        style={{ backgroundColor: Colors.surfaceContainerLow }}
+        className="p-6 rounded-3xl mb-12 border border-secondary/30 shadow-sm flex-row items-center overflow-hidden"
         activeOpacity={0.7}
       >
-        <View className="bg-forest/10 p-3 rounded-2xl mr-4">
-          <Languages size={24} color={Colors.forest} />
+        <View className="bg-primary/10 p-3 rounded-2xl mr-4">
+          <Languages size={24} color={Colors.primary} />
         </View>
         <View className="flex-1 bg-transparent">
-          <Text className="text-[10px] text-hearth-earth/40 uppercase font-bold tracking-[2px] mb-1">{t('common.appLanguage')}</Text>
-          <Text className="text-xl font-bold text-forest-dark">{languageLabel}</Text>
+          <Text className="text-[10px] text-tertiary/40 uppercase font-bold tracking-[2px] mb-1">{t('common.appLanguage')}</Text>
+          <Text className="text-xl font-bold text-primary">{languageLabel}</Text>
         </View>
       </TouchableOpacity>
     );
@@ -42,10 +42,10 @@ export const LanguageToggle = ({ variant = 'button' }: LanguageToggleProps) => {
     <TouchableOpacity
       onPress={toggleLanguage}
       style={{ backgroundColor: Colors.whiteAlpha50 }}
-      className="p-3 rounded-2xl border border-sage/20"
+      className="p-3 rounded-2xl border border-secondary/20"
       activeOpacity={0.7}
     >
-      <Languages size={20} color={Colors.forest} />
+      <Languages size={20} color={Colors.primary} />
     </TouchableOpacity>
   );
 };

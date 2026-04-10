@@ -103,9 +103,20 @@
     "anchorError": "The anchor week could not be updated.",
     "manageError": "The task settings could not be updated."
   },
+  "dashboard": {
+    "welcome": "Good evening,",
+    "kitchen": "Tonight's Kitchen",
+    "viewSchedule": "View Full Schedule",
+    "myTasks": "My Tasks",
+    "eatingIn": "Eating In",
+    "undecided": "Undecided",
+    "notThere": "Not There",
+    "chef": "Chef"
+  },
   "tabs": {
-    "home": "Settings",
-    "planner": "Planner",
-    "tasks": "Tasks"
+    "dashboard": "Dashboard",
+    "planner": "Planning",
+    "tasks": "Tasks",
+    "settings": "Settings"
   }
 }

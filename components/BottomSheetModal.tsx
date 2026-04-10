@@ -15,9 +15,16 @@ interface BottomSheetModalProps {
   onClose: () => void;
   header?: ReactNode;
   children: ReactNode;
+  backgroundColor?: string;
 }
 
-export const BottomSheetModal = ({ visible, onClose, header, children }: BottomSheetModalProps) => {
+export const BottomSheetModal = ({ 
+  visible, 
+  onClose, 
+  header, 
+  children,
+  backgroundColor = Colors.surfaceContainerLowest 
+}: BottomSheetModalProps) => {
   const insets = useSafeAreaInsets();
   const bottomSheetModalRef = useRef<GorhomBottomSheetModal>(null);
 
@@ -38,7 +45,7 @@ export const BottomSheetModal = ({ visible, onClose, header, children }: BottomS
         {...props} 
         disappearsOnIndex={-1} 
         appearsOnIndex={0} 
-        opacity={0.4} // Consistent with Colors.backdrop
+        opacity={0.4}
         pressBehavior="close"
       />
     ),
@@ -54,12 +61,12 @@ export const BottomSheetModal = ({ visible, onClose, header, children }: BottomS
       backdropComponent={renderBackdrop}
       enablePanDownToClose
       backgroundStyle={{
-        backgroundColor: Colors.hearth,
+        backgroundColor: backgroundColor,
         borderTopLeftRadius: LAYOUT.MODAL_BORDER_RADIUS,
         borderTopRightRadius: LAYOUT.MODAL_BORDER_RADIUS,
       }}
       handleIndicatorStyle={{
-        backgroundColor: Colors.forest + '33',
+        backgroundColor: Colors.primary + '33',
         width: 48,
         height: 6,
       }}
@@ -68,6 +75,7 @@ export const BottomSheetModal = ({ visible, onClose, header, children }: BottomS
         contentContainerStyle={{
           paddingBottom: Math.max(insets.bottom, LAYOUT.BASE_MODAL_PADDING_BOTTOM),
           paddingHorizontal: LAYOUT.BASE_MODAL_PADDING_HORIZONTAL,
+          paddingTop: 16,
         }}
         keyboardShouldPersistTaps="handled"
       >

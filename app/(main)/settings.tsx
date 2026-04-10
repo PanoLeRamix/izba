@@ -25,16 +25,16 @@ interface SettingTileProps {
 }
 
 const SettingTile = ({ icon, label, value, onEdit, children }: SettingTileProps) => (
-  <View style={{ backgroundColor: Colors.tileBackground }} className="p-6 rounded-3xl mb-6 border border-sage/30 shadow-sm overflow-hidden">
+  <View style={{ backgroundColor: Colors.surfaceContainerLow }} className="p-6 rounded-3xl mb-6 border border-outline-variant/20 shadow-sm overflow-hidden">
     <View className="flex-row items-center mb-4 bg-transparent">
-      <View className="bg-forest/10 p-3 rounded-2xl mr-4">{icon}</View>
+      <View className="bg-primary/5 p-3 rounded-2xl mr-4">{icon}</View>
       <View className="flex-1 bg-transparent">
-        <Text className="text-[10px] text-hearth-earth/40 uppercase font-bold tracking-[2px] mb-1">{label}</Text>
+        <Text className="text-[10px] text-tertiary/40 uppercase font-bold tracking-[2px] mb-1">{label}</Text>
         <View className="flex-row items-center bg-transparent">
-          <Text className="text-2xl font-bold text-forest-dark flex-1">{value}</Text>
+          <Text className="text-2xl font-bold text-primary flex-1">{value}</Text>
           {onEdit ? (
-            <TouchableOpacity onPress={onEdit} className="p-2 ml-2 bg-white/50 rounded-xl">
-              <Pencil size={16} color={Colors.forest} />
+            <TouchableOpacity onPress={onEdit} className="p-2 ml-2 bg-surface-container-lowest rounded-xl">
+              <Pencil size={16} color={Colors.primary} />
             </TouchableOpacity>
           ) : null}
         </View>
@@ -45,7 +45,7 @@ const SettingTile = ({ icon, label, value, onEdit, children }: SettingTileProps)
 );
 
 export default function Settings() {
-  const { logout, houseId, houseToken, userId, userToken } = useAuthStore();
+  const { logout, houseId, houseToken, userId, userToken, setUserSession, houseName, userName } = useAuthStore();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
@@ -73,13 +73,31 @@ export default function Settings() {
 
       return target === 'house' ? houseService.updateName(userToken, value) : userService.updateName(userToken, value);
     },
-    onSuccess: (data, variables) => {
+    onSuccess: async (data, variables) => {
       if (variables.target === 'house' && houseId && data) {
         queryClient.setQueryData(['house', houseId], data);
+        // Sync to store
+        await setUserSession({
+          houseId: houseId,
+          houseToken: houseToken!,
+          houseName: data.name,
+          userId: userId!,
+          userToken: userToken!,
+          userName: userName!,
+        });
       }
 
       if (variables.target === 'user' && userId && data) {
         queryClient.setQueryData(['user', userId], data);
+        // Sync to store
+        await setUserSession({
+          houseId: houseId!,
+          houseToken: houseToken!,
+          houseName: houseName!,
+          userId: userId,
+          userToken: userToken!,
+          userName: data.name,
+        });
       }
 
       void queryClient.invalidateQueries({
@@ -141,42 +159,42 @@ export default function Settings() {
   }
 
   return (
-    <View className="flex-1 bg-hearth" style={{ paddingTop: LAYOUT.getTopPadding(insets.top) }}>
+    <View className="flex-1 bg-surface" style={{ paddingTop: LAYOUT.getTopPadding(insets.top) }}>
       <View className="px-6 mb-2 flex-row items-center justify-between" style={{ height: LAYOUT.HEADER_HEIGHT - 10 }}>
-        <Text className="text-3xl font-black text-forest-dark uppercase">{t('tabs.home')}</Text>
+        <Text className="text-3xl font-black text-primary uppercase">{t('tabs.settings')}</Text>
       </View>
 
       <ScrollView
         className="flex-1"
         contentContainerStyle={{
-          paddingBottom: Math.max(insets.bottom, LAYOUT.BASE_SCREEN_PADDING),
+          paddingBottom: Math.max(insets.bottom, LAYOUT.BASE_SCREEN_PADDING) + LAYOUT.TAB_BAR_HEIGHT,
           paddingHorizontal: 24,
           paddingTop: 12,
         }}
         showsVerticalScrollIndicator={false}
       >
-        <SettingTile icon={<Home size={24} color={Colors.forest} />} label={t('main.house')} value={house?.name || ''} onEdit={() => openEditModal('house')}>
+        <SettingTile icon={<Home size={24} color={Colors.primary} />} label={t('main.house')} value={house?.name || houseName || ''} onEdit={() => openEditModal('house')}>
           <TouchableOpacity
             onPress={() => copy(house?.code || '')}
-            className="bg-forest/5 p-4 rounded-2xl flex-row items-center justify-between border border-forest/10"
+            className="bg-primary/5 p-4 rounded-2xl flex-row items-center justify-between border border-outline-variant/10"
             activeOpacity={0.6}
           >
             <View className="flex-1 bg-transparent">
-              <Text className="text-[10px] text-hearth-earth/40 uppercase font-bold tracking-[1px] mb-0.5">{t('main.inviteCode')}</Text>
-              <Text className="text-lg font-mono font-bold text-forest">{house?.code}</Text>
+              <Text className="text-[10px] text-tertiary/40 uppercase font-bold tracking-[1px] mb-0.5">{t('main.inviteCode')}</Text>
+              <Text className="text-lg font-mono font-bold text-primary">{house?.code}</Text>
             </View>
-            <View className="bg-white/50 p-2 rounded-xl">
-              {copied ? <Check size={18} color={Colors.forest} /> : <Copy size={18} color={Colors.forest} />}
+            <View className="bg-surface-container-lowest/50 p-2 rounded-xl">
+              {copied ? <Check size={18} color={Colors.primary} /> : <Copy size={18} color={Colors.primary} />}
             </View>
           </TouchableOpacity>
         </SettingTile>
 
-        <SettingTile icon={<User size={24} color={Colors.forest} />} label={t('main.identity')} value={user?.name || ''} onEdit={() => openEditModal('user')} />
+        <SettingTile icon={<User size={24} color={Colors.primary} />} label={t('main.identity')} value={user?.name || userName || ''} onEdit={() => openEditModal('user')} />
 
         <LanguageToggle variant="tile" />
 
         <View className="mb-6">
-          <Button title={t('main.logout')} onPress={() => void logout()} variant="outline" icon={<LogOut size={20} color={Colors.forest} />} />
+          <Button title={t('main.logout')} onPress={() => void logout()} variant="outline" icon={<LogOut size={20} color={Colors.primary} />} />
         </View>
       </ScrollView>
 
@@ -187,7 +205,7 @@ export default function Settings() {
         onDelete={editTarget === 'user' ? handleDeleteIdentity : undefined}
         deleteTitle={t('main.deleteIdentity')}
         title={editTarget === 'house' ? t('auth.houseName') : t('auth.memberName')}
-        initialValue={editTarget === 'house' ? house?.name : user?.name}
+        initialValue={editTarget === 'house' ? house?.name || houseName : user?.name || userName}
         placeholder={editTarget === 'house' ? t('auth.houseNamePlaceholder') : t('auth.memberNamePlaceholder')}
         loading={updateMutation.isPending}
         maxLength={20}

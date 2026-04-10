@@ -14,14 +14,14 @@ export const PlannerSkeleton = () => {
   const tileHeight = LAYOUT.getTileHeight(availableHeight);
 
   return (
-    <View className="flex-1 bg-hearth" style={{ paddingTop: topPadding }}>
+    <View className="flex-1 bg-surface" style={{ paddingTop: topPadding }}>
       {/* Header Skeleton */}
       <View className="px-6 mb-2 flex-row items-center justify-between" style={{ height: LAYOUT.HEADER_HEIGHT - 10 }}>
         <View className="flex-1 mr-4">
-          <Skeleton width={128} height={32} variant="forest" className="mb-2" />
-          <Skeleton width={96} height={16} variant="forest-light" />
+          <Skeleton width={128} height={32} variant="primary" className="mb-2" />
+          <Skeleton width={96} height={16} variant="primary-light" />
         </View>
-        <Skeleton width={96} height={40} borderRadius={16} variant="white" className="border border-sage-light/30" />
+        <Skeleton width={96} height={40} borderRadius={16} variant="white" className="border border-outline-variant/10" />
       </View>
 
       {/* Tiles Skeleton */}
@@ -30,15 +30,15 @@ export const PlannerSkeleton = () => {
           <View
             key={i}
             style={{ height: tileHeight }}
-            className="flex-row items-center mb-2 rounded-[32px] bg-white/50 border border-black/5"
+            className="flex-row items-center mb-2 rounded-[32px] bg-surface-container-low border border-outline-variant/5"
           >
-            <Skeleton width={64} height={64} borderRadius={16} variant="white" className="ml-4 border border-black/5" />
+            <Skeleton width={64} height={64} borderRadius={16} variant="white" className="ml-4 border border-outline-variant/5" />
             <View className="ml-4 flex-1">
-              <Skeleton width="75%" height={16} variant="forest-light" className="mb-2" />
-              <Skeleton width="50%" height={16} variant="forest-light" />
+              <Skeleton width="75%" height={16} variant="primary-light" className="mb-2" />
+              <Skeleton width="50%" height={16} variant="primary-light" />
             </View>
-            <View className="w-20 h-full border-l border-black/5 items-center justify-center">
-              <Skeleton.Circle size={56} variant="white" className="border border-black/5" />
+            <View className="w-20 h-full border-l border-outline-variant/5 items-center justify-center">
+              <Skeleton.Circle size={56} variant="white" className="border border-outline-variant/5" />
             </View>
           </View>
         ))}

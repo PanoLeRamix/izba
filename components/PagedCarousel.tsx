@@ -77,17 +77,17 @@ export function PagedCarousel<T>({
   );
 
   const navigator = (
-    <View className="flex-row items-center bg-white shadow-sm p-1 rounded-2xl border border-sage-light/30 h-[44px]">
+    <View className="flex-row items-center bg-white shadow-sm p-1 rounded-2xl border border-secondary-container/30 h-[44px]">
       <TouchableOpacity onPress={() => scrollToIndex(activeIndex - 1)} className="p-2 h-full justify-center">
-        <ChevronLeft size={24} color={Colors.forest} />
+        <ChevronLeft size={24} color={Colors.primary} />
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => scrollToIndex(currentIndex)} className="p-2 h-full justify-center">
-        <CalendarArrowDown size={22} color={Colors.forest} strokeWidth={2.5} />
+        <CalendarArrowDown size={22} color={Colors.primary} strokeWidth={2.5} />
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => scrollToIndex(activeIndex + 1)} className="p-2 h-full justify-center">
-        <ChevronRight size={24} color={Colors.forest} />
+        <ChevronRight size={24} color={Colors.primary} />
       </TouchableOpacity>
     </View>
   );
@@ -96,10 +96,10 @@ export function PagedCarousel<T>({
     <>
       <View className="px-6 mb-2 flex-row items-center justify-between" style={{ height: headerHeight }}>
         <View className="flex-1 mr-4">
-          <Text className="text-3xl font-black text-forest-dark uppercase" numberOfLines={1} adjustsFontSizeToFit>
+          <Text className="text-3xl font-black text-primary uppercase" numberOfLines={1} adjustsFontSizeToFit>
             {title}
           </Text>
-          <Text className="text-xs font-bold text-forest-light uppercase opacity-60">{subtitle}</Text>
+          <Text className="text-xs font-bold text-primary-container uppercase opacity-60">{subtitle}</Text>
         </View>
         <View className="flex-row items-center">
           {headerAction ? <View className="mr-3">{headerAction}</View> : null}

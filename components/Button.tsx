@@ -23,15 +23,15 @@ export const Button = ({ onPress, title, variant = 'primary', loading = false, d
       disabled={disabled || loading}
       style={style}
       className={`w-full py-4 rounded-2xl items-center flex-row justify-center ${
-        isPrimary ? 'bg-forest' : isOutline ? 'border-2 border-forest' : ''
+        isPrimary ? 'bg-primary' : isOutline ? 'border-2 border-primary' : ''
       } ${disabled ? 'opacity-50' : ''}`}
     >
       {loading ? (
-        <ActivityIndicator color={isPrimary ? Colors.hearth : Colors.forest} />
+        <ActivityIndicator color={isPrimary ? Colors.surface : Colors.primary} />
       ) : (
         <>
           {icon ? <View className="mr-2">{icon}</View> : null}
-          <Text style={textStyle} className={`font-semibold text-lg ${isPrimary ? 'text-hearth' : 'text-forest'}`}>
+          <Text style={textStyle} className={`font-semibold text-lg ${isPrimary ? 'text-surface' : 'text-primary'}`}>
             {title}
           </Text>
         </>

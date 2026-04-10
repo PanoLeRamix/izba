@@ -169,7 +169,7 @@ export default function Tasks() {
   );
 
   return (
-    <View className="flex-1 bg-hearth" style={{ paddingTop: topPadding }}>
+    <View className="flex-1 bg-surface" style={{ paddingTop: topPadding }}>
       <PagedCarousel
         title={t('tabs.tasks')}
         subtitle={viewedWeekLabel}
@@ -195,19 +195,19 @@ export default function Tasks() {
 
       <TouchableOpacity
         onPress={() => setIsSettingsVisible(true)}
-        className="absolute flex-row items-center bg-forest shadow-sm px-5 py-3.5 rounded-2xl border border-forest-dark"
+        className="absolute flex-row items-center bg-primary shadow-sm px-5 py-3.5 rounded-2xl border border-primary-container"
         style={{
           right: 24,
           bottom: Math.max(insets.bottom, LAYOUT.BASE_SCREEN_PADDING) + 12,
-          shadowColor: Colors.forestDark,
+          shadowColor: Colors.primaryContainer,
           shadowOffset: { width: 0, height: 10 },
           shadowOpacity: 0.22,
           shadowRadius: 14,
           elevation: 8,
         }}
       >
-        <Settings2 size={18} color="white" />
-        <Text className="ml-2 text-sm font-black text-white">{t('tasks.manage')}</Text>
+        <Settings2 size={18} color={Colors.onPrimary} />
+        <Text className="ml-2 text-sm font-black text-on-primary">{t('tasks.manage')}</Text>
       </TouchableOpacity>
 
       <TaskSettingsModal
@@ -303,11 +303,11 @@ function WeekRosterPage({
   ) : (
     <View style={containerStyle} className="px-6 pt-2">
       {!isLoading && members.length === 0 ? (
-        <EmptyState icon={<Users size={28} color={Colors.forest} />} title={t('tasks.noMembersTitle')} message={t('tasks.noMembersMessage')} />
+        <EmptyState icon={<Users size={28} color={Colors.primary} />} title={t('tasks.noMembersTitle')} message={t('tasks.noMembersMessage')} />
       ) : null}
 
       {!isLoading && members.length > 0 && chores.length === 0 ? (
-        <EmptyState icon={<ListTodo size={28} color={Colors.forest} />} title={t('tasks.noTasksTitle')} message={t('tasks.noTasksMessage')} />
+        <EmptyState icon={<ListTodo size={28} color={Colors.primary} />} title={t('tasks.noTasksTitle')} message={t('tasks.noTasksMessage')} />
       ) : null}
 
       {!isLoading && groupedAssignments.length > 0 ? (
@@ -320,26 +320,21 @@ function WeekRosterPage({
           {groupedAssignments.map((group) => (
             <View
               key={group.userId}
-              className={`rounded-2xl border px-4 py-3 mb-3 shadow-sm ${group.userId === userId ? 'bg-hearth border-forest-dark' : 'bg-white border-sage/30'}`}
+              className={`rounded-3xl border px-6 py-4 mb-4 shadow-sm ${group.userId === userId ? 'bg-surface-container-low border-primary/40' : 'bg-surface-container-low border-outline-variant/10'}`}
               style={
                 group.userId === userId
                   ? {
-                      borderWidth: 3,
-                      shadowColor: Colors.forestDark,
-                      shadowOffset: { width: 0, height: 6 },
-                      shadowOpacity: 0.25,
-                      shadowRadius: 8,
-                      elevation: 6,
+                      borderWidth: 2,
                     }
                   : undefined
               }
             >
-              <Text className={`text-lg font-black ${group.userId === userId ? 'text-forest' : 'text-forest-dark'}`}>{group.name}</Text>
+              <Text className="text-xl font-black text-primary">{group.name}</Text>
 
-              <View className="mt-2 flex-row flex-wrap gap-2">
+              <View className="mt-3 flex-row flex-wrap gap-2">
                 {group.tasks.map((task) => (
-                  <View key={`${group.userId}-${task}`} className="px-3 py-1.5 rounded-full bg-hearth border border-sage/20">
-                    <Text className="text-xs font-bold text-forest-dark">{task}</Text>
+                  <View key={`${group.userId}-${task}`} className="px-3 py-1.5 rounded-full bg-surface-container border border-outline-variant/10">
+                    <Text className="text-[11px] font-bold text-on-surface-variant">{task}</Text>
                   </View>
                 ))}
               </View>
@@ -386,26 +381,26 @@ function TaskSettingsModal({
       onClose={onClose}
       header={
         <View className="mb-6">
-          <Text className="text-3xl font-black text-forest-dark uppercase">{t('tasks.settingsTitle')}</Text>
-          <Text className="text-sm font-medium text-forest-dark/60 mt-2">{t('tasks.settingsInfo')}</Text>
+          <Text className="text-3xl font-black text-primary uppercase">{t('tasks.settingsTitle')}</Text>
+          <Text className="text-sm font-medium text-on-surface-variant mt-2">{t('tasks.settingsInfo')}</Text>
         </View>
       }
     >
-      <View className="bg-white rounded-[32px] p-6 mb-4 border border-sage-light/30 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
+      <View className="bg-surface-container-lowest rounded-[32px] p-6 mb-4 border border-outline-variant/10 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
         <View className="flex-row items-center justify-between mb-4">
           <View className="flex-row items-center">
             <Text className="text-2xl mr-3">🧹</Text>
-            <Text className="text-lg font-black text-forest-dark uppercase tracking-tight">{t('tasks.manageTasks')}</Text>
+            <Text className="text-lg font-black text-primary uppercase tracking-tight">{t('tasks.manageTasks')}</Text>
           </View>
 
-          <TouchableOpacity onPress={onAddTask} className="bg-forest px-4 py-2 rounded-2xl flex-row items-center">
-            <Plus size={16} color={Colors.hearth} />
-            <Text className="ml-2 text-sm font-bold text-hearth">{t('tasks.addTask')}</Text>
+          <TouchableOpacity onPress={onAddTask} className="bg-primary px-4 py-2 rounded-2xl flex-row items-center">
+            <Plus size={16} color={Colors.onPrimary} />
+            <Text className="ml-2 text-sm font-bold text-on-primary">{t('tasks.addTask')}</Text>
           </TouchableOpacity>
         </View>
 
         {chores.length === 0 ? (
-          <Text className="text-sm font-medium text-forest-dark/60">{t('tasks.noTasksManageHint')}</Text>
+          <Text className="text-sm font-medium text-on-surface-variant">{t('tasks.noTasksManageHint')}</Text>
         ) : (
           chores.map((chore, index) => (
             <ManageRow
@@ -419,10 +414,10 @@ function TaskSettingsModal({
         )}
       </View>
 
-      <View className="bg-white rounded-[32px] p-6 mb-4 border border-sage-light/30 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
+      <View className="bg-surface-container-lowest rounded-[32px] p-6 mb-4 border border-outline-variant/10 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
         <View className="flex-row items-center mb-4">
           <Text className="text-2xl mr-3">👥</Text>
-          <Text className="text-lg font-black text-forest-dark uppercase tracking-tight">{t('tasks.rotationOrder')}</Text>
+          <Text className="text-lg font-black text-primary uppercase tracking-tight">{t('tasks.rotationOrder')}</Text>
         </View>
 
         {members.map((member, index) => (
@@ -435,19 +430,19 @@ function TaskSettingsModal({
         ))}
       </View>
 
-      <View className="bg-white rounded-[32px] p-6 border border-sage-light/30 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
+      <View className="bg-surface-container-lowest rounded-[32px] p-6 border border-outline-variant/10 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
         <View className="flex-row items-center justify-between mb-4">
           <View className="flex-row items-center">
             <Text className="text-2xl mr-3">🗓️</Text>
-            <Text className="text-lg font-black text-forest-dark uppercase tracking-tight">{t('tasks.anchorWeek')}</Text>
+            <Text className="text-lg font-black text-primary uppercase tracking-tight">{t('tasks.anchorWeek')}</Text>
           </View>
 
-          <TouchableOpacity onPress={() => onShowInfo(t('tasks.anchorWeekInfoTitle'), t('tasks.anchorWeekInfoMessage'))} className="p-2 rounded-xl bg-forest/5">
-            <CircleHelp size={18} color={Colors.forest} />
+          <TouchableOpacity onPress={() => onShowInfo(t('tasks.anchorWeekInfoTitle'), t('tasks.anchorWeekInfoMessage'))} className="p-2 rounded-xl bg-primary/5">
+            <CircleHelp size={18} color={Colors.primary} />
           </TouchableOpacity>
         </View>
 
-        <Text className="text-sm font-medium text-forest-dark/60 mb-4">
+        <Text className="text-sm font-medium text-on-surface-variant mb-4">
           {anchorLabel ? t('tasks.anchorWeekValue', { date: anchorLabel }) : t('tasks.anchorWeekUnset')}
         </Text>
 
@@ -459,10 +454,10 @@ function TaskSettingsModal({
 
 function EmptyState({ icon, title, message }: { icon: React.ReactNode; title: string; message: string }) {
   return (
-    <View className="bg-white rounded-3xl border border-sage/30 p-6 shadow-sm">
-      <View className="bg-forest/10 h-14 w-14 rounded-2xl items-center justify-center mb-4">{icon}</View>
-      <Text className="text-2xl font-black text-forest-dark mb-2">{title}</Text>
-      <Text className="text-base font-medium text-forest-dark/70">{message}</Text>
+    <View className="bg-surface-container-lowest rounded-3xl border border-outline-variant/10 p-6 shadow-sm">
+      <View className="bg-primary/5 h-14 w-14 rounded-2xl items-center justify-center mb-4">{icon}</View>
+      <Text className="text-2xl font-black text-primary mb-2">{title}</Text>
+      <Text className="text-base font-medium text-on-surface-variant">{message}</Text>
     </View>
   );
 }
@@ -479,13 +474,13 @@ function ManageRow({
   onEdit?: () => void;
 }) {
   return (
-    <View className="flex-row items-center justify-between py-3 border-t border-sage/20 first:border-t-0">
-      <Text className="text-lg font-semibold text-forest-dark flex-1 pr-3">{label}</Text>
+    <View className="flex-row items-center justify-between py-3 border-t border-outline-variant/10 first:border-t-0">
+      <Text className="text-lg font-semibold text-on-surface flex-1 pr-3">{label}</Text>
 
       <View className="flex-row items-center">
-        {onEdit ? <IconButton icon={<Pencil size={16} color={Colors.forest} />} onPress={onEdit} /> : null}
-        <IconButton icon={<ArrowUp size={16} color={Colors.forest} />} onPress={onMoveUp} disabled={!onMoveUp} />
-        <IconButton icon={<ArrowDown size={16} color={Colors.forest} />} onPress={onMoveDown} disabled={!onMoveDown} />
+        {onEdit ? <IconButton icon={<Pencil size={16} color={Colors.primary} />} onPress={onEdit} /> : null}
+        <IconButton icon={<ArrowUp size={16} color={Colors.primary} />} onPress={onMoveUp} disabled={!onMoveUp} />
+        <IconButton icon={<ArrowDown size={16} color={Colors.primary} />} onPress={onMoveDown} disabled={!onMoveDown} />
       </View>
     </View>
   );
@@ -496,7 +491,7 @@ function IconButton({ icon, onPress, disabled = false }: { icon: React.ReactNode
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled || !onPress}
-      className={`ml-2 p-3 rounded-2xl border border-sage/20 ${disabled || !onPress ? 'bg-sage/10 opacity-40' : 'bg-hearth'}`}
+      className={`ml-2 p-3 rounded-2xl border border-outline-variant/10 ${disabled || !onPress ? 'bg-surface-dim opacity-40' : 'bg-surface-container-lowest'}`}
     >
       {icon}
     </TouchableOpacity>

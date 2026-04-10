@@ -103,9 +103,20 @@
     "anchorError": "Impossible de mettre à jour la semaine de départ.",
     "manageError": "Impossible de mettre à jour les réglages des tâches."
   },
+  "dashboard": {
+    "welcome": "Bonsoir,",
+    "kitchen": "La cuisine ce soir",
+    "viewSchedule": "Voir tout le planning",
+    "myTasks": "Mes tâches",
+    "eatingIn": "Présent·es",
+    "undecided": "Indécis·es",
+    "notThere": "Absent·es",
+    "chef": "Cuisine"
+  },
   "tabs": {
-    "home": "Réglages",
+    "dashboard": "Dashboard",
     "planner": "Planning",
-    "tasks": "Tâches"
+    "tasks": "Tâches",
+    "settings": "Réglages"
   }
 }

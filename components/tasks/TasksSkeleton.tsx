@@ -9,15 +9,15 @@ export const TasksSkeleton = () => {
 
   const RowSkeleton = ({ highlight = false }: { highlight?: boolean }) => (
     <View 
-      className={`rounded-2xl border px-4 py-3 mb-3 shadow-sm ${highlight ? 'bg-hearth border-forest-dark' : 'bg-white border-sage/30'}`}
+      className={`rounded-2xl border px-4 py-3 mb-3 shadow-sm ${highlight ? 'bg-surface border-primary' : 'bg-white border-secondary/30'}`}
       style={highlight ? { borderWidth: 3 } : undefined}
     >
-      <Skeleton width={120} height={24} variant={highlight ? 'forest' : 'forest-light'} className="mb-4" />
+      <Skeleton width={120} height={24} variant={highlight ? 'primary' : 'primary-container'} className="mb-4" />
       
       <View className="mt-2 flex-row flex-wrap gap-2">
-        <Skeleton width={80} height={32} borderRadius={16} variant="forest-light" />
-        <Skeleton width={100} height={32} borderRadius={16} variant="forest-light" />
-        <Skeleton width={60} height={32} borderRadius={16} variant="forest-light" />
+        <Skeleton width={80} height={32} borderRadius={16} variant="primary-container" />
+        <Skeleton width={100} height={32} borderRadius={16} variant="primary-container" />
+        <Skeleton width={60} height={32} borderRadius={16} variant="primary-container" />
       </View>
     </View>
   );

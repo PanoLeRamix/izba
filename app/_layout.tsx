@@ -32,8 +32,8 @@ function InitialLayout() {
 
   if (!isInitialized) {
     return (
-      <View className="flex-1 items-center justify-center bg-hearth">
-        <ActivityIndicator size="large" color={Colors.forest} />
+      <View className="flex-1 items-center justify-center bg-surface">
+        <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
   }
@@ -104,8 +104,8 @@ export default function RootLayout() {
 
   if (!appReady) {
     return (
-      <View className="flex-1 items-center justify-center bg-hearth">
-        <ActivityIndicator size="large" color={Colors.forest} />
+      <View className="flex-1 items-center justify-center bg-surface">
+        <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
   }

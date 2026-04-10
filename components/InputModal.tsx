@@ -103,8 +103,8 @@ export const InputModal = ({
               behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
               className="w-full max-w-md items-center"
             >
-              <View className="bg-hearth w-full p-8 rounded-3xl border border-sage/20 shadow-xl">
-                <Text className="text-2xl font-bold mb-6 text-forest-dark">
+              <View className="bg-surface w-full p-8 rounded-3xl border border-secondary/20 shadow-xl">
+                <Text className="text-2xl font-bold mb-6 text-primary">
                   {title}
                 </Text>
                 
@@ -124,7 +124,7 @@ export const InputModal = ({
 
                 {maxLength && (
                   <View className="flex-row justify-end mb-2 px-1">
-                    <Text className={`text-[10px] font-bold uppercase ${value.length >= maxLength ? 'text-red-500' : 'text-forest-dark/30'}`}>
+                    <Text className={`text-[10px] font-bold uppercase ${value.length >= maxLength ? 'text-red-500' : 'text-primary/30'}`}>
                       {value.length} / {maxLength}
                     </Text>
                   </View>
@@ -147,7 +147,7 @@ export const InputModal = ({
                 </View>
 
                 {onDelete && (
-                  <View className="mt-8 pt-6 border-t border-sage/20">
+                  <View className="mt-8 pt-6 border-t border-secondary/20">
                     <Button 
                       title={deleteTitle ?? t('common.delete')} 
                       onPress={onDelete} 

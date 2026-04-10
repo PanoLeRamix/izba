@@ -6,7 +6,7 @@ interface SkeletonProps extends ViewProps {
   height?: ViewStyle['height'];
   borderRadius?: number;
   style?: ViewStyle;
-  variant?: 'forest' | 'white' | 'forest-light';
+  variant?: 'primary' | 'white' | 'primary-container';
 }
 
 export const Skeleton = ({ 
@@ -14,7 +14,7 @@ export const Skeleton = ({
   height, 
   borderRadius = 8, 
   style, 
-  variant = 'forest',
+  variant = 'primary',
   ...props 
 }: SkeletonProps) => {
   const opacity = useRef(new Animated.Value(0.3)).current;
@@ -40,11 +40,11 @@ export const Skeleton = ({
     switch (variant) {
       case 'white':
         return 'rgba(255, 255, 255, 0.5)';
-      case 'forest-light':
-        return 'rgba(45, 90, 39, 0.05)';
-      case 'forest':
+      case 'primary-container':
+        return 'rgba(22, 53, 38, 0.05)';
+      case 'primary':
       default:
-        return 'rgba(45, 90, 39, 0.1)';
+        return 'rgba(22, 53, 38, 0.1)';
     }
   };
 
