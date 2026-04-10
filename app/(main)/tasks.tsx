@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Alert, Platform, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { Alert, Platform, ScrollView, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { addDays, format, type Locale } from 'date-fns';
 import { enUS, fr } from 'date-fns/locale';
 import { ArrowDown, ArrowUp, CircleHelp, ListTodo, Pencil, Plus, Settings2, Users } from 'lucide-react-native';
@@ -19,8 +19,7 @@ import { TasksSkeleton } from '../../components/tasks/TasksSkeleton';
 
 type SnapStyle = {
   width: number;
-  minHeight: number;
-  paddingBottom: number;
+  height: number;
   scrollSnapAlign?: 'start';
   scrollSnapStop?: 'always';
 };
@@ -294,14 +293,10 @@ function WeekRosterPage({
 
   const containerStyle: SnapStyle = {
     width: pageWidth,
-    minHeight: pageHeight,
-    paddingBottom: bottomInset,
+    height: pageHeight,
     scrollSnapAlign: 'start',
     scrollSnapStop: 'always',
   };
-  const cardsAreaHeight = Math.max(pageHeight - bottomInset - 8, 0);
-  const assignmentCardMinHeight =
-    groupedAssignments.length > 0 ? Math.max(104, Math.floor((cardsAreaHeight - (groupedAssignments.length - 1) * 12) / groupedAssignments.length)) : 104;
 
   return isLoading ? (
     <TasksSkeleton />
@@ -315,15 +310,20 @@ function WeekRosterPage({
         <EmptyState icon={<ListTodo size={28} color={Colors.forest} />} title={t('tasks.noTasksTitle')} message={t('tasks.noTasksMessage')} />
       ) : null}
 
-      {!isLoading && groupedAssignments.length > 0
-        ? groupedAssignments.map((group) => (
+      {!isLoading && groupedAssignments.length > 0 ? (
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ paddingBottom: bottomInset }}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled
+        >
+          {groupedAssignments.map((group) => (
             <View
               key={group.userId}
               className={`rounded-2xl border px-4 py-3 mb-3 shadow-sm ${group.userId === userId ? 'bg-hearth border-forest-dark' : 'bg-white border-sage/30'}`}
               style={
                 group.userId === userId
                   ? {
-                      minHeight: assignmentCardMinHeight,
                       borderWidth: 3,
                       shadowColor: Colors.forestDark,
                       shadowOffset: { width: 0, height: 6 },
@@ -331,7 +331,7 @@ function WeekRosterPage({
                       shadowRadius: 8,
                       elevation: 6,
                     }
-                  : { minHeight: assignmentCardMinHeight }
+                  : undefined
               }
             >
               <Text className={`text-lg font-black ${group.userId === userId ? 'text-forest' : 'text-forest-dark'}`}>{group.name}</Text>
@@ -344,8 +344,9 @@ function WeekRosterPage({
                 ))}
               </View>
             </View>
-          ))
-        : null}
+          ))}
+        </ScrollView>
+      ) : null}
     </View>
   );
 }
