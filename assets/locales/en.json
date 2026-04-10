@@ -23,7 +23,6 @@
     "addPerson": "Add a person"
   },
   "main": {
-    "welcome": "Welcome to the app!",
     "house": "House-share",
     "inviteCode": "Invite Code",
     "identity": "Logged as",
@@ -104,7 +103,6 @@
     "manageError": "The task settings could not be updated."
   },
   "dashboard": {
-    "welcome": "Good evening,",
     "kitchen": "Tonight's Kitchen",
     "viewSchedule": "View Full Schedule",
     "myTasks": "My Tasks",
