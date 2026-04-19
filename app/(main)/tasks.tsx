@@ -194,6 +194,10 @@ export default function Tasks() {
     [actions, showError, t],
   );
 
+  if (isLoading) {
+    return <TasksSkeleton />;
+  }
+
   return (
     <View className="flex-1 bg-surface" style={{ paddingTop: topPadding }}>
       <PagedCarousel
@@ -210,7 +214,6 @@ export default function Tasks() {
             locale={locale}
             pageWidth={pageWidth}
             pageHeight={pageHeight}
-            isLoading={isLoading}
             chores={chores}
             members={members}
             assignments={getAssignmentsForDate(item.startDate)}
@@ -272,7 +275,6 @@ function WeekRosterPage({
   locale,
   pageWidth,
   pageHeight,
-  isLoading,
   chores,
   members,
   assignments,
@@ -282,7 +284,6 @@ function WeekRosterPage({
   locale: Locale;
   pageWidth: number;
   pageHeight: number;
-  isLoading: boolean;
   chores: HouseTaskChore[];
   members: Array<{ user_id: string; name: string }>;
   assignments: WeeklyChoreAssignment[];
@@ -324,19 +325,17 @@ function WeekRosterPage({
     scrollSnapStop: 'always',
   };
 
-  return isLoading ? (
-    <TasksSkeleton />
-  ) : (
+  return (
     <View style={containerStyle} className="px-6 pt-2">
-      {!isLoading && members.length === 0 ? (
+      {members.length === 0 ? (
         <EmptyState icon={<Users size={28} color={Colors.primary} />} title={t('tasks.noMembersTitle')} message={t('tasks.noMembersMessage')} />
       ) : null}
 
-      {!isLoading && members.length > 0 && chores.length === 0 ? (
+      {members.length > 0 && chores.length === 0 ? (
         <EmptyState icon={<ListTodo size={28} color={Colors.primary} />} title={t('tasks.noTasksTitle')} message={t('tasks.noTasksMessage')} />
       ) : null}
 
-      {!isLoading && groupedAssignments.length > 0 ? (
+      {groupedAssignments.length > 0 ? (
         <ScrollView
           className="flex-1"
           contentContainerStyle={{ paddingBottom: bottomInset }}

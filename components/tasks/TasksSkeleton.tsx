@@ -2,39 +2,36 @@ import React from 'react';
 import { View } from 'react-native';
 import { Skeleton } from '../Skeleton';
 
-/**
- * TasksSkeleton
- * 
- * A specialized skeleton for the Tasks week roster page.
- * Designed to fit inside the PagedCarousel's page container.
- */
 export const TasksSkeleton = () => {
-  const RowSkeleton = ({ isPrimary = false }: { isPrimary?: boolean }) => (
-    <View 
-      className={`rounded-3xl border px-6 py-4 mb-4 shadow-sm ${
-        isPrimary 
-          ? 'bg-surface-container-low border-primary/40' 
-          : 'bg-surface-container-low border-outline-variant/10'
-      }`}
-      style={isPrimary ? { borderWidth: 2 } : undefined}
-    >
-      {/* Name / Title */}
-      <Skeleton.Box width={120} height={24} variant="primary" className="mb-4" />
-      
-      {/* Task Chips Grid */}
-      <View className="flex-row flex-wrap gap-2">
-        <Skeleton.Box width={80} height={32} borderRadius={16} variant="primary-container" />
-        <Skeleton.Box width={100} height={32} borderRadius={16} variant="primary-container" />
-        <Skeleton.Box width={60} height={32} borderRadius={16} variant="primary-container" />
-      </View>
-    </View>
-  );
-
   return (
-    <View className="pt-2 px-6">
-      <RowSkeleton isPrimary />
-      <RowSkeleton />
-      <RowSkeleton />
-    </View>
+    <Skeleton.Screen 
+      headerTitleWidth={120} 
+      headerSubtitleWidth={180}
+      isScrollable={true}
+    >
+      {[1, 2, 3, 4].map((i) => (
+        <Skeleton.Card
+          key={i}
+          className="mb-4 border border-outline-variant/10"
+          padding={24}
+        >
+          {/* Member Name - taking more width */}
+          <Skeleton.Box width="100%" height={24} variant="primary" className="mb-4" />
+          
+          {/* Task Chips placeholders - more substantial */}
+          <View className="flex-row flex-wrap gap-2">
+            {[1, 2, 3, 4, 5].slice(0, 2 + (i % 3)).map((j) => (
+              <Skeleton.Box 
+                key={j} 
+                width={100 + (j * 30) % 80} 
+                height={32} 
+                borderRadius={16} 
+                variant="primary-container" 
+              />
+            ))}
+          </View>
+        </Skeleton.Card>
+      ))}
+    </Skeleton.Screen>
   );
 };
