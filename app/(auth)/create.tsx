@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Check, ChevronLeft } from 'lucide-react-native';
@@ -79,36 +79,41 @@ export default function CreateHouse() {
           <Button title={t('auth.save')} onPress={handleCreate} loading={createMutation.isPending} disabled={!houseName.trim()} />
         </View>
 
-        {generatedCode ? (
-          <View className="absolute top-0 left-0 right-0 bottom-0 z-50 flex-1 justify-center items-center bg-primary/40 p-6">
-            <View className="bg-surface w-full p-8 rounded-3xl items-center border border-outline-variant/20 shadow-xl">
-              <Text className="text-2xl font-bold mb-2 text-primary">{t('auth.houseCreated')}</Text>
-              <Text className="text-tertiary/70 mb-6 text-center">{t('auth.shareCodeHint')}</Text>
-
-              <TouchableOpacity
-                onPress={() => copy(generatedCode)}
-                style={{ backgroundColor: `${Colors.secondaryContainer}4D` }}
-                className="p-6 rounded-2xl mb-8 w-full items-center border border-outline-variant/30"
-              >
-                <Text className="text-xs font-bold text-on-surface-variant/40 uppercase tracking-widest mb-2">{t('auth.yourCode')}</Text>
-                <Text className="text-4xl font-mono font-bold tracking-widest text-primary">{generatedCode}</Text>
-                <View className="mt-4 flex-row items-center">
-                  {copied ? (
-                    <>
-                      <Check size={14} color={Colors.primary} style={{ marginRight: 4 }} />
-                      <Text className="text-primary font-bold text-xs uppercase tracking-widest">{t('main.copied')}</Text>
-                    </>
-                  ) : (
-                    <Text className="text-primary/50 text-xs uppercase font-bold tracking-widest">{t('main.copyCode')}</Text>
-                  )}
-                </View>
-              </TouchableOpacity>
-
-              <Button title={t('auth.continue')} onPress={() => void handleContinue()} />
-            </View>
-          </View>
-        ) : null}
       </ScrollView>
+
+      <Modal visible={!!generatedCode} transparent animationType="fade" onRequestClose={() => undefined}>
+        <View className="flex-1 justify-center items-center p-6" style={{ backgroundColor: Colors.backdrop }}>
+          <View className="bg-surface w-full max-w-md p-8 rounded-3xl items-center border border-outline-variant/20 shadow-xl">
+            <Text className="text-2xl font-bold mb-2 text-primary">{t('auth.houseCreated')}</Text>
+            <Text className="text-tertiary/70 mb-6 text-center">{t('auth.shareCodeHint')}</Text>
+
+            <TouchableOpacity
+              onPress={() => {
+                if (generatedCode) {
+                  copy(generatedCode);
+                }
+              }}
+              style={{ backgroundColor: `${Colors.secondaryContainer}4D` }}
+              className="p-6 rounded-2xl mb-8 w-full items-center border border-outline-variant/30"
+            >
+              <Text className="text-xs font-bold text-on-surface-variant/40 uppercase tracking-widest mb-2">{t('auth.yourCode')}</Text>
+              <Text className="text-4xl font-mono font-bold tracking-widest text-primary">{generatedCode}</Text>
+              <View className="mt-4 flex-row items-center">
+                {copied ? (
+                  <>
+                    <Check size={14} color={Colors.primary} style={{ marginRight: 4 }} />
+                    <Text className="text-primary font-bold text-xs uppercase tracking-widest">{t('main.copied')}</Text>
+                  </>
+                ) : (
+                  <Text className="text-primary/50 text-xs uppercase font-bold tracking-widest">{t('main.copyCode')}</Text>
+                )}
+              </View>
+            </TouchableOpacity>
+
+            <Button title={t('auth.continue')} onPress={() => void handleContinue()} />
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
