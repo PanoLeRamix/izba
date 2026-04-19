@@ -9,7 +9,6 @@ import { Colors } from '../../constants/Colors';
 
 type TabDefinition = {
   name: 'index' | 'planner' | 'tasks' | 'shopping' | 'settings';
-  routeName: string;
   title: string;
   Icon: LucideIcon;
 };
@@ -45,9 +44,9 @@ function TabBarButton({
         style={{
           backgroundColor: isSelected ? Colors.secondaryContainer : 'transparent',
           borderRadius: 999,
-          minWidth: 82,
+          minWidth: 64,
           overflow: 'hidden',
-          paddingHorizontal: 16,
+          paddingHorizontal: 8,
           paddingVertical: 8,
         }}
         className="items-center justify-center"
@@ -60,6 +59,7 @@ function TabBarButton({
             fontWeight: '700',
             marginTop: 4,
           }}
+          numberOfLines={1}
         >
           {label}
         </Text>
@@ -73,15 +73,16 @@ export default function MainLayout() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
   const tabs: TabDefinition[] = [
-    { name: 'index', routeName: '', title: t('tabs.dashboard'), Icon: LayoutDashboard },
-    { name: 'planner', routeName: 'planner', title: t('tabs.planner'), Icon: CalendarDays },
-    { name: 'tasks', routeName: 'tasks', title: t('tabs.tasks'), Icon: ListTodo },
-    { name: 'shopping', routeName: 'shopping', title: t('tabs.shopping'), Icon: ShoppingCart },
-    { name: 'settings', routeName: 'settings', title: t('tabs.settings'), Icon: Settings },
+    { name: 'index', title: t('tabs.dashboard'), Icon: LayoutDashboard },
+    { name: 'planner', title: t('tabs.planner'), Icon: CalendarDays },
+    { name: 'tasks', title: t('tabs.tasks'), Icon: ListTodo },
+    { name: 'shopping', title: t('tabs.shopping'), Icon: ShoppingCart },
+    { name: 'settings', title: t('tabs.settings'), Icon: Settings },
   ];
   const createTabButton =
-    (routeName: string, label: string, Icon: LucideIcon) => (props: BottomTabBarButtonProps) => {
-      const isSelected = pathname === `/${routeName}` || pathname.startsWith(`/${routeName}/`);
+    (name: string, label: string, Icon: LucideIcon) => (props: BottomTabBarButtonProps) => {
+      const routePath = name === 'index' ? '/' : `/${name}`;
+      const isSelected = pathname === routePath || pathname.startsWith(`${routePath}/`);
 
       return <TabBarButton {...props} label={label} Icon={Icon} isSelected={isSelected} />;
     };
@@ -93,24 +94,24 @@ export default function MainLayout() {
         tabBarStyle: {
           backgroundColor: Colors.surface,
           borderTopColor: `${Colors.outlineVariant}26`, // 15% opacity
-          paddingBottom: insets.bottom,
-          paddingTop: 8,
-          height: 64 + insets.bottom,
+          paddingBottom: Math.max(insets.bottom, 12),
+          paddingTop: 12,
+          height: 72 + Math.max(insets.bottom, 12),
           elevation: 0,
           shadowOpacity: 0,
         },
         tabBarItemStyle: {
-          paddingVertical: 6,
+          paddingVertical: 4,
         },
       }}
     >
-      {tabs.map(({ name, routeName, title, Icon }) => (
+      {tabs.map(({ name, title, Icon }) => (
         <Tabs.Screen
           key={name}
           name={name}
           options={{
             title,
-            tabBarButton: createTabButton(routeName, title, Icon),
+            tabBarButton: createTabButton(name, title, Icon),
           }}
         />
       ))}
