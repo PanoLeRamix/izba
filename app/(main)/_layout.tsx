@@ -15,11 +15,15 @@ type TabDefinition = {
 };
 
 function TabBarButton({
+  accessibilityState,
+  accessibilityLabel,
+  testID,
+  onPress,
+  onLongPress,
+  style,
   label,
   Icon,
   isSelected,
-  ref: _ref,
-  ...props
 }: BottomTabBarButtonProps & {
   label: string;
   Icon: LucideIcon;
@@ -29,7 +33,12 @@ function TabBarButton({
 
   return (
     <Pressable
-      {...props}
+      accessibilityState={accessibilityState}
+      accessibilityLabel={accessibilityLabel}
+      testID={testID}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      style={style}
       className="flex-1 items-center justify-center"
     >
       <View
