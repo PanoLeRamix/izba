@@ -16,34 +16,6 @@ import { userService } from '../../services/user';
 import { useAuthStore } from '../../store/authStore';
 import { isNetworkError } from '../../utils/errors';
 
-interface SettingTileProps {
-  icon: ReactNode;
-  label: string;
-  value: string;
-  onEdit?: () => void;
-  children?: ReactNode;
-}
-
-const SettingTile = ({ icon, label, value, onEdit, children }: SettingTileProps) => (
-  <View style={{ backgroundColor: Colors.surfaceContainerLow }} className="p-6 rounded-3xl mb-6 border border-outline-variant/20 shadow-sm overflow-hidden">
-    <View className="flex-row items-center mb-4 bg-transparent">
-      <View className="bg-primary/5 p-3 rounded-2xl mr-4">{icon}</View>
-      <View className="flex-1 bg-transparent">
-        <Text className="text-[10px] text-tertiary/40 uppercase font-bold tracking-[2px] mb-1">{label}</Text>
-        <View className="flex-row items-center bg-transparent">
-          <Text className="text-2xl font-bold text-primary flex-1">{value}</Text>
-          {onEdit ? (
-            <TouchableOpacity onPress={onEdit} className="p-2 ml-2 bg-surface-container-lowest rounded-xl">
-              <Pencil size={16} color={Colors.primary} />
-            </TouchableOpacity>
-          ) : null}
-        </View>
-      </View>
-    </View>
-    {children}
-  </View>
-);
-
 export default function Settings() {
   const { logout, houseId, houseToken, userId, userToken, setUserSession, houseName, userName } = useAuthStore();
   const { t } = useTranslation();
@@ -154,14 +126,45 @@ export default function Settings() {
     updateMutation.mutate({ target: editTarget, value: trimmedValue });
   };
 
+  const handleLogout = () => {
+    const title = t('main.logoutTitle');
+    const message = t('main.logoutConfirmation');
+
+    if (Platform.OS === 'web') {
+      if (confirm(`${title}\n\n${message}`)) {
+        void logout();
+      }
+      return;
+    }
+
+    Alert.alert(title, message, [
+      { text: t('common.back'), style: 'cancel' },
+      {
+        text: t('main.logout'),
+        style: 'destructive',
+        onPress: () => void logout(),
+      },
+    ]);
+  };
+
+  const topPadding = LAYOUT.getTopPadding(insets.top);
+
   if (loadingHouse || loadingUser) {
     return <SettingsSkeleton />;
   }
 
   return (
-    <View className="flex-1 bg-surface" style={{ paddingTop: LAYOUT.getTopPadding(insets.top) }}>
+    <View className="flex-1 bg-surface" style={{ paddingTop: topPadding }}>
+      {/* Header */}
       <View className="px-6 mb-2 flex-row items-center justify-between" style={{ height: LAYOUT.HEADER_HEIGHT - 10 }}>
         <Text className="text-3xl font-black text-primary uppercase">{t('tabs.settings')}</Text>
+        <TouchableOpacity 
+          onPress={handleLogout}
+          className="p-3 bg-error/5 rounded-2xl border border-error/10"
+          activeOpacity={0.7}
+        >
+          <LogOut size={22} color={Colors.error} strokeWidth={2.5} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -173,28 +176,66 @@ export default function Settings() {
         }}
         showsVerticalScrollIndicator={false}
       >
-        <SettingTile icon={<Home size={24} color={Colors.primary} />} label={t('main.house')} value={house?.name || houseName || ''} onEdit={() => openEditModal('house')}>
+        {/* House Section */}
+        <View 
+          style={{ backgroundColor: Colors.surfaceContainerLow }} 
+          className="p-8 pb-4 rounded-[32px] mb-6 border border-outline-variant/10 relative overflow-hidden"
+        >
+          <View className="flex-row items-center justify-between mb-4">
+            <View className="flex-1 pr-4">
+              <Text className="text-[10px] text-on-surface-variant/50 uppercase font-black tracking-[1.5px] mb-1">
+                {t('main.house')}
+              </Text>
+              <Text className="text-2xl font-black text-primary leading-tight">
+                {house?.name || houseName}
+              </Text>
+            </View>
+            <TouchableOpacity 
+              onPress={() => openEditModal('house')}
+              className="p-3 bg-surface-container-lowest rounded-2xl border border-outline-variant/10 shadow-sm"
+            >
+              <Pencil size={18} color={Colors.primary} strokeWidth={2.5} />
+            </TouchableOpacity>
+          </View>
+
           <TouchableOpacity
             onPress={() => copy(house?.code || '')}
-            className="bg-primary/5 p-4 rounded-2xl flex-row items-center justify-between border border-outline-variant/10"
+            className="flex-row items-center py-4 border-t border-outline-variant/10"
             activeOpacity={0.6}
           >
-            <View className="flex-1 bg-transparent">
-              <Text className="text-[10px] text-tertiary/40 uppercase font-bold tracking-[1px] mb-0.5">{t('main.inviteCode')}</Text>
-              <Text className="text-lg font-mono font-bold text-primary">{house?.code}</Text>
+            <View className="flex-1">
+              <Text className="text-lg font-black text-primary tracking-widest">{house?.code}</Text>
+              <Text className="text-[10px] text-on-surface-variant/50 uppercase font-black tracking-[1.5px]">{t('main.inviteCode')}</Text>
             </View>
-            <View className="bg-surface-container-lowest/50 p-2 rounded-xl">
-              {copied ? <Check size={18} color={Colors.primary} /> : <Copy size={18} color={Colors.primary} />}
+            <View className="bg-primary/5 p-2 rounded-xl">
+              {copied ? <Check size={18} color={Colors.primary} strokeWidth={3} /> : <Copy size={18} color={Colors.primary} strokeWidth={2.5} />}
             </View>
           </TouchableOpacity>
-        </SettingTile>
+        </View>
 
-        <SettingTile icon={<User size={24} color={Colors.primary} />} label={t('main.identity')} value={user?.name || userName || ''} onEdit={() => openEditModal('user')} />
+        {/* Profile & App Section */}
+        <View 
+          style={{ backgroundColor: Colors.surfaceContainerLow }} 
+          className="p-8 pb-4 rounded-[32px] mb-6 border border-outline-variant/10 relative overflow-hidden"
+        >
+          <View className="flex-row items-center justify-between mb-6">
+            <View className="flex-1 pr-4">
+              <Text className="text-[10px] text-on-surface-variant/50 uppercase font-black tracking-[1.5px] mb-1">
+                {t('main.identity')}
+              </Text>
+              <Text className="text-2xl font-black text-primary leading-tight">
+                {user?.name || userName}
+              </Text>
+            </View>
+            <TouchableOpacity 
+              onPress={() => openEditModal('user')}
+              className="p-3 bg-surface-container-lowest rounded-2xl border border-outline-variant/10 shadow-sm"
+            >
+              <Pencil size={18} color={Colors.primary} strokeWidth={2.5} />
+            </TouchableOpacity>
+          </View>
 
-        <LanguageToggle variant="tile" />
-
-        <View className="mb-6">
-          <Button title={t('main.logout')} onPress={() => void logout()} variant="outline" icon={<LogOut size={20} color={Colors.primary} />} />
+          <LanguageToggle />
         </View>
       </ScrollView>
 

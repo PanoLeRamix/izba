@@ -27,6 +27,8 @@
     "inviteCode": "Code d'invitation",
     "identity": "Connecté·e en tant que",
     "logout": "Se déconnecter",
+    "logoutTitle": "Se déconnecter ?",
+    "logoutConfirmation": "Es-tu sûr de vouloir te déconnecter de cet appareil ?",
     "deleteIdentity": "Supprimer mon identité",
     "deleteConfirmation": "Veux-tu vraiment supprimer ton identité ? Toutes tes données de planning seront supprimées. Cette action est irréversible.",
     "copied": "Copié",

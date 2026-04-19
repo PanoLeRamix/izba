@@ -26,8 +26,10 @@
     "house": "House-share",
     "inviteCode": "Invite Code",
     "identity": "Logged as",
-    "logout": "Logout",
-    "deleteIdentity": "Delete my identity",
+    "logout": "Log out",
+    "logoutTitle": "Logging out?",
+    "logoutConfirmation": "Are you sure you want to log out from this device?",
+    "deleteIdentity": "Delete Identity",
     "deleteConfirmation": "Are you sure you want to delete your identity? All your planning data will be removed. This cannot be undone.",
     "copied": "Copied!",
     "copyCode": "Tap to copy"

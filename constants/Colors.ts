@@ -35,6 +35,12 @@ export const Colors = {
   outline: '#727973',
   outlineVariant: '#C2C8C1',
 
+  // Error Colors
+  error: '#BA1A1A',
+  onError: '#FFFFFF',
+  errorContainer: '#FFDAD6',
+  onErrorContainer: '#410002',
+
   // Legacy mappings to avoid breakage where possible, but discouraged
   forest: '#163526',
   forestDark: '#012113',
