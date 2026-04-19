@@ -9,6 +9,7 @@ import { Colors } from '../../constants/Colors';
 import { LAYOUT } from '../../constants/Layout';
 import { usePlanner } from '../../hooks/usePlanner';
 import { useTasks } from '../../hooks/useTasks';
+import { useShoppingList } from '../../hooks/useShoppingList';
 import { useAuthStore } from '../../store/authStore';
 import { MemberChip } from '../../components/MemberChip';
 import { DashboardSkeleton } from '../../components/DashboardSkeleton';
@@ -21,6 +22,7 @@ export default function Dashboard() {
 
   const { processedData, isLoading: isLoadingPlanner } = usePlanner();
   const { assignments, isLoading: isLoadingTasks } = useTasks();
+  const { activeItems, isLoading: isLoadingShopping } = useShoppingList();
 
   const todayKey = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
   const todayData = processedData[todayKey];
@@ -34,7 +36,7 @@ export default function Dashboard() {
     return assignments.filter((a) => a.assignee.user_id === userId);
   }, [assignments, userId]);
 
-  const isLoading = isLoadingPlanner || isLoadingTasks;
+  const isLoading = isLoadingPlanner || isLoadingTasks || isLoadingShopping;
 
   const topPadding = LAYOUT.getTopPadding(insets.top);
 
@@ -186,6 +188,41 @@ export default function Dashboard() {
                   </Text>
                 </View>
               ))
+            )}
+          </View>
+        </TouchableOpacity>
+
+        {/* Shopping List Tile (Whole Clickable) */}
+        <TouchableOpacity 
+          activeOpacity={0.9}
+          onPress={() => router.push('/shopping')}
+          className="bg-secondary-container rounded-[2rem] p-8 mt-6 relative overflow-hidden"
+        >
+          <View className="flex-row justify-between items-start mb-8">
+            <Text className="text-2xl font-bold text-primary">
+              {t('dashboard.shopping')}
+            </Text>
+          </View>
+
+          <View className="flex-row flex-wrap gap-2">
+            {activeItems.length === 0 ? (
+              <Text className="text-on-surface-variant/60 font-medium italic">
+                {t('shopping.emptyTitle')}
+              </Text>
+            ) : (
+              activeItems.slice(0, 10).map((item) => (
+                <View 
+                  key={item.id} 
+                  className="px-3 py-1.5 rounded-full bg-surface-container-lowest border border-outline-variant/10"
+                >
+                  <Text className="text-xs font-bold text-primary">{item.name}</Text>
+                </View>
+              ))
+            )}
+            {activeItems.length > 10 && (
+              <View className="px-3 py-1.5 rounded-full bg-surface-container-lowest/50 border border-dashed border-outline-variant/30">
+                <Text className="text-xs font-bold text-primary/60">+{activeItems.length - 10}</Text>
+              </View>
             )}
           </View>
         </TouchableOpacity>
