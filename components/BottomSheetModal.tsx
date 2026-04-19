@@ -23,7 +23,7 @@ export const BottomSheetModal = ({
   onClose, 
   header, 
   children,
-  backgroundColor = Colors.surfaceContainerLowest 
+  backgroundColor = Colors.surfaceContainerLow 
 }: BottomSheetModalProps) => {
   const insets = useSafeAreaInsets();
   const bottomSheetModalRef = useRef<GorhomBottomSheetModal>(null);

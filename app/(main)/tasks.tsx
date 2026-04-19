@@ -1,8 +1,8 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Alert, Platform, ScrollView, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { Alert, Platform, ScrollView, Text, TouchableOpacity, View, useWindowDimensions, TextInput } from 'react-native';
 import { addDays, format, type Locale } from 'date-fns';
 import { enUS, fr } from 'date-fns/locale';
-import { ArrowDown, ArrowUp, CircleHelp, ListTodo, Pencil, Plus, Settings2, Users } from 'lucide-react-native';
+import { ArrowDown, ArrowUp, Check, CircleHelp, ListTodo, Pencil, Plus, Settings2, Trash2, Users, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BottomSheetModal } from '../../components/BottomSheetModal';
@@ -37,7 +37,7 @@ export default function Tasks() {
   const { height: windowHeight } = useWindowDimensions();
   const locale: Locale = i18n.language === 'fr' ? fr : enUS;
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
-  const [modalState, setModalState] = useState<ChoreModalState | null>(null);
+  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const {
     weeks,
     chores,
@@ -84,12 +84,17 @@ export default function Tasks() {
     [buildErrorMessage, showDialog, t],
   );
 
-  const openTaskModal = useCallback((state: ChoreModalState) => {
-    setIsSettingsVisible(false);
-    setTimeout(() => {
-      setModalState(state);
-    }, 0);
-  }, []);
+  const handleSaveNewChore = useCallback(
+    async (value: string) => {
+      try {
+        await actions.createChore(value.trim());
+        setIsAddModalVisible(false);
+      } catch (error) {
+        showError(error, 'tasks.manageError');
+      }
+    },
+    [actions, showError],
+  );
 
   const handleMoveChore = useCallback(
     async (choreId: string, direction: -1 | 1) => {
@@ -111,23 +116,6 @@ export default function Tasks() {
       }
     },
     [actions, showError],
-  );
-
-  const handleSaveChore = useCallback(
-    async (value: string) => {
-      try {
-        if (modalState?.mode === 'edit') {
-          await actions.renameChore(modalState.chore.id, value.trim());
-        } else {
-          await actions.createChore(value.trim());
-        }
-
-        setModalState(null);
-      } catch (error) {
-        showError(error, 'tasks.manageError');
-      }
-    },
-    [actions, modalState, showError],
   );
 
   const handleUseViewedWeekAsAnchor = useCallback(async () => {
@@ -169,7 +157,6 @@ export default function Tasks() {
       const executeDelete = async () => {
         try {
           await actions.deleteChore(chore.id);
-          setModalState(null);
         } catch (error) {
           showError(error, 'tasks.manageError');
         }
@@ -246,22 +233,19 @@ export default function Tasks() {
         members={members}
         anchorLabel={anchorLabel}
         isSaving={isSaving}
-        onAddTask={() => openTaskModal({ mode: 'create' })}
-        onEditTask={(chore) => openTaskModal({ mode: 'edit', chore })}
+        onAddTask={() => setIsAddModalVisible(true)}
         onMoveTask={handleMoveChore}
         onMoveMember={handleMoveMember}
+        onRenameTask={async (id, name) => { await actions.renameChore(id, name); }}
+        onDeleteTask={confirmDeleteChore}
         onUseViewedWeekAsAnchor={() => void handleUseViewedWeekAsAnchor()}
-        onShowInfo={(title, message) => showDialog(title, message)}
       />
 
       <InputModal
-        visible={!!modalState}
-        onClose={() => setModalState(null)}
-        onSave={(value) => void handleSaveChore(value)}
-        onDelete={modalState?.mode === 'edit' ? () => confirmDeleteChore(modalState.chore) : undefined}
-        deleteTitle={t('tasks.deleteTask')}
-        title={modalState?.mode === 'edit' ? t('tasks.editTask') : t('tasks.addTask')}
-        initialValue={modalState?.mode === 'edit' ? modalState.chore.name : ''}
+        visible={isAddModalVisible}
+        onClose={() => setIsAddModalVisible(false)}
+        onSave={(value) => void handleSaveNewChore(value)}
+        title={t('tasks.addTask')}
         placeholder={t('tasks.taskPlaceholder')}
         loading={isSaving}
         maxLength={30}
@@ -379,11 +363,11 @@ function TaskSettingsModal({
   anchorLabel,
   isSaving,
   onAddTask,
-  onEditTask,
   onMoveTask,
   onMoveMember,
+  onRenameTask,
+  onDeleteTask,
   onUseViewedWeekAsAnchor,
-  onShowInfo,
 }: {
   visible: boolean;
   onClose: () => void;
@@ -392,13 +376,31 @@ function TaskSettingsModal({
   anchorLabel: string | null;
   isSaving: boolean;
   onAddTask: () => void;
-  onEditTask: (chore: HouseTaskChore) => void;
   onMoveTask: (choreId: string, direction: -1 | 1) => Promise<void>;
   onMoveMember: (userId: string, direction: -1 | 1) => Promise<void>;
+  onRenameTask: (choreId: string, newName: string) => Promise<void>;
+  onDeleteTask: (chore: HouseTaskChore) => void;
   onUseViewedWeekAsAnchor: () => void;
-  onShowInfo: (title: string, message: string) => void;
 }) {
   const { t } = useTranslation();
+  const [editingChoreId, setEditingTargetId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+
+  const handleStartEdit = (chore: HouseTaskChore) => {
+    setEditValue(chore.name);
+    setEditingTargetId(chore.id);
+  };
+
+  const handleCancel = () => {
+    setEditingTargetId(null);
+    setEditValue('');
+  };
+
+  const handleSave = async (choreId: string) => {
+    if (!editValue.trim()) return;
+    await onRenameTask(choreId, editValue.trim());
+    setEditingTargetId(null);
+  };
 
   return (
     <BottomSheetModal
@@ -411,7 +413,7 @@ function TaskSettingsModal({
         </View>
       }
     >
-      <View className="bg-surface-container-lowest rounded-[32px] p-6 mb-4 border border-outline-variant/10 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
+      <View className="bg-surface rounded-[32px] p-6 mb-4 border border-outline-variant/10 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
         <View className="flex-row items-center justify-between mb-4">
           <View className="flex-row items-center">
             <Text className="text-2xl mr-3">🧹</Text>
@@ -430,15 +432,22 @@ function TaskSettingsModal({
             <ManageRow
               key={chore.id}
               label={chore.name}
+              isEditing={editingChoreId === chore.id}
+              editValue={editValue}
+              onEditValueChange={setEditValue}
               onMoveUp={index > 0 ? () => void onMoveTask(chore.id, -1) : undefined}
               onMoveDown={index < chores.length - 1 ? () => void onMoveTask(chore.id, 1) : undefined}
-              onEdit={() => onEditTask(chore)}
+              onEdit={() => handleStartEdit(chore)}
+              onCancel={handleCancel}
+              onSave={() => void handleSave(chore.id)}
+              onDelete={() => onDeleteTask(chore)}
+              isLoading={isSaving}
             />
           ))
         )}
       </View>
 
-      <View className="bg-surface-container-lowest rounded-[32px] p-6 mb-4 border border-outline-variant/10 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
+      <View className="bg-surface rounded-[32px] p-6 mb-4 border border-outline-variant/10 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
         <View className="flex-row items-center mb-4">
           <Text className="text-2xl mr-3">👥</Text>
           <Text className="text-lg font-black text-primary uppercase tracking-tight">{t('tasks.rotationOrder')}</Text>
@@ -454,7 +463,7 @@ function TaskSettingsModal({
         ))}
       </View>
 
-      <View className="bg-surface-container-lowest rounded-[32px] p-6 border border-outline-variant/10 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
+      <View className="bg-surface rounded-[32px] p-6 border border-outline-variant/10 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
         <View className="flex-row items-center mb-4">
           <Text className="text-2xl mr-3">🗓️</Text>
           <Text className="text-lg font-black text-primary uppercase tracking-tight">{t('tasks.anchorWeek')}</Text>
@@ -492,31 +501,137 @@ function ManageRow({
   onMoveUp,
   onMoveDown,
   onEdit,
+  isEditing,
+  editValue,
+  onEditValueChange,
+  onSave,
+  onCancel,
+  onDelete,
+  isLoading,
 }: {
   label: string;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
   onEdit?: () => void;
+  isEditing?: boolean;
+  editValue?: string;
+  onEditValueChange?: (val: string) => void;
+  onSave?: () => void;
+  onCancel?: () => void;
+  onDelete?: () => void;
+  isLoading?: boolean;
 }) {
   return (
     <View className="flex-row items-center justify-between py-3 border-t border-outline-variant/10 first:border-t-0">
-      <Text className="text-lg font-semibold text-on-surface flex-1 pr-3">{label}</Text>
+      <View className="flex-1 pr-3">
+        {isEditing ? (
+          <TextInput
+            value={editValue}
+            onChangeText={onEditValueChange}
+            className="text-lg font-bold text-primary p-0"
+            autoFocus
+            maxLength={30}
+          />
+        ) : (
+          <Text className="text-lg font-semibold text-on-surface" numberOfLines={1}>
+            {label}
+          </Text>
+        )}
+      </View>
 
       <View className="flex-row items-center">
-        {onEdit ? <IconButton icon={<Pencil size={16} color={Colors.primary} />} onPress={onEdit} /> : null}
-        <IconButton icon={<ArrowUp size={16} color={Colors.primary} />} onPress={onMoveUp} disabled={!onMoveUp} />
-        <IconButton icon={<ArrowDown size={16} color={Colors.primary} />} onPress={onMoveDown} disabled={!onMoveDown} />
+        {isEditing ? (
+          <InlineEditActions 
+            onSave={onSave} 
+            onCancel={onCancel} 
+            onDelete={onDelete} 
+            disabled={isLoading || !editValue?.trim()} 
+          />
+        ) : (
+          <>
+            {onEdit && <IconButton icon={<Pencil size={16} color={Colors.primary} />} onPress={onEdit} variant="edit" />}
+            <SortableActions onMoveUp={onMoveUp} onMoveDown={onMoveDown} />
+          </>
+        )}
       </View>
     </View>
   );
 }
 
-function IconButton({ icon, onPress, disabled = false }: { icon: React.ReactNode; onPress?: () => void; disabled?: boolean }) {
+function SortableActions({ onMoveUp, onMoveDown }: { onMoveUp?: () => void; onMoveDown?: () => void }) {
+  if (onMoveUp === undefined && onMoveDown === undefined) return null;
+  
+  return (
+    <>
+      <IconButton icon={<ArrowUp size={16} color={Colors.primary} />} onPress={onMoveUp} disabled={!onMoveUp} variant="up" />
+      <IconButton icon={<ArrowDown size={16} color={Colors.primary} />} onPress={onMoveDown} disabled={!onMoveDown} variant="down" />
+    </>
+  );
+}
+
+function InlineEditActions({ 
+  onSave, 
+  onCancel, 
+  onDelete, 
+  disabled 
+}: { 
+  onSave?: () => void; 
+  onCancel?: () => void; 
+  onDelete?: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <>
+      {onDelete && <IconButton icon={<Trash2 size={16} color={Colors.error} />} onPress={onDelete} />}
+      <IconButton icon={<X size={16} color={Colors.onSurfaceVariant} />} onPress={onCancel} />
+      <IconButton 
+        icon={<Check size={16} color={Colors.onPrimary} />} 
+        onPress={onSave} 
+        disabled={disabled}
+        variant="primary"
+      />
+    </>
+  );
+}
+
+function IconButton({ 
+  icon, 
+  onPress, 
+  disabled = false,
+  variant = 'default' 
+}: { 
+  icon: React.ReactNode; 
+  onPress?: () => void; 
+  disabled?: boolean;
+  variant?: 'default' | 'primary' | 'edit' | 'up' | 'down';
+}) {
+  const baseClass = "ml-2 p-3 rounded-2xl border border-outline-variant/10";
+  
+  const getVariantStyles = () => {
+    if (disabled || !onPress) return "bg-surface-dim opacity-40";
+    
+    switch (variant) {
+      case 'primary':
+        return "bg-primary border-primary shadow-sm";
+      case 'edit':
+        return "bg-primary/10 border-primary/10 shadow-sm";
+      case 'up':
+        return "bg-secondary/10 border-secondary/10 shadow-sm";
+      case 'down':
+        return "bg-tertiary/10 border-tertiary/10 shadow-sm";
+      default:
+        return "bg-surface-container-lowest shadow-sm";
+    }
+  };
+
+  const stateClass = getVariantStyles();
+
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled || !onPress}
-      className={`ml-2 p-3 rounded-2xl border border-outline-variant/10 ${disabled || !onPress ? 'bg-surface-dim opacity-40' : 'bg-surface-container-lowest'}`}
+      className={`${baseClass} ${stateClass}`}
+      activeOpacity={0.7}
     >
       {icon}
     </TouchableOpacity>

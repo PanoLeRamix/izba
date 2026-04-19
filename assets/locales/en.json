@@ -9,7 +9,7 @@
     "invalidCode": "Invalid code or house not found",
     "codePlaceholder": "e.g. ABCD1234",
     "houseName": "House-share name",
-    "houseNamePlaceholder": "Your house-share name",
+    "houseNamePlaceholder": "Your house-share",
     "members": "Members",
     "memberName": "Member name",
     "memberNamePlaceholder": "Your name",
@@ -32,7 +32,9 @@
     "deleteIdentity": "Delete Identity",
     "deleteConfirmation": "Are you sure you want to delete your identity? All your planning data will be removed. This cannot be undone.",
     "copied": "Copied!",
-    "copyCode": "Tap to copy"
+    "copyCode": "Tap to copy",
+    "renameHouseTitle": "Rename house?",
+    "renameHouseConfirmation": "Are you sure? This will change the house name for every member of the household."
   },
   "common": {
     "loading": "Loading...",

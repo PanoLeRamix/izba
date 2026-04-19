@@ -59,13 +59,12 @@ export const LanguageToggle = () => {
                 key={lang.code}
                 onPress={() => void selectLanguage(lang.code)}
                 style={{ 
-                  backgroundColor: isSelected ? Colors.primary : Colors.surfaceContainerLow,
+                  backgroundColor: isSelected ? Colors.primary : Colors.surface,
                   borderColor: isSelected ? Colors.primary : Colors.outlineVariant,
                   borderWidth: 1
                 }}
-                className="flex-row items-center p-5 rounded-[2rem]"
-              >
-                <Text className="text-2xl mr-4">{lang.flag}</Text>
+                className="flex-row items-center p-5 rounded-[2rem] shadow-sm"
+              >                <Text className="text-2xl mr-4">{lang.flag}</Text>
                 <Text 
                   className={`flex-1 text-lg font-black ${isSelected ? 'text-on-primary' : 'text-primary'}`}
                 >

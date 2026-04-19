@@ -9,7 +9,7 @@
     "invalidCode": "Code invalide ou coloc introuvable",
     "codePlaceholder": "Ex. : ABCD1234",
     "houseName": "Nom de la coloc",
-    "houseNamePlaceholder": "Le nom de votre colocation",
+    "houseNamePlaceholder": "Ta coloc",
     "members": "Membres",
     "memberName": "Nom du membre",
     "memberNamePlaceholder": "Ton nom",
@@ -32,7 +32,9 @@
     "deleteIdentity": "Supprimer mon identité",
     "deleteConfirmation": "Veux-tu vraiment supprimer ton identité ? Toutes tes données de planning seront supprimées. Cette action est irréversible.",
     "copied": "Copié",
-    "copyCode": "Appuyer pour copier"
+    "copyCode": "Appuyer pour copier",
+    "renameHouseTitle": "Renommer la coloc ?",
+    "renameHouseConfirmation": "Es-tu sûr·e ? Cela va changer le nom de la maison pour tous les membres de la colocation."
   },
   "common": {
     "loading": "Chargement...",
