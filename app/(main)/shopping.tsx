@@ -4,6 +4,7 @@ import { Check, Plus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { InputModal } from '../../components/InputModal';
+import { ShoppingSkeleton } from '../../components/shopping/ShoppingSkeleton';
 import { Colors } from '../../constants/Colors';
 import { LAYOUT } from '../../constants/Layout';
 import { useShoppingList } from '../../hooks/useShoppingList';
@@ -102,6 +103,10 @@ export default function CoursesScreen() {
     [actions, showDialog, t],
   );
 
+  if (isLoading && !activeItems.length && !checkedItems.length) {
+    return <ShoppingSkeleton />;
+  }
+
   return (
     <View className="flex-1 bg-surface" style={{ paddingTop: topPadding }}>
       <View className="px-6 mb-2 justify-center" style={{ height: LAYOUT.HEADER_HEIGHT - 10 }}>
@@ -118,15 +123,6 @@ export default function CoursesScreen() {
         }}
         showsVerticalScrollIndicator={false}
       >
-        {isLoading && !activeItems.length && !checkedItems.length ? (
-          <View
-            className="rounded-[32px] px-6 py-8"
-            style={{ backgroundColor: Colors.surfaceContainerLow, borderColor: Colors.outlineVariant, borderWidth: 1 }}
-          >
-            <Text className="text-base text-on-surface-variant">{t('common.loading')}</Text>
-          </View>
-        ) : null}
-
         {!isLoading && !activeItems.length && !checkedItems.length ? (
           <View
             className="rounded-[32px] px-6 py-8"
