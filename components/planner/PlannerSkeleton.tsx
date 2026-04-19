@@ -19,7 +19,7 @@ export const PlannerSkeleton = () => {
       <View className="px-6 mb-2 flex-row items-center justify-between" style={{ height: LAYOUT.HEADER_HEIGHT - 10 }}>
         <View className="flex-1 mr-4">
           <Skeleton width={128} height={32} variant="primary" className="mb-2" />
-          <Skeleton width={96} height={16} variant="primary-light" />
+          <Skeleton width={96} height={16} variant="primary-container" />
         </View>
         <Skeleton width={96} height={40} borderRadius={16} variant="white" className="border border-outline-variant/10" />
       </View>
@@ -34,8 +34,8 @@ export const PlannerSkeleton = () => {
           >
             <Skeleton width={64} height={64} borderRadius={16} variant="white" className="ml-4 border border-outline-variant/5" />
             <View className="ml-4 flex-1">
-              <Skeleton width="75%" height={16} variant="primary-light" className="mb-2" />
-              <Skeleton width="50%" height={16} variant="primary-light" />
+              <Skeleton width="75%" height={16} variant="primary-container" className="mb-2" />
+              <Skeleton width="50%" height={16} variant="primary-container" />
             </View>
             <View className="w-20 h-full border-l border-outline-variant/5 items-center justify-center">
               <Skeleton.Circle size={56} variant="white" className="border border-outline-variant/5" />

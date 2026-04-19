@@ -205,7 +205,7 @@ export default function Settings() {
         onDelete={editTarget === 'user' ? handleDeleteIdentity : undefined}
         deleteTitle={t('main.deleteIdentity')}
         title={editTarget === 'house' ? t('auth.houseName') : t('auth.memberName')}
-        initialValue={editTarget === 'house' ? house?.name || houseName : user?.name || userName}
+        initialValue={editTarget === 'house' ? house?.name ?? houseName ?? undefined : user?.name ?? userName ?? undefined}
         placeholder={editTarget === 'house' ? t('auth.houseNamePlaceholder') : t('auth.memberNamePlaceholder')}
         loading={updateMutation.isPending}
         maxLength={20}

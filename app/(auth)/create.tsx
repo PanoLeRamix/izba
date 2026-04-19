@@ -104,7 +104,7 @@ export default function CreateHouse() {
                 </View>
               </TouchableOpacity>
 
-              <Button title={t('auth.continue')} onPress={() => void handleContinue()} className="w-full" />
+              <Button title={t('auth.continue')} onPress={() => void handleContinue()} />
             </View>
           </View>
         ) : null}

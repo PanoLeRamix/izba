@@ -63,7 +63,7 @@ export default function AuthIndex() {
               setErrorMsg(null);
             }}
             autoCapitalize="characters"
-            error={!!errorMsg}
+            error={errorMsg ?? undefined}
           />
 
           <Button title={t('auth.joinHouse')} onPress={handleJoin} loading={joinMutation.isPending} disabled={!code.trim()} />
