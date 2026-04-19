@@ -84,7 +84,7 @@
     "deleteTask": "Supprimer la tâche",
     "deleteTaskConfirmation": "Veux-tu vraiment supprimer \"{{task}}\" ?",
     "taskPlaceholder": "Ex. : Salle de bain",
-    "noTasksTitle": "Aucune tâche",
+    "noTasksTitle": "Pas de tâche cette semaine",
     "noTasksMessage": "Ajoute quelques tâches récurrentes pour lancer la rotation.",
     "noTasksManageHint": "Ajoute votre première tâche pour démarrer la roue.",
     "noMembersTitle": "Aucun membre",

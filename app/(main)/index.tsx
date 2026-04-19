@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
-import { ChefHat } from 'lucide-react-native';
+import { ChefHat, ListTodo, ShoppingCart } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
@@ -65,20 +65,22 @@ export default function Dashboard() {
         }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Tonight's Kitchen Tile (Whole Clickable) */}
+        {/* Tonight's Kitchen Tile */}
         <TouchableOpacity 
           activeOpacity={0.9}
           onPress={() => router.push('/planner')}
-          className="bg-surface-container-low rounded-[2rem] p-8 mb-6 relative overflow-hidden"
-          style={{ minHeight: 200 }}
+          className="bg-surface-container-low rounded-xl p-6 mb-4 relative overflow-hidden border border-outline-variant/10 shadow-sm"
+          style={{ minHeight: 160 }}
         >
-          <View className="flex-row justify-between items-end mb-6">
-            <Text className="text-3xl font-bold text-primary">
-              {t('dashboard.kitchen')}
-            </Text>
+          {/* Center Right Icon Anchor */}
+          <View 
+            className="absolute right-6 opacity-20"
+            style={{ top: '50%', marginTop: -16 }}
+          >
+            <ChefHat size={32} color={Colors.primary} strokeWidth={2.5} />
           </View>
 
-          <View className="flex-row gap-8">
+          <View className="flex-row gap-6">
             {/* Chef Information */}
             <View className="flex-1">
               <View className="bg-surface p-4 rounded-2xl flex-row items-center border border-outline-variant/10 shadow-sm">
@@ -86,10 +88,10 @@ export default function Dashboard() {
                   <ChefHat size={20} color={Colors.onPrimary} strokeWidth={2.5} />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-[1.5px] mb-0.5">
+                  <Text className="text-[10px] font-black text-on-surface-variant/60 uppercase tracking-[1.5px] mb-0.5">
                     {t('dashboard.chef')}
                   </Text>
-                  <Text className="font-bold text-primary text-lg">
+                  <Text className="font-bold text-primary text-lg leading-tight">
                     {cooksLabel}
                   </Text>
                 </View>
@@ -100,7 +102,7 @@ export default function Dashboard() {
           <View className="mt-6 space-y-4">
             {/* Attendees Section */}
             <View>
-              <Text className="text-[10px] font-bold text-secondary uppercase tracking-[1.5px] mb-2">
+              <Text className="text-[10px] font-black text-secondary uppercase tracking-[1.5px] mb-2">
                 {t('dashboard.eatingIn')}
               </Text>
               <View className="flex-row flex-wrap gap-x-3 gap-y-1">
@@ -140,38 +142,21 @@ export default function Dashboard() {
                 </View>
               </View>
             )}
-
-            {/* Not Present Section */}
-            {todayData?.unavailable && todayData.unavailable.length > 0 && (
-              <View>
-                <Text className="text-[10px] font-bold text-error uppercase tracking-[1.5px] mb-2">
-                  {t('dashboard.notThere')}
-                </Text>
-                <View className="flex-row flex-wrap gap-x-3 gap-y-1">
-                  {todayData.unavailable.map((person) => (
-                    <MemberChip 
-                      key={`dash-absent-${person.id}`} 
-                      name={person.name} 
-                      isMe={person.id === userId} 
-                      variant="unavailable" 
-                    />
-                  ))}
-                </View>
-              </View>
-            )}
           </View>
         </TouchableOpacity>
 
-        {/* My Tasks Tile (Whole Clickable) */}
+        {/* My Tasks Tile */}
         <TouchableOpacity 
           activeOpacity={0.9}
           onPress={() => router.push('/tasks')}
-          className="bg-primary rounded-[2rem] p-8 relative overflow-hidden"
+          className="bg-primary rounded-xl p-8 mb-4 relative overflow-hidden"
         >
-          <View className="flex-row justify-between items-start mb-8">
-            <Text className="text-2xl font-bold text-primary-fixed">
-              {t('dashboard.myTasks')}
-            </Text>
+          {/* Center Right Icon Anchor */}
+          <View 
+            className="absolute right-6 opacity-20"
+            style={{ top: '50%', marginTop: -16 }}
+          >
+            <ListTodo size={32} color={Colors.onPrimary} strokeWidth={2.5} />
           </View>
 
           <View className="space-y-5">
@@ -183,7 +168,7 @@ export default function Dashboard() {
               myTasks.map((assignment) => (
                 <View key={assignment.chore.id} className="flex-row items-center gap-4">
                   <View className="w-2.5 h-2.5 rounded-full bg-secondary-fixed" />
-                  <Text className="font-medium text-lg text-primary-fixed leading-tight">
+                  <Text className="font-bold text-lg text-primary-fixed leading-tight">
                     {assignment.chore.name}
                   </Text>
                 </View>
@@ -192,16 +177,18 @@ export default function Dashboard() {
           </View>
         </TouchableOpacity>
 
-        {/* Shopping List Tile (Whole Clickable) */}
+        {/* Shopping List Tile */}
         <TouchableOpacity 
           activeOpacity={0.9}
           onPress={() => router.push('/shopping')}
-          className="bg-secondary-container rounded-[2rem] p-8 mt-6 relative overflow-hidden"
+          className="bg-secondary-container rounded-xl p-8 relative overflow-hidden"
         >
-          <View className="flex-row justify-between items-start mb-8">
-            <Text className="text-2xl font-bold text-primary">
-              {t('dashboard.shopping')}
-            </Text>
+          {/* Center Right Icon Anchor */}
+          <View 
+            className="absolute right-6 opacity-20"
+            style={{ top: '50%', marginTop: -16 }}
+          >
+            <ShoppingCart size={32} color={Colors.primary} strokeWidth={2.5} />
           </View>
 
           <View className="flex-row flex-wrap gap-2">

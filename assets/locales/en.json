@@ -84,7 +84,7 @@
     "deleteTask": "Delete task",
     "deleteTaskConfirmation": "Do you really want to delete \"{{task}}\"?",
     "taskPlaceholder": "e.g. Bathroom",
-    "noTasksTitle": "No tasks yet",
+    "noTasksTitle": "No tasks this week",
     "noTasksMessage": "Add recurring tasks to start the rotation.",
     "noTasksManageHint": "Add your first task to start the chore wheel.",
     "noMembersTitle": "No members yet",
