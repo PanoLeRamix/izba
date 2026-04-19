@@ -17,7 +17,7 @@ export const PlannerSkeleton = () => {
     <Skeleton.Screen 
       headerTitleWidth={128} 
       headerSubtitleWidth={96}
-      isScrollable={false}
+      isScrollable={true}
     >
       {/* Tiles Skeleton */}
       <View>

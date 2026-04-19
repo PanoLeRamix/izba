@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { View, type ViewStyle } from 'react-native';
+import { ScrollView, View, type ViewStyle } from 'react-native';
 import { isToday, type Locale } from 'date-fns';
 import { DayTile } from './DayTile';
 import { type PlannerStatus } from '../../services/planner';
@@ -48,30 +48,36 @@ export const WeekPage = memo(({ item, windowWidth, onToggleStatus, onShowDetails
   };
 
   return (
-    <View style={containerStyle} className="px-6">
-      {item.days.map((day) => {
-        const dayPlan = userPlans[day.dateKey] || { status: 'none', isCooking: false, guestCount: 0 };
-        const dayData = processedData[day.dateKey] || { eaters: [], unavailable: [], uncertain: [], totalCount: 0, cooks: [] };
+    <ScrollView 
+      style={containerStyle} 
+      className="px-6"
+      showsVerticalScrollIndicator={false}
+    >
+      <View className="pb-4">
+        {item.days.map((day) => {
+          const dayPlan = userPlans[day.dateKey] || { status: 'none', isCooking: false, guestCount: 0 };
+          const dayData = processedData[day.dateKey] || { eaters: [], unavailable: [], uncertain: [], totalCount: 0, cooks: [] };
 
-        return (
-          <DayTile
-            key={day.dateKey}
-            date={day.date}
-            dateKey={day.dateKey}
-            status={dayPlan.status}
-            isUserCooking={dayPlan.isCooking}
-            userGuestCount={dayPlan.guestCount}
-            onToggleStatus={onToggleStatus}
-            onShowDetails={onShowDetails}
-            locale={locale}
-            isToday={isToday(day.date)}
-            tileHeight={tileHeight}
-            eaters={dayData.eaters}
-            eatersCount={dayData.totalCount}
-            cookName={dayData.cooks.map((user) => user.name).join(', ')}
-          />
-        );
-      })}
-    </View>
+          return (
+            <DayTile
+              key={day.dateKey}
+              date={day.date}
+              dateKey={day.dateKey}
+              status={dayPlan.status}
+              isUserCooking={dayPlan.isCooking}
+              userGuestCount={dayPlan.guestCount}
+              onToggleStatus={onToggleStatus}
+              onShowDetails={onShowDetails}
+              locale={locale}
+              isToday={isToday(day.date)}
+              tileHeight={tileHeight}
+              eaters={dayData.eaters}
+              eatersCount={dayData.totalCount}
+              cookName={dayData.cooks.map((user) => user.name).join(', ')}
+            />
+          );
+        })}
+      </View>
+    </ScrollView>
   );
 });

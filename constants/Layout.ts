@@ -18,7 +18,11 @@ export const LAYOUT = {
   // Tile Dimensions
   TILE_GAP_TOTAL: 60,
   TILE_ROWS: 7,
-  getTileHeight: (availableHeight: number) => Math.floor((availableHeight - LAYOUT.TILE_GAP_TOTAL) / LAYOUT.TILE_ROWS),
+  MIN_TILE_HEIGHT: 60,
+  getTileHeight: (availableHeight: number) => {
+    const calculated = Math.floor((availableHeight - LAYOUT.TILE_GAP_TOTAL) / LAYOUT.TILE_ROWS);
+    return Math.max(calculated, LAYOUT.MIN_TILE_HEIGHT);
+  },
   
   // Shadows
   SHADOW_TODAY: { width: 0, height: 6 },
