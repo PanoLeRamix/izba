@@ -105,12 +105,12 @@
   },
   "shopping": {
     "title": "Shopping list",
-    "subtitle": "Everyone can add what needs to be bought, then check it off once it is done.",
     "addAction": "Add",
     "addTitle": "Add an item",
     "placeholder": "e.g. Milk",
     "emptyTitle": "Nothing on the list",
     "emptyMessage": "Add a first item to start the shopping list.",
+    "deleteInfo": "Checked items are automatically deleted after one week.",
     "createError": "The item could not be added.",
     "updateError": "The item could not be updated."
   },

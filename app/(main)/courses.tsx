@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { Check, Circle, Plus } from 'lucide-react-native';
+import { Check, Plus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { InputModal } from '../../components/InputModal';
@@ -37,7 +37,16 @@ function ShoppingItemRow({
           borderWidth: 1.5,
         }}
       >
-        {isChecked ? <Check size={16} color={Colors.onPrimary} /> : <Circle size={14} color={Colors.onSurfaceVariant} />}
+        {isChecked ? (
+          <Check size={16} color={Colors.onPrimary} />
+        ) : (
+          <View
+            className="h-3 w-3 rounded-full"
+            style={{
+              backgroundColor: 'transparent',
+            }}
+          />
+        )}
       </View>
       <Text
         className="flex-1 text-base"
@@ -95,19 +104,20 @@ export default function CoursesScreen() {
 
   return (
     <View className="flex-1 bg-surface" style={{ paddingTop: topPadding }}>
+      <View className="px-6 mb-2 justify-center" style={{ height: LAYOUT.HEADER_HEIGHT - 10 }}>
+        <Text className="text-3xl font-black text-primary uppercase">{t('tabs.courses')}</Text>
+      </View>
+
       <ScrollView
+        className="flex-1"
         contentContainerStyle={{
           paddingHorizontal: LAYOUT.BASE_SCREEN_PADDING,
           paddingBottom: bottomPadding,
+          paddingTop: 12,
           gap: 16,
         }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="mb-2">
-          <Text className="text-4xl font-black text-primary">{t('shopping.title')}</Text>
-          <Text className="mt-3 text-base leading-6 text-on-surface-variant">{t('shopping.subtitle')}</Text>
-        </View>
-
         {isLoading && !activeItems.length && !checkedItems.length ? (
           <View
             className="rounded-[32px] px-6 py-8"
@@ -141,6 +151,16 @@ export default function CoursesScreen() {
         {checkedItems.map((item) => (
           <ShoppingItemRow key={item.id} item={item} onPress={handleToggleItem} />
         ))}
+
+        <View className="flex-row items-start pt-4">
+          <View
+            className="mr-3 h-5 w-5 items-center justify-center rounded-full"
+            style={{ backgroundColor: Colors.surfaceContainerHigh }}
+          >
+            <Text className="text-[11px] font-black text-on-surface-variant">i</Text>
+          </View>
+          <Text className="flex-1 text-sm leading-6 text-on-surface-variant">{t('shopping.deleteInfo')}</Text>
+        </View>
       </ScrollView>
 
       <TouchableOpacity

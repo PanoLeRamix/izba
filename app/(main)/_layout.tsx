@@ -7,6 +7,13 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 
+type TabDefinition = {
+  name: 'index' | 'planner' | 'tasks' | 'courses' | 'settings';
+  routeName: string;
+  title: string;
+  Icon: LucideIcon;
+};
+
 function TabBarButton({
   label,
   Icon,
@@ -56,6 +63,13 @@ export default function MainLayout() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
+  const tabs: TabDefinition[] = [
+    { name: 'index', routeName: '', title: t('tabs.dashboard'), Icon: LayoutDashboard },
+    { name: 'planner', routeName: 'planner', title: t('tabs.planner'), Icon: CalendarDays },
+    { name: 'tasks', routeName: 'tasks', title: t('tabs.tasks'), Icon: ListTodo },
+    { name: 'courses', routeName: 'courses', title: t('tabs.courses'), Icon: ShoppingCart },
+    { name: 'settings', routeName: 'settings', title: t('tabs.settings'), Icon: Settings },
+  ];
   const createTabButton =
     (routeName: string, label: string, Icon: LucideIcon) => (props: BottomTabBarButtonProps) => {
       const isSelected = pathname === `/${routeName}` || pathname.startsWith(`/${routeName}/`);
@@ -81,41 +95,16 @@ export default function MainLayout() {
         },
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: t('tabs.dashboard'),
-          tabBarButton: createTabButton('', t('tabs.dashboard'), LayoutDashboard),
-        }}
-      />
-      <Tabs.Screen
-        name="planner"
-        options={{
-          title: t('tabs.planner'),
-          tabBarButton: createTabButton('planner', t('tabs.planner'), CalendarDays),
-        }}
-      />
-      <Tabs.Screen
-        name="tasks"
-        options={{
-          title: t('tabs.tasks'),
-          tabBarButton: createTabButton('tasks', t('tabs.tasks'), ListTodo),
-        }}
-      />
-      <Tabs.Screen
-        name="courses"
-        options={{
-          title: t('shopping.title'),
-          tabBarButton: createTabButton('courses', t('tabs.courses'), ShoppingCart),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: t('tabs.settings'),
-          tabBarButton: createTabButton('settings', t('tabs.settings'), Settings),
-        }}
-      />
+      {tabs.map(({ name, routeName, title, Icon }) => (
+        <Tabs.Screen
+          key={name}
+          name={name}
+          options={{
+            title,
+            tabBarButton: createTabButton(routeName, title, Icon),
+          }}
+        />
+      ))}
     </Tabs>
   );
 }

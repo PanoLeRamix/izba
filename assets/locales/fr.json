@@ -105,12 +105,12 @@
   },
   "shopping": {
     "title": "Liste de courses",
-    "subtitle": "Tout le monde peut ajouter ce qu'il faut acheter, puis cocher quand c'est pris.",
     "addAction": "Ajouter",
     "addTitle": "Ajouter un article",
     "placeholder": "Ex. : Lait",
     "emptyTitle": "Rien sur la liste",
     "emptyMessage": "Ajoute un premier article pour démarrer la liste de courses.",
+    "deleteInfo": "Les articles cochés sont supprimés automatiquement après une semaine.",
     "createError": "Impossible d'ajouter cet article.",
     "updateError": "Impossible de mettre à jour cet article."
   },
