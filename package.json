@@ -8,6 +8,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "build": "expo export --platform web",
+    "postbuild": "cp dist/index.html dist/404.html",
     "typecheck": "node --stack-size=10000 ./node_modules/typescript/bin/tsc --noEmit",
     "supabase:push": "supabase db push"
   },
