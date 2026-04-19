@@ -103,6 +103,17 @@
     "anchorError": "Impossible de mettre à jour la semaine de départ.",
     "manageError": "Impossible de mettre à jour les réglages des tâches."
   },
+  "shopping": {
+    "title": "Liste de courses",
+    "subtitle": "Tout le monde peut ajouter ce qu'il faut acheter, puis cocher quand c'est pris.",
+    "addAction": "Ajouter",
+    "addTitle": "Ajouter un article",
+    "placeholder": "Ex. : Lait",
+    "emptyTitle": "Rien sur la liste",
+    "emptyMessage": "Ajoute un premier article pour démarrer la liste de courses.",
+    "createError": "Impossible d'ajouter cet article.",
+    "updateError": "Impossible de mettre à jour cet article."
+  },
   "dashboard": {
     "kitchen": "La cuisine ce soir",
     "viewSchedule": "Voir tout le planning",
@@ -116,6 +127,7 @@
     "dashboard": "Dashboard",
     "planner": "Planning",
     "tasks": "Tâches",
+    "courses": "Courses",
     "settings": "Réglages"
   }
 }

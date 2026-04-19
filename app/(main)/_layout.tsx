@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import type { BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
 import { Tabs, usePathname } from 'expo-router';
-import { CalendarDays, LayoutDashboard, ListTodo, Settings, type LucideIcon } from 'lucide-react-native';
+import { CalendarDays, LayoutDashboard, ListTodo, Settings, ShoppingCart, type LucideIcon } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
@@ -100,6 +100,13 @@ export default function MainLayout() {
         options={{
           title: t('tabs.tasks'),
           tabBarButton: createTabButton('tasks', t('tabs.tasks'), ListTodo),
+        }}
+      />
+      <Tabs.Screen
+        name="courses"
+        options={{
+          title: t('shopping.title'),
+          tabBarButton: createTabButton('courses', t('tabs.courses'), ShoppingCart),
         }}
       />
       <Tabs.Screen

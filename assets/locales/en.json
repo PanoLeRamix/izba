@@ -103,6 +103,17 @@
     "anchorError": "The anchor week could not be updated.",
     "manageError": "The task settings could not be updated."
   },
+  "shopping": {
+    "title": "Shopping list",
+    "subtitle": "Everyone can add what needs to be bought, then check it off once it is done.",
+    "addAction": "Add",
+    "addTitle": "Add an item",
+    "placeholder": "e.g. Milk",
+    "emptyTitle": "Nothing on the list",
+    "emptyMessage": "Add a first item to start the shopping list.",
+    "createError": "The item could not be added.",
+    "updateError": "The item could not be updated."
+  },
   "dashboard": {
     "kitchen": "Tonight's Kitchen",
     "viewSchedule": "View Full Schedule",
@@ -116,6 +127,7 @@
     "dashboard": "Dashboard",
     "planner": "Planning",
     "tasks": "Tasks",
+    "courses": "Groceries",
     "settings": "Settings"
   }
 }
