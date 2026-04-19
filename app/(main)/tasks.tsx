@@ -418,9 +418,8 @@ function TaskSettingsModal({
             <Text className="text-lg font-black text-primary uppercase tracking-tight">{t('tasks.manageTasks')}</Text>
           </View>
 
-          <TouchableOpacity onPress={onAddTask} className="bg-primary px-4 py-2 rounded-2xl flex-row items-center">
-            <Plus size={16} color={Colors.onPrimary} />
-            <Text className="ml-2 text-sm font-bold text-on-primary">{t('tasks.addTask')}</Text>
+          <TouchableOpacity onPress={onAddTask} className="bg-primary p-2.5 rounded-2xl items-center justify-center">
+            <Plus size={20} color={Colors.onPrimary} strokeWidth={3} />
           </TouchableOpacity>
         </View>
 
@@ -456,18 +455,19 @@ function TaskSettingsModal({
       </View>
 
       <View className="bg-surface-container-lowest rounded-[32px] p-6 border border-outline-variant/10 shadow-sm" style={{ borderRadius: LAYOUT.MODAL_INNER_RADIUS }}>
-        <View className="flex-row items-center justify-between mb-4">
-          <View className="flex-row items-center">
-            <Text className="text-2xl mr-3">🗓️</Text>
-            <Text className="text-lg font-black text-primary uppercase tracking-tight">{t('tasks.anchorWeek')}</Text>
-          </View>
-
-          <TouchableOpacity onPress={() => onShowInfo(t('tasks.anchorWeekInfoTitle'), t('tasks.anchorWeekInfoMessage'))} className="p-2 rounded-xl bg-primary/5">
-            <CircleHelp size={18} color={Colors.primary} />
-          </TouchableOpacity>
+        <View className="flex-row items-center mb-4">
+          <Text className="text-2xl mr-3">🗓️</Text>
+          <Text className="text-lg font-black text-primary uppercase tracking-tight">{t('tasks.anchorWeek')}</Text>
         </View>
 
-        <Text className="text-sm font-medium text-on-surface-variant mb-4">
+        <View className="bg-primary/5 p-4 rounded-2xl mb-4 border border-primary/10">
+          <Text className="text-sm font-bold text-primary mb-1">{t('tasks.anchorWeekInfoTitle')}</Text>
+          <Text className="text-xs leading-5 text-on-surface-variant">
+            {t('tasks.anchorWeekInfoMessage')}
+          </Text>
+        </View>
+
+        <Text className="text-sm font-medium text-on-surface-variant mb-4 px-1">
           {anchorLabel ? t('tasks.anchorWeekValue', { date: anchorLabel }) : t('tasks.anchorWeekUnset')}
         </Text>
 
