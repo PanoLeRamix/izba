@@ -24,6 +24,10 @@ export default function Dashboard() {
 
   const todayKey = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
   const todayData = processedData[todayKey];
+  const cooksLabel = useMemo(() => {
+    if (!todayData?.cooks?.length) return t('planner.noOneCooking');
+    return todayData.cooks.map((cook) => cook.name).join(', ');
+  }, [t, todayData?.cooks]);
 
   const myTasks = useMemo(() => {
     if (!userId) return [];
@@ -66,11 +70,6 @@ export default function Dashboard() {
           className="bg-surface-container-low rounded-[2rem] p-8 mb-6 relative overflow-hidden"
           style={{ minHeight: 200 }}
         >
-          {/* Decorative Background Element */}
-          <View 
-            className="absolute -top-12 -right-12 w-48 h-48 bg-secondary-container/30 rounded-full"
-          />
-
           <View className="flex-row justify-between items-end mb-6">
             <Text className="text-3xl font-bold text-primary">
               {t('dashboard.kitchen')}
@@ -88,8 +87,8 @@ export default function Dashboard() {
                   <Text className="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-[1.5px] mb-0.5">
                     {t('dashboard.chef')}
                   </Text>
-                  <Text className="font-bold text-primary text-lg" numberOfLines={1}>
-                    {todayData?.cooks[0]?.name || t('planner.noOneCooking')}
+                  <Text className="font-bold text-primary text-lg">
+                    {cooksLabel}
                   </Text>
                 </View>
               </View>

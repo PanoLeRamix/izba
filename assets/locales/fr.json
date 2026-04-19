@@ -94,6 +94,7 @@
     "anchorWeekValue": "Semaine de référence : {{date}}",
     "anchorWeekUnset": "Aucune semaine de référence définie pour le moment.",
     "useViewedWeekAsAnchor": "Utiliser cette semaine comme départ",
+    "anchorWeekConfirmation": "Utiliser la semaine du {{date}} comme semaine de départ ?",
     "settingsTitle": "Réglages des tâches",
     "settingsInfo": "Gérez les tâches récurrentes, l'ordre de rotation de la coloc et la semaine de départ utilisée pour la roue.",
     "anchorWeekInfoTitle": "À quoi sert la semaine de départ ?",

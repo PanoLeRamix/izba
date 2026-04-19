@@ -131,12 +131,38 @@ export default function Tasks() {
   );
 
   const handleUseViewedWeekAsAnchor = useCallback(async () => {
+    const message = t('tasks.anchorWeekConfirmation', { date: viewedWeekLabel });
+
+    if (Platform.OS === 'web') {
+      if (!confirm(message)) {
+        return;
+      }
+    } else {
+      const isConfirmed = await new Promise<boolean>((resolve) => {
+        Alert.alert(t('tasks.anchorWeek'), message, [
+          {
+            text: t('common.back'),
+            style: 'cancel',
+            onPress: () => resolve(false),
+          },
+          {
+            text: t('common.confirm'),
+            onPress: () => resolve(true),
+          },
+        ]);
+      });
+
+      if (!isConfirmed) {
+        return;
+      }
+    }
+
     try {
       await actions.syncAnchorToViewedWeek();
     } catch (error) {
       showError(error, 'tasks.anchorError');
     }
-  }, [actions, showError]);
+  }, [actions, showError, t, viewedWeekLabel]);
 
   const confirmDeleteChore = useCallback(
     (chore: HouseTaskChore) => {

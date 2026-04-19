@@ -94,6 +94,7 @@
     "anchorWeekValue": "Reference week: {{date}}",
     "anchorWeekUnset": "No reference week has been set yet.",
     "useViewedWeekAsAnchor": "Use this week as anchor",
+    "anchorWeekConfirmation": "Use {{date}} as the anchor week?",
     "settingsTitle": "Task settings",
     "settingsInfo": "Manage recurring tasks, house rotation order, and the week used as the starting point for the wheel.",
     "anchorWeekInfoTitle": "What is the anchor week?",
