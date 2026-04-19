@@ -105,7 +105,7 @@ export default function CoursesScreen() {
   return (
     <View className="flex-1 bg-surface" style={{ paddingTop: topPadding }}>
       <View className="px-6 mb-2 justify-center" style={{ height: LAYOUT.HEADER_HEIGHT - 10 }}>
-        <Text className="text-3xl font-black text-primary uppercase">{t('tabs.courses')}</Text>
+        <Text className="text-3xl font-black text-primary uppercase">{t('tabs.shopping')}</Text>
       </View>
 
       <ScrollView

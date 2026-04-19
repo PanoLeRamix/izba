@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 
 type TabDefinition = {
-  name: 'index' | 'planner' | 'tasks' | 'courses' | 'settings';
+  name: 'index' | 'planner' | 'tasks' | 'shopping' | 'settings';
   routeName: string;
   title: string;
   Icon: LucideIcon;
@@ -67,7 +67,7 @@ export default function MainLayout() {
     { name: 'index', routeName: '', title: t('tabs.dashboard'), Icon: LayoutDashboard },
     { name: 'planner', routeName: 'planner', title: t('tabs.planner'), Icon: CalendarDays },
     { name: 'tasks', routeName: 'tasks', title: t('tabs.tasks'), Icon: ListTodo },
-    { name: 'courses', routeName: 'courses', title: t('tabs.courses'), Icon: ShoppingCart },
+    { name: 'shopping', routeName: 'shopping', title: t('tabs.shopping'), Icon: ShoppingCart },
     { name: 'settings', routeName: 'settings', title: t('tabs.settings'), Icon: Settings },
   ];
   const createTabButton =

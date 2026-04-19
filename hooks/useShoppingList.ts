@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
 import { shoppingService, type HouseShoppingItem } from '../services/shopping';
@@ -35,6 +35,7 @@ export function useShoppingList() {
   const { houseId, userToken } = useAuthStore();
   const queryClient = useQueryClient();
   const queryKey = getShoppingQuery(houseId);
+  const [deferredCheckedIds, setDeferredCheckedIds] = useState<string[]>([]);
 
   const { data: items = [], isLoading, refetch, isRefetching } = useQuery({
     queryKey,
@@ -58,20 +59,31 @@ export function useShoppingList() {
     onMutate: async ({ itemId, checked }) => {
       await queryClient.cancelQueries({ queryKey });
       const previousItems = queryClient.getQueryData<HouseShoppingItem[]>(queryKey) ?? [];
+      const previousDeferredCheckedIds = deferredCheckedIds;
       const optimisticCheckedAt = checked ? new Date().toISOString() : null;
+      const optimisticUpdatedAt = new Date().toISOString();
+
+      setDeferredCheckedIds((current) => {
+        if (checked) {
+          return current.includes(itemId) ? current : [...current, itemId];
+        }
+
+        return current.filter((id) => id !== itemId);
+      });
 
       queryClient.setQueryData<HouseShoppingItem[]>(
         queryKey,
-        sortItems(
-          previousItems.map((item) =>
-            item.id === itemId ? { ...item, checked_at: optimisticCheckedAt, updated_at: new Date().toISOString() } : item,
-          ),
+        previousItems.map((item) =>
+          item.id === itemId ? { ...item, checked_at: optimisticCheckedAt, updated_at: optimisticUpdatedAt } : item,
         ),
       );
 
-      return { previousItems };
+      return { previousItems, previousDeferredCheckedIds };
     },
     onError: (_error, _variables, context) => {
+      if (context?.previousDeferredCheckedIds) {
+        setDeferredCheckedIds(context.previousDeferredCheckedIds);
+      }
       if (context?.previousItems) {
         queryClient.setQueryData(queryKey, context.previousItems);
       }
@@ -80,17 +92,20 @@ export function useShoppingList() {
       if (data) {
         queryClient.setQueryData<HouseShoppingItem[]>(
           queryKey,
-          (current = []) => sortItems(current.map((item) => (item.id === data.id ? data : item))),
+          (current = []) => current.map((item) => (item.id === data.id ? data : item)),
         );
       }
     },
-    onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey });
-    },
   });
 
-  const activeItems = useMemo(() => items.filter((item) => !item.checked_at), [items]);
-  const checkedItems = useMemo(() => items.filter((item) => !!item.checked_at), [items]);
+  const activeItems = useMemo(
+    () => items.filter((item) => !item.checked_at || deferredCheckedIds.includes(item.id)),
+    [deferredCheckedIds, items],
+  );
+  const checkedItems = useMemo(
+    () => items.filter((item) => !!item.checked_at && !deferredCheckedIds.includes(item.id)),
+    [deferredCheckedIds, items],
+  );
 
   const createItem = useCallback(
     async (name: string) => {
