@@ -77,35 +77,12 @@ export const DetailModal = ({
         onClose={onClose}
         backgroundColor={Colors.surfaceContainerLow}
         header={
-          <View className="flex-row items-center justify-between mb-8">
-            <View className="flex-1 mr-2">
-              {date ? (
-                <Text className="text-3xl font-black text-primary uppercase leading-tight">
-                  {format(date, 'EEE', { locale })}
-                  {'\n'}
-                  {format(date, 'd MMMM', { locale })}
-                </Text>
-              ) : null}
-            </View>
-
-            <TouchableOpacity
-              onPress={() => onToggleStatus(dateKey)}
-              activeOpacity={0.7}
-              style={{
-                backgroundColor: statusStyle.bg,
-                borderColor: statusStyle.border,
-              }}
-              className="px-5 py-3 items-center justify-center rounded-2xl border shadow-sm"
-            >
-              <Text
-                className="font-black uppercase tracking-[1.5px] text-[10px]"
-                style={{
-                  color: statusStyle.text,
-                }}
-              >
-                {t(`planner.status.${status}`)}
+          <View className="mb-8 flex-row items-center justify-between">
+            {date ? (
+              <Text className="text-3xl font-black text-primary uppercase leading-tight">
+                {format(date, 'EEEE d MMMM', { locale })}
               </Text>
-            </TouchableOpacity>
+            ) : null}
           </View>
         }
       >

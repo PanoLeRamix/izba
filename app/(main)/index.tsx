@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
+import { enUS, fr } from 'date-fns/locale';
 import { ChefHat, ListTodo, ShoppingCart } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,7 +16,8 @@ import { MemberChip } from '../../components/MemberChip';
 import { DashboardSkeleton } from '../../components/DashboardSkeleton';
 
 export default function Dashboard() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === 'fr' ? fr : enUS;
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { userId, userName, houseName } = useAuthStore();
@@ -49,10 +51,10 @@ export default function Dashboard() {
       {/* Fixed Header */}
       <View className="px-6 mb-2 justify-center" style={{ height: LAYOUT.HEADER_HEIGHT - 10 }}>
         <Text className="text-3xl font-black text-primary uppercase">
-          {t('tabs.dashboard')}
+          {t('common.today')}
         </Text>
         <Text className="text-xs font-bold text-primary-container uppercase opacity-60">
-          {userName} — {houseName}
+          {format(new Date(), 'EEEE d MMMM', { locale })}
         </Text>
       </View>
 
@@ -137,6 +139,25 @@ export default function Dashboard() {
                       isMe={person.id === userId} 
                       note={person.note} 
                       variant="uncertain" 
+                    />
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Not There tonight */}
+            {todayData?.unavailable && todayData.unavailable.length > 0 && (
+              <View>
+                <Text className="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-[1.5px] mb-2">
+                  {t('dashboard.notThere')}
+                </Text>
+                <View className="flex-row flex-wrap gap-x-3 gap-y-1">
+                  {todayData.unavailable.map((person) => (
+                    <MemberChip 
+                      key={`dash-unavailable-${person.id}`} 
+                      name={person.name} 
+                      isMe={person.id === userId} 
+                      variant="unavailable" 
                     />
                   ))}
                 </View>
