@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
+import { LanguageToggle } from '../../components/LanguageToggle';
 import { Colors } from '../../constants/Colors';
 import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
 import { authService } from '../../services/auth';
@@ -60,9 +61,12 @@ export default function CreateHouse() {
         }}
         className="flex-1 bg-surface px-6"
       >
-        <TouchableOpacity onPress={() => router.back()} className="py-4 mb-4">
-          <ChevronLeft size={24} color={Colors.primary} />
-        </TouchableOpacity>
+        <View className="flex-row items-center justify-between py-4 mb-4">
+          <TouchableOpacity onPress={() => router.back()}>
+            <ChevronLeft size={24} color={Colors.primary} />
+          </TouchableOpacity>
+          <LanguageToggle variant="discrete" />
+        </View>
 
         <Text className="text-3xl font-bold text-primary mb-8">{t('auth.createHouse')}</Text>
 

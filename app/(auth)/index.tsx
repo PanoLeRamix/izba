@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
+import { LanguageToggle } from '../../components/LanguageToggle';
 import { authService } from '../../services/auth';
 import { useAuthStore } from '../../store/authStore';
 import { isNetworkError } from '../../utils/errors';
@@ -46,12 +47,15 @@ export default function AuthIndex() {
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
       <ScrollView
         contentContainerStyle={{
-          paddingTop: insets.top + 60,
+          paddingTop: insets.top + 20,
           paddingBottom: Math.max(insets.bottom, 24),
         }}
         className="flex-1 bg-surface px-6"
       >
-        <Text className="text-3xl font-bold text-primary mb-8">{t('auth.title')}</Text>
+        <View className="flex-row items-center justify-between mb-8">
+          <Text className="text-3xl font-bold text-primary flex-1 mr-4">{t('auth.title')}</Text>
+          <LanguageToggle variant="discrete" />
+        </View>
 
         <View className="space-y-6">
           <Input

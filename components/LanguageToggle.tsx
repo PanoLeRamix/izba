@@ -6,7 +6,11 @@ import { Colors } from '../constants/Colors';
 import { storage } from '../utils/storage';
 import { BottomSheetModal } from './BottomSheetModal';
 
-export const LanguageToggle = () => {
+interface LanguageToggleProps {
+  variant?: 'default' | 'discrete';
+}
+
+export const LanguageToggle = ({ variant = 'default' }: LanguageToggleProps) => {
   const { t, i18n } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -22,6 +26,30 @@ export const LanguageToggle = () => {
     await storage.setItem('user-language', code);
     setModalVisible(false);
   };
+
+  if (variant === 'discrete') {
+    return (
+      <>
+        <TouchableOpacity
+          onPress={() => setModalVisible(true)}
+          className="flex-row items-center bg-white/80 shadow-sm px-3 py-2 rounded-xl border border-secondary-container/30"
+          activeOpacity={0.7}
+        >
+          <Languages size={18} color={Colors.primary} strokeWidth={2.5} />
+          <Text className="ml-2 text-xs font-bold text-primary uppercase">
+            {i18n.language.toUpperCase()}
+          </Text>
+        </TouchableOpacity>
+        <LanguageModal 
+          visible={modalVisible} 
+          onClose={() => setModalVisible(false)} 
+          onSelect={selectLanguage}
+          languages={languages}
+          currentLanguageCode={i18n.language}
+        />
+      </>
+    );
+  }
 
   return (
     <>
@@ -42,40 +70,63 @@ export const LanguageToggle = () => {
         </View>
       </TouchableOpacity>
 
-      <BottomSheetModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        header={
-          <Text className="text-2xl font-black text-primary uppercase tracking-tight mb-6 text-center">
-            {t('common.appLanguage')}
-          </Text>
-        }
-      >
-        <View className="gap-3">
-          {languages.map((lang) => {
-            const isSelected = lang.code === i18n.language;
-            return (
-              <TouchableOpacity
-                key={lang.code}
-                onPress={() => void selectLanguage(lang.code)}
-                style={{ 
-                  backgroundColor: isSelected ? Colors.primary : Colors.surface,
-                  borderColor: isSelected ? Colors.primary : Colors.outlineVariant,
-                  borderWidth: 1
-                }}
-                className="flex-row items-center p-5 rounded-[2rem] shadow-sm"
-              >                <Text className="text-2xl mr-4">{lang.flag}</Text>
-                <Text 
-                  className={`flex-1 text-lg font-black ${isSelected ? 'text-on-primary' : 'text-primary'}`}
-                >
-                  {lang.label}
-                </Text>
-                {isSelected && <Check size={20} color={Colors.onPrimary} strokeWidth={3} />}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </BottomSheetModal>
+      <LanguageModal 
+        visible={modalVisible} 
+        onClose={() => setModalVisible(false)} 
+        onSelect={selectLanguage}
+        languages={languages}
+        currentLanguageCode={i18n.language}
+      />
     </>
+  );
+};
+
+interface LanguageModalProps {
+  visible: boolean;
+  onClose: () => void;
+  onSelect: (code: string) => void;
+  languages: Array<{ code: string; label: string; flag: string }>;
+  currentLanguageCode: string;
+}
+
+const LanguageModal = ({ visible, onClose, onSelect, languages, currentLanguageCode }: LanguageModalProps) => {
+  const { t } = useTranslation();
+  
+  return (
+    <BottomSheetModal
+      visible={visible}
+      onClose={onClose}
+      header={
+        <Text className="text-2xl font-black text-primary uppercase tracking-tight mb-6 text-center">
+          {t('common.appLanguage')}
+        </Text>
+      }
+    >
+      <View className="gap-3">
+        {languages.map((lang) => {
+          const isSelected = lang.code === currentLanguageCode;
+          return (
+            <TouchableOpacity
+              key={lang.code}
+              onPress={() => void onSelect(lang.code)}
+              style={{ 
+                backgroundColor: isSelected ? Colors.primary : Colors.surface,
+                borderColor: isSelected ? Colors.primary : Colors.outlineVariant,
+                borderWidth: 1
+              }}
+              className="flex-row items-center p-5 rounded-[2rem] shadow-sm"
+            >
+              <Text className="text-2xl mr-4">{lang.flag}</Text>
+              <Text 
+                className={`flex-1 text-lg font-black ${isSelected ? 'text-on-primary' : 'text-primary'}`}
+              >
+                {lang.label}
+              </Text>
+              {isSelected && <Check size={20} color={Colors.onPrimary} strokeWidth={3} />}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </BottomSheetModal>
   );
 };

@@ -6,6 +6,7 @@ import { ChevronLeft, UserPlus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { InputModal } from '../../components/InputModal';
+import { LanguageToggle } from '../../components/LanguageToggle';
 import { Colors } from '../../constants/Colors';
 import { authService } from '../../services/auth';
 import { useAuthStore } from '../../store/authStore';
@@ -69,9 +70,12 @@ export default function SelectUser() {
         }}
         className="flex-1 bg-surface px-6"
       >
-        <TouchableOpacity onPress={() => router.back()} className="py-4 mb-4">
-          <ChevronLeft size={24} color={Colors.primary} />
-        </TouchableOpacity>
+        <View className="flex-row items-center justify-between py-4 mb-4">
+          <TouchableOpacity onPress={() => router.back()}>
+            <ChevronLeft size={24} color={Colors.primary} />
+          </TouchableOpacity>
+          <LanguageToggle variant="discrete" />
+        </View>
 
         <Text className="text-3xl font-bold text-primary mb-8">{t('auth.selectIdentity')}</Text>
 
