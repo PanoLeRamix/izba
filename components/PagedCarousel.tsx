@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import {
   FlatList,
   Platform,
@@ -44,11 +44,29 @@ export function PagedCarousel<T>({
 }: PagedCarouselProps<T>) {
   const { width: windowWidth } = useWindowDimensions();
   const flatListRef = useRef<FlatList<T>>(null);
+  const isFirstRender = useRef(true);
   const listStyle: WebListStyle = { flex: 1 };
 
   if (Platform.OS === 'web') {
     listStyle.touchAction = 'pan-x';
   }
+
+  // Handle initial scroll on web to avoid defaulting to index 0
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      if (currentIndex > 0) {
+        // Use a small delay to ensure layout is complete on web
+        const timer = setTimeout(() => {
+          flatListRef.current?.scrollToIndex({
+            index: currentIndex,
+            animated: false,
+          });
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [currentIndex]);
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -131,7 +149,7 @@ export function PagedCarousel<T>({
         scrollEventThrottle={16}
         disableIntervalMomentum
         snapToInterval={windowWidth}
-        initialNumToRender={2}
+        initialNumToRender={currentIndex + 1}
         windowSize={5}
         maxToRenderPerBatch={2}
         updateCellsBatchingPeriod={50}
