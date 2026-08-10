@@ -5,9 +5,7 @@ import {
   Modal, 
   TouchableOpacity, 
   TouchableWithoutFeedback, 
-  Platform, 
   TextInput,
-  KeyboardAvoidingView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Colors } from '../constants/Colors';
@@ -43,12 +41,11 @@ export const InputModal = ({
   initialValue = '',
   placeholder,
   maxLength,
-  loading = false
+  loading = false,
 }: InputModalProps) => {
   const { t } = useTranslation();
   const [value, setValue] = useState(initialValue);
   const inputRef = useRef<TextInput>(null);
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   useEffect(() => {
     if (visible) {
@@ -59,25 +56,6 @@ export const InputModal = ({
       return () => clearTimeout(timer);
     }
   }, [visible, initialValue]);
-
-  // Web-specific visual viewport tracking
-  useEffect(() => {
-    if (Platform.OS !== 'web' || !window.visualViewport) return;
-
-    const handleResize = () => {
-      const vv = window.visualViewport;
-      if (!vv) return;
-      const offset = window.innerHeight - vv.height;
-      setKeyboardOffset(offset > 0 ? offset : 0);
-    };
-
-    window.visualViewport.addEventListener('resize', handleResize);
-    window.visualViewport.addEventListener('scroll', handleResize);
-    return () => {
-      window.visualViewport?.removeEventListener('resize', handleResize);
-      window.visualViewport?.removeEventListener('scroll', handleResize);
-    };
-  }, []);
 
   const handleSave = () => {
     onSave(value);
@@ -93,16 +71,10 @@ export const InputModal = ({
       <TouchableWithoutFeedback onPress={onClose}>
         <View 
           className="flex-1 justify-center items-center p-6"
-          style={[
-            { backgroundColor: Colors.backdrop },
-            Platform.OS === 'web' ? { paddingBottom: keyboardOffset } : {}
-          ]}
+          style={{ backgroundColor: Colors.backdrop }}
         >
           <TouchableWithoutFeedback>
-            <KeyboardAvoidingView 
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-              className="w-full max-w-md items-center"
-            >
+            <View className="w-full max-w-md items-center">
               <View className="bg-surface w-full p-8 rounded-3xl border border-secondary/20 shadow-xl">
                 <Text className="text-2xl font-bold mb-6 text-primary">
                   {title}
@@ -158,7 +130,7 @@ export const InputModal = ({
                   </View>
                 )}
               </View>
-            </KeyboardAvoidingView>
+            </View>
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
