@@ -2,6 +2,7 @@ import React, { memo } from 'react';
 import { ScrollView, View, type ViewStyle } from 'react-native';
 import { isToday, type Locale } from 'date-fns';
 import { DayTile } from './DayTile';
+import { LAYOUT } from '../../constants/Layout';
 import { type PlannerStatus } from '../../services/planner';
 import { type User } from '../../services/user';
 
@@ -27,6 +28,7 @@ interface ProcessedDay {
 interface WeekPageProps {
   item: WeekItem;
   windowWidth: number;
+  pageHeight: number;
   onToggleStatus: (dateKey: string) => void;
   onShowDetails: (dateKey: string) => void;
   locale: Locale;
@@ -40,9 +42,10 @@ type SnapStyle = ViewStyle & {
   scrollSnapStop?: 'always';
 };
 
-export const WeekPage = memo(({ item, windowWidth, onToggleStatus, onShowDetails, locale, processedData, userPlans, tileHeight }: WeekPageProps) => {
+export const WeekPage = memo(({ item, windowWidth, pageHeight, onToggleStatus, onShowDetails, locale, processedData, userPlans, tileHeight }: WeekPageProps) => {
   const containerStyle: SnapStyle = {
     width: windowWidth,
+    height: pageHeight,
     scrollSnapAlign: 'start',
     scrollSnapStop: 'always',
   };
@@ -51,6 +54,7 @@ export const WeekPage = memo(({ item, windowWidth, onToggleStatus, onShowDetails
     <ScrollView 
       style={containerStyle} 
       className="px-6"
+      contentContainerStyle={{ paddingBottom: LAYOUT.BASE_SCREEN_PADDING }}
       showsVerticalScrollIndicator={false}
     >
       <View className="pb-4">

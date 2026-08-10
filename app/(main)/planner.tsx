@@ -66,6 +66,7 @@ export default function Planner() {
           <WeekPage
             item={item}
             windowWidth={pageWidth}
+            pageHeight={availableHeight}
             userPlans={userPlans}
             onToggleStatus={actions.toggleStatus}
             onShowDetails={setSelectedDayKey}

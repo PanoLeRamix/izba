@@ -14,7 +14,7 @@ import { CalendarArrowDown, ChevronLeft, ChevronRight } from 'lucide-react-nativ
 import { Colors } from '../constants/Colors';
 
 type WebListStyle = ViewStyle & {
-  touchAction?: 'pan-x';
+  touchAction?: 'pan-x' | 'pan-x pan-y';
 };
 
 interface PagedCarouselProps<T> {
@@ -48,7 +48,7 @@ export function PagedCarousel<T>({
   const listStyle: WebListStyle = { flex: 1 };
 
   if (Platform.OS === 'web') {
-    listStyle.touchAction = 'pan-x';
+    listStyle.touchAction = 'pan-x pan-y';
   }
 
   // Handle initial scroll on web to avoid defaulting to index 0
