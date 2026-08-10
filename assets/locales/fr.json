@@ -111,6 +111,8 @@
     "title": "Liste de courses",
     "addAction": "Ajouter",
     "addTitle": "Ajouter un élément",
+    "editAction": "Modifier",
+    "editTitle": "Modifier un élément",
     "placeholder": "Ex. : Lait",
     "emptyTitle": "Rien sur la liste",
     "emptyMessage": "Ajoute un premier élément pour démarrer la liste de courses.",

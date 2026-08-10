@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { Check, Plus } from 'lucide-react-native';
+import { Check, Pencil, Plus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { InputModal } from '../../components/InputModal';
@@ -14,10 +14,13 @@ import { isNetworkError } from '../../utils/errors';
 function ShoppingItemRow({
   item,
   onPress,
+  onEdit,
 }: {
   item: HouseShoppingItem;
   onPress: (item: HouseShoppingItem) => void;
+  onEdit: (item: HouseShoppingItem) => void;
 }) {
+  const { t } = useTranslation();
   const isChecked = !!item.checked_at;
 
   return (
@@ -58,6 +61,18 @@ function ShoppingItemRow({
       >
         {item.name}
       </Text>
+      <Pressable
+        accessibilityLabel={`${t('shopping.editAction')}: ${item.name}`}
+        accessibilityRole="button"
+        className="ml-3 h-9 w-9 items-center justify-center rounded-full"
+        onPress={(event) => {
+          event.stopPropagation();
+          onEdit(item);
+        }}
+        style={{ backgroundColor: Colors.surfaceContainerHigh }}
+      >
+        <Pencil size={16} color={Colors.primary} />
+      </Pressable>
     </Pressable>
   );
 }
@@ -66,6 +81,7 @@ export default function CoursesScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [isAddVisible, setIsAddVisible] = useState(false);
+  const [editingItem, setEditingItem] = useState<HouseShoppingItem | null>(null);
   const { activeItems, checkedItems, isLoading, isSaving, actions } = useShoppingList();
 
   const topPadding = LAYOUT.getTopPadding(insets.top);
@@ -103,6 +119,20 @@ export default function CoursesScreen() {
     [actions, showDialog, t],
   );
 
+  const handleRenameItem = useCallback(
+    async (value: string) => {
+      if (!editingItem) return;
+
+      try {
+        await actions.renameItem(editingItem.id, value);
+        setEditingItem(null);
+      } catch (error) {
+        showDialog(t('common.error'), isNetworkError(error) ? t('common.networkError') : t('shopping.updateError'));
+      }
+    },
+    [actions, editingItem, showDialog, t],
+  );
+
   if (isLoading && !activeItems.length && !checkedItems.length) {
     return <ShoppingSkeleton />;
   }
@@ -134,7 +164,7 @@ export default function CoursesScreen() {
         ) : null}
 
         {activeItems.map((item) => (
-          <ShoppingItemRow key={item.id} item={item} onPress={handleToggleItem} />
+          <ShoppingItemRow key={item.id} item={item} onPress={handleToggleItem} onEdit={setEditingItem} />
         ))}
 
         {checkedItems.length ? (
@@ -145,7 +175,7 @@ export default function CoursesScreen() {
         ) : null}
 
         {checkedItems.map((item) => (
-          <ShoppingItemRow key={item.id} item={item} onPress={handleToggleItem} />
+          <ShoppingItemRow key={item.id} item={item} onPress={handleToggleItem} onEdit={setEditingItem} />
         ))}
 
         <View className="flex-row items-start pt-4">
@@ -186,6 +216,18 @@ export default function CoursesScreen() {
         title={t('shopping.addTitle')}
         saveTitle={t('shopping.addAction')}
         placeholder={t('shopping.placeholder')}
+        maxLength={80}
+        loading={isSaving}
+      />
+
+      <InputModal
+        visible={editingItem !== null}
+        onClose={() => setEditingItem(null)}
+        onSave={(value) => void handleRenameItem(value)}
+        title={t('shopping.editTitle')}
+        saveTitle={t('auth.save')}
+        placeholder={t('shopping.placeholder')}
+        initialValue={editingItem?.name}
         maxLength={80}
         loading={isSaving}
       />

@@ -29,6 +29,17 @@ export const shoppingService = {
     return (data?.[0] ?? null) as HouseShoppingItem | null;
   },
 
+  async renameItem(userToken: string, itemId: string, name: string) {
+    const { data, error } = await supabase.rpc('rename_house_shopping_item', {
+      p_user_token: userToken,
+      p_item_id: itemId,
+      p_name: name,
+    });
+
+    if (error) throw error;
+    return (data?.[0] ?? null) as HouseShoppingItem | null;
+  },
+
   async setItemChecked(userToken: string, itemId: string, checked: boolean) {
     const { data, error } = await supabase.rpc('set_house_shopping_item_checked', {
       p_user_token: userToken,

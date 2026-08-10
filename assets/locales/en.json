@@ -111,6 +111,8 @@
     "title": "Shopping list",
     "addAction": "Add",
     "addTitle": "Add an item",
+    "editAction": "Edit",
+    "editTitle": "Edit an item",
     "placeholder": "e.g. Milk",
     "emptyTitle": "Nothing on the list",
     "emptyMessage": "Add a first item to start the shopping list.",

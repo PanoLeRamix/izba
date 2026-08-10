@@ -53,6 +53,18 @@ export function useShoppingList() {
     },
   });
 
+  const renameItemMutation = useMutation({
+    mutationFn: ({ itemId, name }: { itemId: string; name: string }) => shoppingService.renameItem(userToken!, itemId, name),
+    onSuccess: async (data) => {
+      if (data) {
+        queryClient.setQueryData<HouseShoppingItem[]>(queryKey, (current = []) =>
+          sortItems(current.map((item) => (item.id === data.id ? data : item))),
+        );
+      }
+      await queryClient.invalidateQueries({ queryKey });
+    },
+  });
+
   const setCheckedMutation = useMutation({
     mutationFn: ({ itemId, checked }: { itemId: string; checked: boolean }) =>
       shoppingService.setItemChecked(userToken!, itemId, checked),
@@ -121,16 +133,24 @@ export function useShoppingList() {
     [setCheckedMutation],
   );
 
+  const renameItem = useCallback(
+    async (itemId: string, name: string) => {
+      await renameItemMutation.mutateAsync({ itemId, name: name.trim() });
+    },
+    [renameItemMutation],
+  );
+
   return {
     items,
     activeItems,
     checkedItems,
     isLoading,
     isRefetching,
-    isSaving: createItemMutation.isPending || setCheckedMutation.isPending,
+    isSaving: createItemMutation.isPending || renameItemMutation.isPending || setCheckedMutation.isPending,
     refetch,
     actions: {
       createItem,
+      renameItem,
       setItemChecked,
     },
   };
